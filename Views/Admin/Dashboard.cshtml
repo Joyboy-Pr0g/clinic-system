@@ -1,0 +1,20 @@
+@model AdminDashboardVM
+@{ ViewData["Title"] = "الإدارة"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">لوحة الإدارة</h1>
+<div class="stat-cards">
+    <div class="stat-card"><strong>@Model.TotalUsers</strong><div class="muted">مستخدمون</div></div>
+    <div class="stat-card"><strong>@Model.TotalNurses</strong><div class="muted">ممرضون</div></div>
+    <div class="stat-card"><strong>@Model.TotalClinics</strong><div class="muted">عيادات</div></div>
+    <div class="stat-card"><strong>@Model.AppointmentsToday</strong><div class="muted">مواعيد اليوم</div></div>
+    <div class="stat-card"><strong>@Model.RevenueEstimate.ToString("N0")</strong><div class="muted">إيرادات مكتملة (شهري)</div></div>
+    <div class="stat-card"><strong>@Model.PendingVerifications</strong><div class="muted">بانتظار التحقق</div></div>
+</div>
+<h2 class="page-title">نشاط حديث</h2>
+<ul class="card" style="list-style:none;padding:1rem;margin:0">
+@foreach (var a in Model.RecentActivity)
+{
+    <li style="padding:0.35rem 0;border-bottom:1px solid #eee">@a.Text <small class="muted">@a.At.ToLocalTime().ToString("g")</small></li>
+}
+</ul>

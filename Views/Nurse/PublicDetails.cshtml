@@ -1,0 +1,37 @@
+@model NurseDetailsVM
+@{
+    ViewData["Title"] = Model.FullName;
+}
+<div class="container section-block">
+    <div class="card" style="max-width:720px;margin-inline:auto">
+        <h1 class="page-title">@Model.FullName</h1>
+        <p class="muted">@Model.Specialization · خبرة @Model.YearsOfExperience سنوات</p>
+        <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", (int)Math.Round((double)Model.AverageRating)))</p>
+        @if (!Model.IsAvailable) { <p class="text-danger">غير متاح حالياً</p> }
+        <p>@Model.Bio</p>
+        <h3>الخدمات والأسعار</h3>
+        <ul>
+            @foreach (var s in Model.Services)
+            {
+                <li>@s.ServiceName — @s.Price.ToString("N2") ر.س</li>
+            }
+        </ul>
+        @if (User.IsInRole("Patient"))
+        {
+            <a class="btn btn-accent" asp-controller="Patient" asp-action="Book" asp-route-nurseId="@Model.NurseProfileId">احجز الآن</a>
+        }
+        else
+        {
+            <a class="btn btn-outline" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient", new { nurseId = Model.NurseProfileId })">سجّل دخول للحجز</a>
+        }
+        <h3 style="margin-top:2rem">آراء</h3>
+        @foreach (var r in Model.Reviews)
+        {
+            <div class="card" style="margin-bottom:0.5rem">
+                <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", r.Stars))</p>
+                <p>@r.Comment</p>
+                <small class="muted">@r.PatientName — @r.CreatedAt.ToLocalTime().ToString("d")</small>
+            </div>
+        }
+    </div>
+</div>

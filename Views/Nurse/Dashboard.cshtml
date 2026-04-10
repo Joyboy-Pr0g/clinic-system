@@ -1,0 +1,29 @@
+@model NurseDashboardVM
+@{ Layout = "_DashboardLayout"; ViewData["Title"] = "لوحة الممرض"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">لوحة الممرض</h1>
+<div class="stat-cards">
+    <div class="stat-card"><strong>@Model.TodayCount</strong><div class="muted">مواعيد اليوم</div></div>
+    <div class="stat-card"><strong>@Model.TotalCompleted</strong><div class="muted">مكتملة</div></div>
+    <div class="stat-card"><strong>@Model.AverageRating.ToString("N1")</strong><div class="muted">متوسط التقييم</div></div>
+    <div class="stat-card"><strong>@Model.PendingRequests</strong><div class="muted">طلبات معلقة</div></div>
+</div>
+<h2 class="page-title">الجدول القادم</h2>
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>التاريخ</th><th>المريض</th><th>الخدمة</th><th>الحالة</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var r in Model.Upcoming)
+        {
+            <tr>
+                <td>@r.AppointmentDate.ToLocalTime().ToString("g")</td>
+                <td>@r.ProviderName</td>
+                <td>@r.ServiceName</td>
+                <td><span class="badge badge-@(r.Status == "InProgress" ? "inprogress" : r.Status.ToLowerInvariant())">@r.Status</span></td>
+                <td><a asp-action="AppointmentDetail" asp-route-id="@r.AppointmentId">فتح</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

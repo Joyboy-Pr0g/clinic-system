@@ -1,0 +1,26 @@
+@model List<HomeNursingSystem.Models.Article>
+@{ ViewData["Title"] = "المقالات"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">المقالات والأخبار</h1>
+<p><a class="btn btn-primary" asp-action="CreateArticle">جديد</a></p>
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>العنوان</th><th>فئة</th><th>منشور</th><th>خبر</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>@a.Title</td>
+                <td>@a.Category</td>
+                <td>@(a.IsPublished ? "نعم" : "لا")</td>
+                <td>@(a.IsNews ? "نعم" : "لا")</td>
+                <td>
+                    <a class="btn btn-sm btn-outline" asp-action="EditArticle" asp-route-id="@a.ArticleId">تعديل</a>
+                    <form asp-action="DeleteArticle" asp-route-id="@a.ArticleId" method="post" style="display:inline" onsubmit="return confirm('حذف�');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-ghost">حذف</button></form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

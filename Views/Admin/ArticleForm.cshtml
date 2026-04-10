@@ -1,0 +1,26 @@
+@model ArticleVM
+@{ ViewData["Title"] = Model.ArticleId.HasValue ? "تعديل مقال" : "مقال جديد"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">@ViewData["Title"]</h1>
+<form asp-action="SaveArticle" method="post" enctype="multipart/form-data" class="form-stack wide" data-loading>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ArticleId" />
+    <div class="field"><label asp-for="Title"></label><input asp-for="Title" /><span asp-validation-for="Title"></span></div>
+    <div class="field"><label asp-for="Summary"></label><textarea asp-for="Summary" rows="2"></textarea></div>
+    <div class="field"><label asp-for="Content"></label><textarea asp-for="Content" rows="12"></textarea></div>
+    <div class="field"><label asp-for="Category"></label>
+        <select asp-for="Category">
+            <option value="@ArticleCategories.HealthTips">@ArticleCategories.HealthTips</option>
+            <option value="@ArticleCategories.News">@ArticleCategories.News</option>
+            <option value="@ArticleCategories.Guides">@ArticleCategories.Guides</option>
+        </select>
+    </div>
+    <label><input type="checkbox" asp-for="IsNews" /> @Html.DisplayNameFor(m => m.IsNews)</label>
+    <label><input type="checkbox" asp-for="IsPublished" /> @Html.DisplayNameFor(m => m.IsPublished)</label>
+    <div class="field"><label asp-for="ThumbnailFile"></label><input asp-for="ThumbnailFile" type="file" accept="image/*" /></div>
+    @if (!string.IsNullOrEmpty(Model.ThumbnailImagePath)) { <p class="muted">الصورة: <img src="@Model.ThumbnailImagePath" alt="" style="height:48px" /></p> }
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <button type="submit" class="btn btn-primary">حفظ</button>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,24 @@
+@model List<HomeNursingSystem.Models.Appointment>
+@{ ViewData["Title"] = "كل المواعيد"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">المواعيد</h1>
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>#</th><th>التاريخ</th><th>المريض</th><th>المقدم</th><th>الخدمة</th><th>الحالة</th><th>السعر</th></tr></thead>
+        <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>@a.AppointmentId</td>
+                <td>@a.AppointmentDate.ToLocalTime().ToString("g")</td>
+                <td>@a.Patient.FullName</td>
+                <td>@(a.NurseProfile != null ? a.NurseProfile.User.FullName : a.Clinic?.ClinicName)</td>
+                <td>@a.Service.ServiceName</td>
+                <td><span class="badge badge-@(a.Status == "InProgress" ? "inprogress" : a.Status.ToLowerInvariant())">@a.Status</span></td>
+                <td>@a.TotalPrice.ToString("N2")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

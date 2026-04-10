@@ -1,0 +1,26 @@
+@model ArticleDetailsVM
+@{
+    ViewData["Title"] = Model.Title;
+}
+<div class="container section-block">
+    <article class="card" style="max-width:800px;margin-inline:auto;padding:2rem">
+        @if (!string.IsNullOrEmpty(Model.ThumbnailImagePath))
+        { <img src="@Model.ThumbnailImagePath" alt="" style="width:100%;max-height:320px;object-fit:cover;border-radius:8px" /> }
+        <h1 class="page-title">@Model.Title</h1>
+        <p class="muted">@Model.Category · @Model.PublishedAt?.ToLocalTime().ToString("D") · مشاهدات @Model.ViewCount</p>
+        <div class="article-body" style="white-space:pre-wrap">@Model.Content</div>
+    </article>
+    @if (Model.Related.Count > 0)
+    {
+        <h2 class="page-title">ذات الصلة</h2>
+        <div class="card-grid">
+            @foreach (var r in Model.Related)
+            {
+                <div class="card">
+                    <h3><a asp-action="Details" asp-route-slug="@r.Slug">@r.Title</a></h3>
+                    <p class="muted">@r.Summary</p>
+                </div>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,50 @@
+@model HomeNursingSystem.Models.Appointment
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "موعد #" + Model.AppointmentId;
+    var key = ViewBag.GoogleMapsApiKey as string;
+    var showMap = Model.Latitude != null && Model.Longitude != null && !string.IsNullOrEmpty(key) && key != "YOUR_GOOGLE_MAPS_API_KEY";
+}
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">موعد #@Model.AppointmentId</h1>
+<p><span class="badge badge-@(Model.Status == "InProgress" ? "inprogress" : Model.Status.ToLowerInvariant())">@Model.Status</span></p>
+<p><strong>المريض:</strong> @Model.Patient.FullName — @Model.Patient.PhoneNumber</p>
+<p><strong>العنوان:</strong> @Model.AddressText</p>
+<p><strong>الخدمة:</strong> @Model.Service.ServiceName — @Model.TotalPrice.ToString("N2") ر.س</p>
+@if (!string.IsNullOrEmpty(Model.Notes)) { <p><strong>ملاحظات:</strong> @Model.Notes</p> }
+@if (showMap) { <div id="nmap" class="map-canvas"></div> }
+
+@if (Model.Status == "Pending")
+{
+    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post" style="display:inline">
+        @Html.AntiForgeryToken()<input type="hidden" name="status" value="Confirmed" />
+        <button type="submit" class="btn btn-primary">قبول</button>
+    </form>
+    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post" style="display:inline">
+        @Html.AntiForgeryToken()<input type="hidden" name="status" value="Cancelled" />
+        <button type="submit" class="btn btn-ghost">رفض</button>
+    </form>
+}
+@if (Model.Status == "Confirmed")
+{
+    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post"><input type="hidden" name="status" value="InProgress" />@Html.AntiForgeryToken()<button type="submit" class="btn btn-accent">بدء الخدمة</button></form>
+}
+@if (Model.Status == "InProgress")
+{
+    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post"><input type="hidden" name="status" value="Completed" />@Html.AntiForgeryToken()<button type="submit" class="btn btn-primary">إكمال</button></form>
+}
+
+@section Scripts {
+    @if (showMap)
+    {
+        <script src="https://maps.googleapis.com/maps/api/js?key=@key"></script>
+        <script>
+            (function () {
+                var c = { lat: @Model.Latitude!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture), lng: @Model.Longitude!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
+                var map = new google.maps.Map(document.getElementById("nmap"), { zoom: 14, center: c });
+                new google.maps.Marker({ position: c, map: map });
+            })();
+        </script>
+    }
+}

@@ -1,0 +1,72 @@
+@model HomeNursingSystem.Models.Appointment
+@{
+    ViewData["Title"] = "تفاصيل الموعد";
+    var key = ViewBag.GoogleMapsApiKey as string;
+    var canRate = ViewBag.CanRate as bool? ?? false;
+    var showMap = Model.Latitude != null && Model.Longitude != null && !string.IsNullOrEmpty(key) && key != "YOUR_GOOGLE_MAPS_API_KEY";
+}
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">موعد #@Model.AppointmentId</h1>
+<p><span class="badge badge-@(Model.Status == "InProgress" ? "inprogress" : Model.Status.ToLowerInvariant())">@Model.Status</span></p>
+<p><strong>التاريخ:</strong> @Model.AppointmentDate.ToLocalTime().ToString("f")</p>
+<p><strong>الخدمة:</strong> @Model.Service.ServiceName</p>
+<p><strong>السعر:</strong> @Model.TotalPrice.ToString("N2") ر.س</p>
+<p><strong>العنوان:</strong> @Model.AddressText</p>
+@if (Model.NurseProfile != null)
+{
+    <p><strong>الممرض:</strong> @Model.NurseProfile.User.FullName</p>
+}
+@if (Model.Clinic != null)
+{
+    <p><strong>العيادة:</strong> @Model.Clinic.ClinicName</p>
+}
+@if (showMap)
+{
+    <div id="pmap" class="map-canvas"></div>
+}
+
+@if (canRate)
+{
+    <h2>قيّم الخدمة</h2>
+    <form asp-action="Rate" asp-route-appointmentId="@Model.AppointmentId" method="post" class="form-stack">
+        @Html.AntiForgeryToken()
+        <div class="stars-interactive" data-star-input>
+            @for (var i = 5; i >= 1; i--)
+            {
+                <input type="radio" name="Stars" value="@i" id="s@i" @(i == 5 ? "checked" : null) />
+                <label for="s@i" title="@i">★</label>
+            }
+        </div>
+        <div class="field"><label>تعليق</label><textarea name="Comment" maxlength="1000" rows="2"></textarea></div>
+        <button type="submit" class="btn btn-primary">إرسال التقييم</button>
+    </form>
+}
+
+@if (Model.Status != "Cancelled" && Model.Status != "Completed")
+{
+    <form asp-action="Cancel" asp-route-id="@Model.AppointmentId" method="post" style="margin-top:1rem" data-confirm-cancel>
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-ghost" style="border-color:#c0392b;color:#c0392b">إلغاء الموعد</button>
+    </form>
+}
+
+@section Scripts {
+    @if (showMap)
+    {
+        <script src="https://maps.googleapis.com/maps/api/js?key=@key"></script>
+        <script>
+            (function () {
+                var c = { lat: @Model.Latitude!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture), lng: @Model.Longitude!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
+                var map = new google.maps.Map(document.getElementById("pmap"), { zoom: 14, center: c });
+                new google.maps.Marker({ position: c, map: map });
+            })();
+        </script>
+    }
+    <script>
+        document.querySelector("[data-confirm-cancel]")?.addEventListener("submit", function (e) {
+            e.preventDefault();
+            if (confirm("تأكيد إلغاء الموعد��")) this.submit();
+        });
+    </script>
+}

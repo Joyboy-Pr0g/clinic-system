@@ -1,0 +1,50 @@
+@model (int Unread, IReadOnlyList<HomeNursingSystem.ViewModels.NotificationItemVM> Items)
+
+<div class="notif-bell-wrap">
+    <button type="button" class="notif-bell-btn" data-notif-toggle aria-expanded="false" title="الإشعارات">
+        <i class="fa-regular fa-bell"></i>
+        @if (Model.Unread > 0)
+        {
+            <span class="notif-badge">@Model.Unread</span>
+        }
+    </button>
+    <div class="notif-panel" data-notif-panel>
+        @if (Model.Items.Count == 0)
+        {
+            <div class="notif-item muted">لا إشعارات</div>
+        }
+        else
+        {
+            @foreach (var n in Model.Items)
+            {
+                <div class="notif-item">
+                    @if (!string.IsNullOrEmpty(n.Link))
+                    {
+                        <a href="@n.Link"><strong>@n.Title</strong><br /><small>@n.Message</small></a>
+                    }
+                    else
+                    {
+                        <strong>@n.Title</strong><br /><small>@n.Message</small>
+                    }
+                    <div><small>@n.CreatedAt.ToLocalTime().ToString("g")</small></div>
+                </div>
+            }
+            <form asp-controller="Notifications" asp-action="MarkAllRead" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="notif-mark-all">تعليم الكل كمقروء</button>
+            </form>
+        }
+    </div>
+</div>
+<script>
+    (function () {
+        var btn = document.querySelector('[data-notif-toggle]');
+        var panel = document.querySelector('[data-notif-panel]');
+        if (!btn || !panel) return;
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            panel.classList.toggle('is-open');
+        });
+        document.addEventListener('click', function () { panel.classList.remove('is-open'); });
+    })();
+</script>

@@ -1,0 +1,23 @@
+@model NurseProfileEditVM
+@{ Layout = "_DashboardLayout"; ViewData["Title"] = "ملف الممرض"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">ملفي والخدمات</h1>
+<form asp-action="Profile" method="post" class="form-stack wide" data-loading>
+    @Html.AntiForgeryToken()
+    <div class="field"><label asp-for="Specialization"></label><input asp-for="Specialization" /></div>
+    <div class="field"><label asp-for="YearsOfExperience"></label><input asp-for="YearsOfExperience" /></div>
+    <div class="field"><label asp-for="Bio"></label><textarea asp-for="Bio" rows="3"></textarea></div>
+    <label><input type="checkbox" asp-for="IsAvailable" /> @Html.DisplayNameFor(m => m.IsAvailable)</label>
+    <h3>الخدمات والأسعار</h3>
+    @for (var i = 0; i < Model.ServiceRows.Count; i++)
+    {
+        <div class="card" style="padding:0.75rem;margin-bottom:0.5rem">
+            <input type="hidden" asp-for="ServiceRows[i].ServiceId" />
+            <input type="hidden" asp-for="ServiceRows[i].ServiceName" />
+            <label><input asp-for="ServiceRows[i].Selected" /> @Model.ServiceRows[i].ServiceName</label>
+            <div class="field"><label>سعر مخصص</label><input asp-for="ServiceRows[i].CustomPrice" /></div>
+        </div>
+    }
+    <button type="submit" class="btn btn-primary">حفظ</button>
+</form>

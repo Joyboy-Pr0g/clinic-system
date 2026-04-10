@@ -1,0 +1,27 @@
+@model LoginVM
+@{
+    ViewData["Title"] = "تسجيل الدخول";
+}
+
+<div class="container section-block" style="max-width:480px">
+    <h1 class="page-title">تسجيل الدخول</h1>
+    <form asp-action="Login" method="post" class="form-stack" data-loading>
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ReturnUrl" />
+        <div class="field">
+            <label asp-for="Email"></label>
+            <input asp-for="Email" autocomplete="username" />
+            <span asp-validation-for="Email" class="field-validation-error"></span>
+        </div>
+        <div class="field">
+            <label asp-for="Password"></label>
+            <input asp-for="Password" autocomplete="current-password" />
+            <span asp-validation-for="Password" class="field-validation-error"></span>
+        </div>
+        <label><input type="checkbox" asp-for="RememberMe" /> @Html.DisplayNameFor(m => m.RememberMe)</label>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <button type="submit" class="btn btn-primary">دخول</button>
+    </form>
+    <p class="muted"><a asp-action="Register">إنشاء حساب جديد</a></p>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

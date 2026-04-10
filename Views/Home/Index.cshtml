@@ -1,0 +1,65 @@
+@model LandingVM
+@{
+    ViewData["Title"] = "الرئيسية";
+}
+
+<section class="hero">
+    <div class="container">
+        <h1>رعاية صحية موثوقة في منزلك</h1>
+        <p>احجز ممرضاً معتمداً أو عيادة قريبة بخطوات بسيطة، مع متابعة كاملة لمواعيدك وتقييم الخدمة.</p>
+        <div class="hero-actions">
+            <a class="btn btn-primary" asp-controller="Nurse" asp-action="Browse">تصفح الممرضين</a>
+            <a class="btn btn-outline" asp-controller="Patient" asp-action="Book">احجز الآن</a>
+        </div>
+    </div>
+</section>
+
+<div class="container section-block">
+    <div class="stats-row">
+        <div class="stat-box"><strong>@Model.NursesCount</strong><span class="muted">ممرض معتمد</span></div>
+        <div class="stat-box"><strong>@Model.ClinicsCount</strong><span class="muted">عيادة</span></div>
+        <div class="stat-box"><strong>@Model.AppointmentsCount</strong><span class="muted">موعد مكتمل</span></div>
+    </div>
+
+    <h2 class="page-title">الخدمات</h2>
+    <div class="card-grid">
+        @foreach (var s in Model.Services)
+        {
+            <div class="card">
+                <i class="fa-solid @(string.IsNullOrEmpty(s.ServiceName) ? "fa-stethoscope" : "fa-notes-medical")" style="font-size:1.5rem;color:var(--color-primary)"></i>
+                <h3>@s.ServiceName</h3>
+                <p class="muted">من @s.BasePrice.ToString("N0") ر.س</p>
+            </div>
+        }
+    </div>
+
+    <h2 class="page-title">ممرضون مميزون</h2>
+    <div class="card-grid">
+        @foreach (var n in Model.FeaturedNurses)
+        {
+            <div class="card">
+                @if (!string.IsNullOrEmpty(n.ProfileImage))
+                {
+                    <img class="card-img-top" src="@n.ProfileImage" alt="" />
+                }
+                <h3>@n.FullName</h3>
+                <p class="muted">@n.Specialization</p>
+                <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", (int)Math.Round((double)n.AverageRating)))</p>
+                <a class="btn btn-sm btn-primary" asp-controller="Nurse" asp-action="Details" asp-route-id="@n.NurseProfileId">الملف</a>
+                <a class="btn btn-sm btn-accent" asp-controller="Patient" asp-action="Book" asp-route-nurseId="@n.NurseProfileId">احجز</a>
+            </div>
+        }
+    </div>
+
+    <h2 class="page-title">آراء المستخدمين</h2>
+    <div class="card-grid">
+        <div class="card"><p>«خدمة ممتازة ووصول في الوقت المحدد.»</p><strong>— مريض</strong></div>
+        <div class="card"><p>«فريق احترافي ورعاية لكبار السن.»</p><strong>— ولي أمر</strong></div>
+        <div class="card"><p>«الحجز سهل والمتابعة واضحة.»</p><strong>— عميل</strong></div>
+    </div>
+
+    <div class="hero" style="margin-top:2rem;border-radius:var(--radius)">
+        <h2>ابدأ اليوم</h2>
+        <a class="btn btn-accent" asp-controller="Account" asp-action="Register">أنشئ حساباً مجاناً</a>
+    </div>
+</div>

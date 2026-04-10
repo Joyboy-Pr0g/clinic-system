@@ -1,0 +1,25 @@
+@model RegisterVM
+@{
+    ViewData["Title"] = "تسجيل مريض";
+}
+
+<div class="container section-block" style="max-width:520px">
+    <h1 class="page-title">تسجيل حساب مريض</h1>
+    <p class="muted">لممرض أو مالك عيادة استخدم الروابط أدناه.</p>
+    <p><a asp-action="RegisterNurse">تسجيل ممرض</a> — <a asp-action="RegisterClinic">تسجيل عيادة</a></p>
+    <form asp-action="Register" method="post" class="form-stack" data-loading>
+        @Html.AntiForgeryToken()
+        <div class="field"><label asp-for="FullName"></label><input asp-for="FullName" /><span asp-validation-for="FullName"></span></div>
+        <div class="field"><label asp-for="Email"></label><input asp-for="Email" /><span asp-validation-for="Email"></span></div>
+        <div class="field"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" /><span asp-validation-for="PhoneNumber"></span></div>
+        <div class="field"><label asp-for="Password"></label><input asp-for="Password" /><span asp-validation-for="Password"></span></div>
+        <div class="field"><label asp-for="ConfirmPassword"></label><input asp-for="ConfirmPassword" /><span asp-validation-for="ConfirmPassword"></span></div>
+        <div class="field"><label asp-for="City"></label><input asp-for="City" /></div>
+        <div class="field"><label asp-for="Neighborhood"></label><input asp-for="Neighborhood" /></div>
+        <div class="field"><label asp-for="Street"></label><input asp-for="Street" /></div>
+        <input type="hidden" asp-for="SelectedRole" value="@HomeNursingSystem.Models.AppRoles.Patient" />
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <button type="submit" class="btn btn-primary">إنشاء الحساب</button>
+    </form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,20 @@
+@model IReadOnlyList<ClinicListItemVM>
+@{
+    ViewData["Title"] = "العيادات";
+}
+<div class="container section-block">
+    <h1 class="page-title">عيادات معتمدة</h1>
+    <form method="get" class="form-inline-search" style="max-width:320px"><input name="search" value="@ViewBag.Search" placeholder="بحث..." /><button class="btn btn-primary btn-sm" type="submit">بحث</button></form>
+    <div class="card-grid">
+        @foreach (var c in Model)
+        {
+            <div class="card">
+                @if (!string.IsNullOrEmpty(c.LogoImagePath)) { <img class="card-img-top" src="@c.LogoImagePath" alt="" /> }
+                <h3>@c.ClinicName</h3>
+                <p class="muted">@c.Address</p>
+                <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", (int)Math.Round((double)c.AverageRating)))</p>
+                <a class="btn btn-sm btn-primary" asp-action="PublicDetails" asp-route-id="@c.ClinicId">عرض</a>
+            </div>
+        }
+    </div>
+</div>

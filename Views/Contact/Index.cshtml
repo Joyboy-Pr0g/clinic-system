@@ -1,0 +1,18 @@
+@model ContactVM
+@{
+    ViewData["Title"] = "اتصل بنا";
+}
+<div class="container section-block" style="max-width:560px">
+    <h1 class="page-title">اتصل بنا</h1>
+    <form asp-action="Index" method="post" class="form-stack" data-loading>
+        @Html.AntiForgeryToken()
+        <div class="field"><label asp-for="FullName"></label><input asp-for="FullName" /><span asp-validation-for="FullName"></span></div>
+        <div class="field"><label asp-for="Email"></label><input asp-for="Email" /><span asp-validation-for="Email"></span></div>
+        <div class="field"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" /></div>
+        <div class="field"><label asp-for="Subject"></label><input asp-for="Subject" /><span asp-validation-for="Subject"></span></div>
+        <div class="field"><label asp-for="Message"></label><textarea asp-for="Message" rows="5"></textarea><span asp-validation-for="Message"></span></div>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <button type="submit" class="btn btn-primary">إرسال</button>
+    </form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

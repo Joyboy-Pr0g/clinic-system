@@ -1,0 +1,53 @@
+@model ClinicDetailsVM
+@{
+    ViewData["Title"] = Model.ClinicName;
+    var key = ViewBag.GoogleMapsApiKey as string;
+    var showMap = !string.IsNullOrEmpty(key) && key != "YOUR_GOOGLE_MAPS_API_KEY";
+}
+<div class="container section-block">
+    <div class="card">
+        @if (!string.IsNullOrEmpty(Model.CoverImagePath)) { <img class="card-img-top" src="@Model.CoverImagePath" alt="" style="height:200px" /> }
+        <h1 class="page-title">@Model.ClinicName</h1>
+        <p>@Model.Description</p>
+        <p class="muted">@Model.Address · @Model.OpeningHours</p>
+        <p class="stars-readonly">متوسط @Model.AverageRating.ToString("N1")</p>
+        <h3>خدمات شائعة (أسعار تقريبية)</h3>
+        <ul>
+            @foreach (var s in Model.ServicesOffered)
+            {
+                <li>@s.ServiceName — من @s.BasePrice.ToString("N0") ر.س</li>
+            }
+        </ul>
+        @if (showMap) { <div id="cmap" class="map-canvas"></div> }
+        @if (User.IsInRole("Patient"))
+        {
+            <a class="btn btn-accent" asp-controller="Patient" asp-action="Book" asp-route-clinicId="@Model.ClinicId">احجز</a>
+        }
+        else
+        {
+            <a class="btn btn-outline" asp-controller="Account" asp-action="Login">سجّل دخول للحجز</a>
+        }
+        <h3 style="margin-top:2rem">آراء</h3>
+        @foreach (var r in Model.Reviews)
+        {
+            <div class="card" style="margin-bottom:0.5rem">
+                <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", r.Stars))</p>
+                <p>@r.Comment</p>
+                <small class="muted">@r.PatientName</small>
+            </div>
+        }
+    </div>
+</div>
+@section Scripts {
+    @if (showMap)
+    {
+        <script src="https://maps.googleapis.com/maps/api/js?key=@key"></script>
+        <script>
+            (function () {
+                var c = { lat: @Model.Latitude.ToString(System.Globalization.CultureInfo.InvariantCulture), lng: @Model.Longitude.ToString(System.Globalization.CultureInfo.InvariantCulture) };
+                var map = new google.maps.Map(document.getElementById("cmap"), { zoom: 14, center: c });
+                new google.maps.Marker({ position: c, map: map });
+            })();
+        </script>
+    }
+}

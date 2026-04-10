@@ -1,0 +1,102 @@
+@inject Microsoft.AspNetCore.Identity.UserManager<HomeNursingSystem.Models.ApplicationUser> UserManager
+@{
+    var user = await UserManager.GetUserAsync(User);
+}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>@(ViewData["Title"] ?? "الرئيسية") — رعاية منزلية</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
+    <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+</head>
+<body class="site-body" data-temp-success="@TempData["Success"]" data-temp-error="@TempData["Error"]">
+    <header class="site-header">
+        <div class="container header-inner">
+            <a class="brand" asp-controller="Home" asp-action="Index">رعاية<span>منزلية</span></a>
+            <button type="button" class="nav-toggle" aria-label="القائمة" data-nav-toggle></button>
+            <nav class="main-nav" data-main-nav>
+                <a asp-controller="Nurse" asp-action="Browse">الممرضون</a>
+                <a asp-controller="Clinic" asp-action="Index">العيادات</a>
+                <a asp-controller="Article" asp-action="Index">المقالات</a>
+                <a asp-controller="Home" asp-action="About">من نحن</a>
+                <a asp-controller="Contact" asp-action="Index">اتصل بنا</a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    @await Component.InvokeAsync("NotificationBell")
+                    <div class="nav-user">
+                        <button type="button" class="avatar-btn" data-dropdown-toggle aria-expanded="false">
+                            @if (!string.IsNullOrEmpty(user?.ProfileImagePath))
+                            {
+                                <img src="@user.ProfileImagePath" alt="" class="avatar-img" />
+                            }
+                            else
+                            {
+                                <span class="avatar-fallback"><i class="fa-solid fa-user"></i></span>
+                            }
+                        </button>
+                        <div class="dropdown-menu" data-dropdown>
+                            <span class="dropdown-name">@user?.FullName</span>
+                            @if (User.IsInRole("Admin"))
+                            { <a asp-controller="Admin" asp-action="Dashboard">لوحة الإدارة</a> }
+                            @if (User.IsInRole("Patient"))
+                            { <a asp-controller="Patient" asp-action="Dashboard">حسابي</a> }
+                            @if (User.IsInRole("Nurse"))
+                            { <a asp-controller="Nurse" asp-action="Dashboard">لوحة الممرض</a> }
+                            @if (User.IsInRole("ClinicOwner"))
+                            { <a asp-controller="Clinic" asp-action="Dashboard">لوحة العيادة</a> }
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="link-btn">تسجيل الخروج</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <a class="btn btn-outline" asp-controller="Account" asp-action="Login">دخول</a>
+                    <a class="btn btn-primary" asp-controller="Account" asp-action="Register">تسجيل</a>
+                }
+            </nav>
+        </div>
+    </header>
+
+    <div id="toast-root" class="toast-root" aria-live="polite"></div>
+
+    <main class="site-main">
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div>
+                <strong>رعاية منزلية</strong>
+                <p>منصة لحجز خدمات التمريض والعيادات المعتمدة.</p>
+            </div>
+            <div>
+                <strong>روابط</strong>
+                <a asp-controller="Nurse" asp-action="Browse">الممرضون</a>
+                <a asp-controller="Clinic" asp-action="Index">العيادات</a>
+                <a asp-controller="Article" asp-action="Index">المقالات</a>
+            </div>
+            <div>
+                <strong>تواصل</strong>
+                <p><i class="fa-solid fa-phone"></i> 920000000</p>
+                <p><i class="fa-solid fa-envelope"></i> info@homecare.local</p>
+                <div class="social">
+                    <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+                    <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook"></i></a>
+                </div>
+            </div>
+        </div>
+        <div class="container footer-copy">&copy; @DateTime.UtcNow.Year — جميع الحقوق محفوظة</div>
+    </footer>
+
+    <script src="~/js/app.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

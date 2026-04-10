@@ -1,0 +1,26 @@
+@model RegisterClinicPageVM
+@{
+    ViewData["Title"] = "تسجيل عيادة";
+}
+
+<div class="container section-block" style="max-width:560px">
+    <h1 class="page-title">تسجيل عيادة</h1>
+    <form asp-action="RegisterClinic" method="post" enctype="multipart/form-data" class="form-stack wide" data-loading>
+        @Html.AntiForgeryToken()
+        <div class="field"><label asp-for="OwnerFullName"></label><input asp-for="OwnerFullName" /><span asp-validation-for="OwnerFullName"></span></div>
+        <div class="field"><label asp-for="Email"></label><input asp-for="Email" /><span asp-validation-for="Email"></span></div>
+        <div class="field"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" /></div>
+        <div class="field"><label asp-for="Password"></label><input asp-for="Password" /><span asp-validation-for="Password"></span></div>
+        <div class="field"><label asp-for="ConfirmPassword"></label><input asp-for="ConfirmPassword" /><span asp-validation-for="ConfirmPassword"></span></div>
+        <div class="field"><label asp-for="ClinicName"></label><input asp-for="ClinicName" /><span asp-validation-for="ClinicName"></span></div>
+        <div class="field"><label asp-for="Address"></label><input asp-for="Address" /><span asp-validation-for="Address"></span></div>
+        <div class="field"><label asp-for="Neighborhood"></label><input asp-for="Neighborhood" /></div>
+        <div class="field"><label asp-for="City"></label><input asp-for="City" /></div>
+        <div class="field"><label asp-for="LogoFile"></label><input asp-for="LogoFile" type="file" accept="image/*" /></div>
+        <div class="field"><label asp-for="ClinicPhone"></label><input asp-for="ClinicPhone" /></div>
+        <div class="field"><label asp-for="ClinicEmail"></label><input asp-for="ClinicEmail" /></div>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <button type="submit" class="btn btn-primary">إرسال للمراجعة</button>
+    </form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

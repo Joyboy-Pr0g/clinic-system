@@ -1,0 +1,13 @@
+@model List<HomeNursingSystem.Models.Rating>
+@{ Layout = "_DashboardLayout"; ViewData["Title"] = "تقييمات العيادة"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">تقييمات العيادة</h1>
+@foreach (var r in Model)
+{
+    <div class="card" style="margin-bottom:0.75rem">
+        <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", r.Stars))</p>
+        <p>@r.Comment</p>
+        <small class="muted">@r.Patient.FullName — @r.CreatedAt.ToLocalTime().ToString("g")</small>
+    </div>
+}

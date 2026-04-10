@@ -1,0 +1,31 @@
+@model List<HomeNursingSystem.Models.NurseProfile>
+@{ ViewData["Title"] = "الممرضون"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">الممرضون</h1>
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>الاسم</th><th>التخصص</th><th>تحقق</th><th>إجراءات</th></tr></thead>
+        <tbody>
+        @foreach (var n in Model)
+        {
+            <tr>
+                <td>@n.User.FullName</td>
+                <td>@n.Specialization</td>
+                <td>@(n.IsVerified ? "نعم" : "لا")</td>
+                <td>
+                    @if (!n.IsVerified)
+                    {
+                        <form asp-action="VerifyNurse" asp-route-id="@n.NurseProfileId" method="post" style="display:inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-primary">تحقق</button></form>
+                    }
+                    @if (!string.IsNullOrEmpty(n.LicenseImagePath))
+                    {
+                        <a class="btn btn-sm btn-outline" href="@Url.Action("ViewLicense", new { id = n.NurseProfileId })" target="_blank">الرخصة</a>
+                    }
+                    <form asp-action="SuspendNurse" asp-route-id="@n.NurseProfileId" method="post" style="display:inline" onsubmit="return confirm('تعليق الممرض��');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-ghost">تعليق</button></form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

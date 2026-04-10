@@ -1,0 +1,22 @@
+@model PatientProfileVM
+@{
+    ViewData["Title"] = "الملف الشخصي";
+}
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">الملف الشخصي</h1>
+@if (!string.IsNullOrEmpty(Model.ProfileImagePath))
+{
+    <img src="@Model.ProfileImagePath" alt="" style="max-width:120px;border-radius:50%" />
+}
+<form asp-action="Profile" method="post" enctype="multipart/form-data" class="form-stack" data-loading>
+    @Html.AntiForgeryToken()
+    <div class="field"><label asp-for="FullName"></label><input asp-for="FullName" /><span asp-validation-for="FullName"></span></div>
+    <div class="field"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" /></div>
+    <div class="field"><label asp-for="City"></label><input asp-for="City" /></div>
+    <div class="field"><label asp-for="Neighborhood"></label><input asp-for="Neighborhood" /></div>
+    <div class="field"><label asp-for="Street"></label><input asp-for="Street" /></div>
+    <div class="field"><label asp-for="ProfileImage"></label><input asp-for="ProfileImage" type="file" accept="image/*" /></div>
+    <button type="submit" class="btn btn-primary">حفظ</button>
+</form>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

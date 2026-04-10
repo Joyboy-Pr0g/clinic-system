@@ -1,0 +1,26 @@
+@model List<HomeNursingSystem.Models.Clinic>
+@{ ViewData["Title"] = "العيادات"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">العيادات</h1>
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>الاسم</th><th>المدينة</th><th>تحقق</th><th>نشط</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var c in Model)
+        {
+            <tr>
+                <td>@c.ClinicName</td>
+                <td>@c.City</td>
+                <td>@(c.IsVerified ? "نعم" : "لا")</td>
+                <td>@(c.IsActive ? "نعم" : "لا")</td>
+                <td>
+                    @if (!c.IsVerified)
+                    { <form asp-action="VerifyClinic" asp-route-id="@c.ClinicId" method="post" style="display:inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-primary">تحقق</button></form> }
+                    <form asp-action="SuspendClinic" asp-route-id="@c.ClinicId" method="post" style="display:inline" onsubmit="return confirm('تعليق�');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-ghost">تعليق</button></form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

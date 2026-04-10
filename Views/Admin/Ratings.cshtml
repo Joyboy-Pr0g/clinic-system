@@ -1,0 +1,25 @@
+@model List<HomeNursingSystem.Models.Rating>
+@{ ViewData["Title"] = "التقييمات"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">إدارة التقييمات</h1>
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>موعد</th><th>النوع</th><th>النجوم</th><th>تعليق</th><th>معتمد</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td>@r.AppointmentId</td>
+                <td>@r.TargetType</td>
+                <td>@r.Stars</td>
+                <td>@(r.Comment?.Length > 80 ? r.Comment[..80] + "…" : r.Comment)</td>
+                <td>@(r.IsApproved ? "نعم" : "لا")</td>
+                <td>
+                    <form asp-action="ApproveRating" asp-route-id="@r.RatingId" method="post" style="display:inline">@Html.AntiForgeryToken()<input type="hidden" name="approved" value="@(r.IsApproved ? "false" : "true")" /><button type="submit" class="btn btn-sm btn-outline">@(r.IsApproved ? "إخفاء" : "اعتماد")</button></form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,30 @@
+@model List<HomeNursingSystem.Models.ApplicationUser>
+@{
+    ViewData["Title"] = "المستخدمون";
+    var roles = ViewBag.Roles as Dictionary<string, IList<string>> ?? new Dictionary<string, IList<string>>();
+}
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">المستخدمون</h1>
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>الاسم</th><th>البريد</th><th>الأدوار</th><th>نشط</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var u in Model)
+        {
+            <tr>
+                <td>@u.FullName</td>
+                <td>@u.Email</td>
+                <td>@string.Join("، ", roles.GetValueOrDefault(u.Id) ?? Array.Empty<string>())</td>
+                <td>@(u.IsActive ? "نعم" : "لا")</td>
+                <td>
+                    @if (u.IsActive)
+                    {
+                        <form asp-action="SuspendUser" asp-route-id="@u.Id" method="post" style="display:inline" onsubmit="return confirm('تعليق المستخدم��');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-ghost">تعليق</button></form>
+                    }
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

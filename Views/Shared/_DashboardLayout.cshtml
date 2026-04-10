@@ -1,0 +1,13 @@
+@{
+    Layout = "_Layout";
+}
+<div class="dash-wrap">
+    <aside class="dash-sidebar" data-dash-sidebar>
+        <button type="button" class="sidebar-close" data-sidebar-close aria-label="إغلاق">&times;</button>
+        @RenderSection("Sidebar", required: false)
+    </aside>
+    <div class="dash-main">
+        <button type="button" class="sidebar-open-btn" data-sidebar-open><i class="fa-solid fa-bars"></i> القائمة</button>
+        @RenderBody()
+    </div>
+</div>

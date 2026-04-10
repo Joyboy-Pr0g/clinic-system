@@ -1,0 +1,29 @@
+@model List<HomeNursingSystem.Models.Appointment>
+@{ Layout = "_DashboardLayout"; ViewData["Title"] = "مواعيد الممرض"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">المواعيد</h1>
+<form method="get"><select name="status" onchange="this.form.submit()">
+    <option value="">الكل</option>
+    <option value="Pending" selected="@(ViewBag.Status as string=="Pending")">معلقة</option>
+    <option value="Confirmed" selected="@(ViewBag.Status as string=="Confirmed")">مؤكدة</option>
+    <option value="InProgress" selected="@(ViewBag.Status as string=="InProgress")">قيد التنفيذ</option>
+    <option value="Completed" selected="@(ViewBag.Status as string=="Completed")">مكتملة</option>
+</select></form>
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>التاريخ</th><th>المريض</th><th>الخدمة</th><th>الحالة</th><th></th></tr></thead>
+        <tbody>
+        @foreach (var a in Model)
+        {
+            <tr>
+                <td>@a.AppointmentDate.ToLocalTime().ToString("g")</td>
+                <td>@a.Patient.FullName</td>
+                <td>@a.Service.ServiceName</td>
+                <td><span class="badge badge-@(a.Status == "InProgress" ? "inprogress" : a.Status.ToLowerInvariant())">@a.Status</span></td>
+                <td><a asp-action="AppointmentDetail" asp-route-id="@a.AppointmentId">إدارة</a></td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

@@ -1,0 +1,24 @@
+@model List<HomeNursingSystem.Models.ContactMessage>
+@{ ViewData["Title"] = "الرسائل"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">صندوق الرسائل</h1>
+@foreach (var m in Model)
+{
+    <div class="card" style="margin-bottom:1rem">
+        <p><strong>@m.FullName</strong> — @m.Email · @m.PhoneNumber</p>
+        <p><strong>@m.Subject</strong></p>
+        <p>@m.Message</p>
+        <small class="muted">@m.CreatedAt.ToLocalTime().ToString("g") · @(m.IsRead ? "مقروء" : "جديد")</small>
+        @if (!string.IsNullOrEmpty(m.ReplyMessage))
+        {
+            <p class="muted"><strong>رد:</strong> @m.ReplyMessage</p>
+        }
+        <form asp-action="MarkContactRead" asp-route-id="@m.ContactMessageId" method="post" style="display:inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline">تعليم كمقروء</button></form>
+        <form asp-action="ReplyContact" asp-route-id="@m.ContactMessageId" method="post" class="form-stack" style="margin-top:0.75rem;max-width:100%">
+            @Html.AntiForgeryToken()
+            <textarea name="replyMessage" rows="2" placeholder="نص الرد (يُحفظ في النظام)"></textarea>
+            <button type="submit" class="btn btn-sm btn-primary">حفظ الرد</button>
+        </form>
+    </div>
+}

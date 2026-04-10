@@ -1,0 +1,23 @@
+@model ClinicProfileEditVM
+@{ Layout = "_DashboardLayout"; ViewData["Title"] = "بيانات العيادة"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">بيانات العيادة</h1>
+<form asp-action="Profile" method="post" enctype="multipart/form-data" class="form-stack wide" data-loading>
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="ClinicId" />
+    <div class="field"><label asp-for="ClinicName"></label><input asp-for="ClinicName" /></div>
+    <div class="field"><label asp-for="Description"></label><textarea asp-for="Description" rows="3"></textarea></div>
+    <div class="field"><label asp-for="Address"></label><input asp-for="Address" /></div>
+    <div class="field"><label asp-for="Neighborhood"></label><input asp-for="Neighborhood" /></div>
+    <div class="field"><label asp-for="City"></label><input asp-for="City" /></div>
+    <div class="field"><label asp-for="OpeningHours"></label><input asp-for="OpeningHours" /></div>
+    <div class="field"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" /></div>
+    <div class="field"><label asp-for="Email"></label><input asp-for="Email" /></div>
+    <div class="field"><label>خط العرض</label><input asp-for="Latitude" step="any" /></div>
+    <div class="field"><label>خط الطول</label><input asp-for="Longitude" step="any" /></div>
+    <div class="field"><label asp-for="LogoFile"></label><input asp-for="LogoFile" type="file" accept="image/*" /></div>
+    <div class="field"><label asp-for="CoverFile"></label><input asp-for="CoverFile" type="file" accept="image/*" /></div>
+    @if (!string.IsNullOrEmpty(Model.LogoImagePath)) { <p class="muted">الشعار الحالي: <img src="@Model.LogoImagePath" alt="" style="height:40px" /></p> }
+    <button type="submit" class="btn btn-primary">حفظ</button>
+</form>

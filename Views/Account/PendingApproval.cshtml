@@ -1,0 +1,12 @@
+@{
+    ViewData["Title"] = "بانتظار الموافقة";
+}
+
+<div class="container section-block" style="max-width:560px;text-align:center">
+    <h1 class="page-title">حسابك قيد المراجعة</h1>
+    <p class="muted">سيتم تفعيل حسابك بعد التحقق من البيانات من قبل الإدارة. يمكنك تسجيل الخروج والعودة لاحقاً.</p>
+    <form asp-controller="Account" asp-action="Logout" method="post">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline">تسجيل الخروج</button>
+    </form>
+</div>
