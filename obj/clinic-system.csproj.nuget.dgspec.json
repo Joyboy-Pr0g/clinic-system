@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system.csproj": {}
+    "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\clinic-system.csproj": {}
   },
   "projects": {
-    "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system.csproj": {
+    "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\clinic-system.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system.csproj",
+        "projectUniqueName": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\clinic-system.csproj",
         "projectName": "clinic-system",
-        "projectPath": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system.csproj",
+        "projectPath": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\clinic-system.csproj",
         "packagesPath": "C:\\Users\\HP\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\HP\\source\\repos\\clinic-system\\obj\\",
+        "outputPath": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
