@@ -20,6 +20,7 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Article> Articles => Set<Article>();
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<AppointmentMessage> AppointmentMessages => Set<AppointmentMessage>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -113,6 +114,20 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany(x => x.Notifications)
                 .HasForeignKey(x => x.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<AppointmentMessage>(e =>
+        {
+            e.HasKey(x => x.AppointmentMessageId);
+            e.HasIndex(x => new { x.AppointmentId, x.CreatedAt });
+            e.HasOne(x => x.Appointment)
+                .WithMany(x => x.Messages)
+                .HasForeignKey(x => x.AppointmentId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.Sender)
+                .WithMany()
+                .HasForeignKey(x => x.SenderUserId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 }

@@ -54,6 +54,9 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<DateTime?>("LastLiveLocationAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<double?>("Latitude")
                         .HasColumnType("float");
 
@@ -183,6 +186,44 @@ namespace HomeNursingSystem.Data.Migrations
                     b.ToTable("Appointments");
                 });
 
+            modelBuilder.Entity("HomeNursingSystem.Models.AppointmentMessage", b =>
+                {
+                    b.Property<int>("AppointmentMessageId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("AppointmentMessageId"));
+
+                    b.Property<int>("AppointmentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("AttachmentUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("MessageType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SenderUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("AppointmentMessageId");
+
+                    b.HasIndex("SenderUserId");
+
+                    b.HasIndex("AppointmentId", "CreatedAt");
+
+                    b.ToTable("AppointmentMessages");
+                });
+
             modelBuilder.Entity("HomeNursingSystem.Models.Article", b =>
                 {
                     b.Property<int>("ArticleId")
@@ -254,6 +295,9 @@ namespace HomeNursingSystem.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("AdminRejectionNote")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("AverageRating")
                         .HasPrecision(3, 2)
                         .HasColumnType("decimal(3,2)");
@@ -280,11 +324,17 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsRejectedByAdmin")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsVerified")
                         .HasColumnType("bit");
 
                     b.Property<double>("Latitude")
                         .HasColumnType("float");
+
+                    b.Property<string>("LicenseDocumentPath")
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("LogoImagePath")
                         .HasColumnType("nvarchar(max)");
@@ -433,6 +483,9 @@ namespace HomeNursingSystem.Data.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NurseProfileId"));
 
+                    b.Property<string>("AdminRejectionNote")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<decimal>("AverageRating")
                         .HasPrecision(3, 2)
                         .HasColumnType("decimal(3,2)");
@@ -446,11 +499,23 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Property<bool>("IsAvailable")
                         .HasColumnType("bit");
 
+                    b.Property<bool>("IsRejectedByAdmin")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsVerified")
                         .HasColumnType("bit");
 
+                    b.Property<double?>("LastLatitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("LastLongitude")
+                        .HasColumnType("float");
+
                     b.Property<string>("LicenseImagePath")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("LocationUpdatedAt")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Specialization")
                         .IsRequired()
@@ -719,6 +784,25 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Navigation("Service");
                 });
 
+            modelBuilder.Entity("HomeNursingSystem.Models.AppointmentMessage", b =>
+                {
+                    b.HasOne("HomeNursingSystem.Models.Appointment", "Appointment")
+                        .WithMany("Messages")
+                        .HasForeignKey("AppointmentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("HomeNursingSystem.Models.ApplicationUser", "Sender")
+                        .WithMany()
+                        .HasForeignKey("SenderUserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Appointment");
+
+                    b.Navigation("Sender");
+                });
+
             modelBuilder.Entity("HomeNursingSystem.Models.Article", b =>
                 {
                     b.HasOne("HomeNursingSystem.Models.ApplicationUser", "Author")
@@ -881,6 +965,8 @@ namespace HomeNursingSystem.Data.Migrations
 
             modelBuilder.Entity("HomeNursingSystem.Models.Appointment", b =>
                 {
+                    b.Navigation("Messages");
+
                     b.Navigation("Rating");
                 });
 

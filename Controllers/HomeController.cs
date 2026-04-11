@@ -27,7 +27,7 @@ public class HomeController : Controller
             .Select(s => new ServiceListItemVM
             {
                 ServiceId = s.ServiceId,
-                ServiceName = s.ServiceName,
+                ServiceName = ServiceNameLocalizer.Localize(s.ServiceName),
                 BasePrice = s.BasePrice
             })
             .Take(8)

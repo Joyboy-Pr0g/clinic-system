@@ -48,6 +48,7 @@ public class NurseService : INurseService
             IsAvailable = n.IsAvailable,
             Neighborhood = n.User.Neighborhood,
             ServiceNames = n.NurseServices.Select(ns => ns.Service.ServiceName).ToList()
+                .ConvertAll(ServiceNameLocalizer.Localize)
         });
     }
 
@@ -71,7 +72,7 @@ public class NurseService : INurseService
             Services = n.NurseServices.Select(ns => new NurseServicePriceVM
             {
                 ServiceId = ns.ServiceId,
-                ServiceName = ns.Service.ServiceName,
+                ServiceName = ServiceNameLocalizer.Localize(ns.Service.ServiceName),
                 Price = ns.CustomPrice
             }).ToList(),
             Reviews = n.Ratings

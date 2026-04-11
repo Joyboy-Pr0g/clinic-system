@@ -96,6 +96,12 @@
         <div class="container footer-copy">&copy; @DateTime.UtcNow.Year — جميع الحقوق محفوظة</div>
     </footer>
 
+    @if (User.Identity?.IsAuthenticated == true && (User.IsInRole("Patient") || User.IsInRole("Nurse")))
+    {
+        <form id="live-loc-antiforgery" style="display:none">@Html.AntiForgeryToken()</form>
+        <script>window.__saveLiveLocationUrl = "@Url.Action("SaveLiveLocation", "Account")";</script>
+        <script src="~/js/live-location.js" asp-append-version="true"></script>
+    }
     <script src="~/js/app.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

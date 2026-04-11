@@ -2,6 +2,7 @@ using HomeNursingSystem.Data.Repositories;
 using HomeNursingSystem.Models;
 using HomeNursingSystem.Services;
 using HomeNursingSystem.ViewModels;
+using System.Globalization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -64,10 +65,67 @@ public class PatientController : Controller
             BookType = nurseId.HasValue ? "Nurse" : "Clinic"
         };
         if (clinicId.HasValue) vm.BookType = "Clinic";
+        await PopulateBookPageAsync(vm, ct);
+        return View(vm);
+    }
+
+    private async Task PopulateBookPageAsync(AppointmentBookVM vm, CancellationToken ct)
+    {
         ViewBag.Nurses = await _nurses.BrowseAsync(null, null, null, true, null, ct);
         ViewBag.Clinics = await _clinics.ListVerifiedAsync(null, ct);
         ViewBag.Services = await _db.Services.AsNoTracking().Where(s => s.IsActive).ToListAsync(ct);
-        return View(vm);
+
+        var locked = (vm.NurseProfileId ?? 0) > 0 || (vm.ClinicId ?? 0) > 0;
+        ViewBag.ProviderLocked = locked;
+        ViewBag.ProviderDisplayName = (string?)null;
+        if (vm.NurseProfileId is int npid && npid > 0)
+        {
+            ViewBag.ProviderDisplayName = await _db.NurseProfiles.AsNoTracking()
+                .Where(n => n.NurseProfileId == npid)
+                .Select(n => n.User.FullName)
+                .FirstOrDefaultAsync(ct);
+        }
+        else if (vm.ClinicId is int cid && cid > 0)
+        {
+            ViewBag.ProviderDisplayName = await _db.Clinics.AsNoTracking()
+                .Where(c => c.ClinicId == cid)
+                .Select(c => c.ClinicName)
+                .FirstOrDefaultAsync(ct);
+        }
+    }
+
+    /// <summary>إعادة توجيه قديمة من واجهات "احجز الآن" إلى الحجز الداخلي.</summary>
+    [HttpGet("chat/start")]
+    public async Task<IActionResult> StartChat(int? nurseId, int? clinicId, CancellationToken ct)
+    {
+        if (nurseId.HasValue)
+        {
+            var exists = await _db.NurseProfiles.AsNoTracking()
+                .AnyAsync(n => n.NurseProfileId == nurseId.Value && n.IsVerified && n.IsAvailable, ct);
+            if (!exists)
+            {
+                TempData["Error"] = "الممرض غير متاح للحجز حاليًا.";
+                return RedirectToAction("Browse", "Nurse");
+            }
+
+            return RedirectToAction(nameof(Book), new { nurseId = nurseId.Value });
+        }
+
+        if (clinicId.HasValue)
+        {
+            var exists = await _db.Clinics.AsNoTracking()
+                .AnyAsync(c => c.ClinicId == clinicId.Value && c.IsVerified && c.IsActive, ct);
+            if (!exists)
+            {
+                TempData["Error"] = "العيادة غير متاحة للحجز حاليًا.";
+                return RedirectToAction("Index", "Clinic");
+            }
+
+            return RedirectToAction(nameof(Book), new { clinicId = clinicId.Value });
+        }
+
+        TempData["Error"] = "لم يتم تحديد جهة الحجز.";
+        return RedirectToAction("Index", "Home");
     }
 
     [HttpPost("book")]
@@ -77,10 +135,8 @@ public class PatientController : Controller
         var user = await _users.GetUserAsync(User);
         if (!ModelState.IsValid)
         {
-            ViewBag.Nurses = await _nurses.BrowseAsync(null, null, null, true, null, ct);
-            ViewBag.Clinics = await _clinics.ListVerifiedAsync(null, ct);
-            ViewBag.Services = await _db.Services.AsNoTracking().Where(s => s.IsActive).ToListAsync(ct);
             model.GoogleMapsApiKey = _config["GoogleMapsApiKey"];
+            await PopulateBookPageAsync(model, ct);
             return View(model);
         }
 
@@ -88,15 +144,29 @@ public class PatientController : Controller
         if (!ok)
         {
             ModelState.AddModelError(string.Empty, err!);
-            ViewBag.Nurses = await _nurses.BrowseAsync(null, null, null, true, null, ct);
-            ViewBag.Clinics = await _clinics.ListVerifiedAsync(null, ct);
-            ViewBag.Services = await _db.Services.AsNoTracking().Where(s => s.IsActive).ToListAsync(ct);
             model.GoogleMapsApiKey = _config["GoogleMapsApiKey"];
+            await PopulateBookPageAsync(model, ct);
             return View(model);
         }
 
-        TempData["Success"] = "تم إرسال طلب الحجز.";
-        return RedirectToAction(nameof(Appointments));
+        string? providerName = null;
+        if (string.Equals(model.BookType, "Nurse", StringComparison.OrdinalIgnoreCase) && model.NurseProfileId is int npid && npid > 0)
+        {
+            providerName = await _db.NurseProfiles.AsNoTracking()
+                .Where(n => n.NurseProfileId == npid)
+                .Select(n => n.User.FullName)
+                .FirstOrDefaultAsync(ct);
+        }
+        else if (string.Equals(model.BookType, "Clinic", StringComparison.OrdinalIgnoreCase) && model.ClinicId is int cid && cid > 0)
+        {
+            providerName = await _db.Clinics.AsNoTracking()
+                .Where(c => c.ClinicId == cid)
+                .Select(c => c.ClinicName)
+                .FirstOrDefaultAsync(ct);
+        }
+
+        TempData["Success"] = $"تم إرسال طلب الحجز لدى {providerName ?? "مقدم الخدمة"}. الطلب بانتظار الموافقة — يمكنك متابعة التفاصيل أدناه.";
+        return RedirectToAction(nameof(AppointmentDetail), new { id = id!.Value });
     }
 
     [HttpGet("appointments")]
@@ -106,7 +176,7 @@ public class PatientController : Controller
         var q = _apptRepo.Query().Where(a => a.PatientId == user!.Id);
         if (!string.IsNullOrEmpty(status))
             q = q.Where(a => a.Status == status);
-        var list = await q.Include(a => a.Service).OrderByDescending(a => a.AppointmentDate).ToListAsync(ct);
+        var list = await q.Include(a => a.Service).Include(a => a.Rating).OrderByDescending(a => a.AppointmentDate).ToListAsync(ct);
         ViewBag.Status = status;
         return View(list);
     }
@@ -117,9 +187,26 @@ public class PatientController : Controller
         var user = await _users.GetUserAsync(User);
         var appt = await _apptRepo.GetByIdForPatientAsync(id, user!.Id, ct);
         if (appt == null) return NotFound();
-        ViewBag.GoogleMapsApiKey = _config["GoogleMapsApiKey"];
+        ViewBag.CurrentUserId = user!.Id;
         ViewBag.CanRate = appt.Status == AppointmentStatuses.Completed && appt.Rating == null;
+        var maps = MapsTrackLinkBuilder.TryForPatientTrackingProvider(appt);
+        ViewBag.MapsDirectUrl = maps?.Url;
+        ViewBag.MapsDirectLabel = maps?.Label;
+
         return View(appt);
+    }
+
+    /// <summary>أحدث رابط Google Maps (إحداثيات من قاعدة البيانات عند كل طلب).</summary>
+    [HttpGet("appointments/{id:int}/maps-link")]
+    public async Task<IActionResult> AppointmentMapsLink(int id, CancellationToken ct)
+    {
+        var user = await _users.GetUserAsync(User);
+        var appt = await _apptRepo.GetByIdForPatientAsync(id, user!.Id, ct);
+        if (appt == null) return NotFound();
+        var link = MapsTrackLinkBuilder.TryForPatientTrackingProvider(appt);
+        if (link == null)
+            return Json(new { error = "لا تتوفر إحداثيات لفتح الخرائط لهذا الموعد حالياً." });
+        return Json(new { url = link.Value.Url, label = link.Value.Label });
     }
 
     [HttpPost("appointments/{id:int}/cancel")]

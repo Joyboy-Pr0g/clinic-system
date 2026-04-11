@@ -52,6 +52,17 @@
 
   document.querySelectorAll("form[data-loading]").forEach(function (form) {
     form.addEventListener("submit", function () {
+      var isValid = true;
+
+      // Respect unobtrusive/jQuery validation when available.
+      if (window.jQuery && window.jQuery.validator) {
+        isValid = window.jQuery(form).valid();
+      } else if (typeof form.checkValidity === "function") {
+        isValid = form.checkValidity();
+      }
+
+      if (!isValid) return;
+
       var btn = form.querySelector('button[type="submit"]');
       if (btn) {
         btn.disabled = true;

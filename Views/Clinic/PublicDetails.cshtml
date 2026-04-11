@@ -21,11 +21,11 @@
         @if (showMap) { <div id="cmap" class="map-canvas"></div> }
         @if (User.IsInRole("Patient"))
         {
-            <a class="btn btn-accent" asp-controller="Patient" asp-action="Book" asp-route-clinicId="@Model.ClinicId">احجز</a>
+            <a class="btn btn-accent" asp-controller="Patient" asp-action="Book" asp-route-clinicId="@Model.ClinicId">احجز الآن</a>
         }
         else
         {
-            <a class="btn btn-outline" asp-controller="Account" asp-action="Login">سجّل دخول للحجز</a>
+            <a class="btn btn-outline" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient", new { clinicId = Model.ClinicId })">سجّل دخول للحجز</a>
         }
         <h3 style="margin-top:2rem">آراء</h3>
         @foreach (var r in Model.Reviews)

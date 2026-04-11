@@ -57,8 +57,25 @@ public class AdminController : Controller
     public async Task<IActionResult> VerifyNurse(int id, CancellationToken ct)
     {
         await _db.NurseProfiles.Where(n => n.NurseProfileId == id)
-            .ExecuteUpdateAsync(s => s.SetProperty(n => n.IsVerified, true), ct);
-        TempData["Success"] = "تم التحقق من الممرض.";
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(n => n.IsVerified, true)
+                .SetProperty(n => n.IsRejectedByAdmin, false)
+                .SetProperty(n => n.AdminRejectionNote, (string?)null), ct);
+        TempData["Success"] = "تم قبول الممرض والتحقق من حسابه.";
+        return RedirectToAction(nameof(Nurses));
+    }
+
+    [HttpPost("nurses/{id:int}/reject")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RejectNurse(int id, string? note, CancellationToken ct)
+    {
+        var np = await _db.NurseProfiles.Include(n => n.User).FirstOrDefaultAsync(n => n.NurseProfileId == id, ct);
+        if (np == null) return NotFound();
+        np.IsVerified = false;
+        np.IsRejectedByAdmin = true;
+        np.AdminRejectionNote = string.IsNullOrWhiteSpace(note) ? "لم يتم قبول طلب التحقق بعد مراجعة الوثائق." : note.Trim();
+        await _db.SaveChangesAsync(ct);
+        TempData["Success"] = "تم رفض طلب الممرض.";
         return RedirectToAction(nameof(Nurses));
     }
 
@@ -83,14 +100,32 @@ public class AdminController : Controller
         if (string.IsNullOrEmpty(path)) return NotFound();
         var physical = Path.Combine(_env.WebRootPath, path.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
         if (!System.IO.File.Exists(physical)) return NotFound();
-        var mime = Path.GetExtension(physical).ToLowerInvariant() switch
+        return PhysicalFile(physical, MimeForLicensePath(physical));
+    }
+
+    [HttpGet("clinics/{id:int}/license")]
+    public async Task<IActionResult> ViewClinicLicense(int id, CancellationToken ct)
+    {
+        var path = await _db.Clinics.AsNoTracking()
+            .Where(c => c.ClinicId == id)
+            .Select(c => c.LicenseDocumentPath)
+            .FirstOrDefaultAsync(ct);
+        if (string.IsNullOrEmpty(path)) return NotFound();
+        var physical = Path.Combine(_env.WebRootPath, path.TrimStart('/').Replace('/', Path.DirectorySeparatorChar));
+        if (!System.IO.File.Exists(physical)) return NotFound();
+        return PhysicalFile(physical, MimeForLicensePath(physical));
+    }
+
+    private static string MimeForLicensePath(string physical)
+    {
+        return Path.GetExtension(physical).ToLowerInvariant() switch
         {
             ".png" => "image/png",
             ".gif" => "image/gif",
             ".webp" => "image/webp",
+            ".pdf" => "application/pdf",
             _ => "image/jpeg"
         };
-        return PhysicalFile(physical, mime);
     }
 
     [HttpGet("clinics")]
@@ -105,8 +140,25 @@ public class AdminController : Controller
     public async Task<IActionResult> VerifyClinic(int id, CancellationToken ct)
     {
         await _db.Clinics.Where(c => c.ClinicId == id)
-            .ExecuteUpdateAsync(s => s.SetProperty(c => c.IsVerified, true), ct);
-        TempData["Success"] = "تم التحقق من العيادة.";
+            .ExecuteUpdateAsync(s => s
+                .SetProperty(c => c.IsVerified, true)
+                .SetProperty(c => c.IsRejectedByAdmin, false)
+                .SetProperty(c => c.AdminRejectionNote, (string?)null), ct);
+        TempData["Success"] = "تم قبول العيادة والتحقق من حسابها.";
+        return RedirectToAction(nameof(Clinics));
+    }
+
+    [HttpPost("clinics/{id:int}/reject")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RejectClinic(int id, string? note, CancellationToken ct)
+    {
+        var c = await _db.Clinics.FirstOrDefaultAsync(x => x.ClinicId == id, ct);
+        if (c == null) return NotFound();
+        c.IsVerified = false;
+        c.IsRejectedByAdmin = true;
+        c.AdminRejectionNote = string.IsNullOrWhiteSpace(note) ? "لم يتم قبول طلب التحقق بعد مراجعة الوثائق." : note.Trim();
+        await _db.SaveChangesAsync(ct);
+        TempData["Success"] = "تم رفض طلب العيادة.";
         return RedirectToAction(nameof(Clinics));
     }
 
@@ -145,15 +197,40 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Users));
     }
 
-    [HttpGet("appointments")]
-    public async Task<IActionResult> Appointments(CancellationToken ct)
+    [HttpPost("users/{id}/unsuspend")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UnsuspendUser(string id, CancellationToken ct)
     {
-        var list = await _db.Appointments
+        var u = await _users.FindByIdAsync(id);
+        if (u == null) return NotFound();
+        u.IsActive = true;
+        await _users.UpdateAsync(u);
+        TempData["Success"] = "تم إلغاء تعليق المستخدم.";
+        return RedirectToAction(nameof(Users));
+    }
+
+    [HttpGet("appointments")]
+    public async Task<IActionResult> Appointments(string? status, CancellationToken ct)
+    {
+        var baseQ = _db.Appointments.AsNoTracking();
+        ViewBag.Status = status;
+        ViewBag.CountTotal = await baseQ.CountAsync(ct);
+        ViewBag.CountPending = await baseQ.CountAsync(a => a.Status == AppointmentStatuses.Pending, ct);
+        ViewBag.CountApproved = await baseQ.CountAsync(a =>
+            a.Status == AppointmentStatuses.Approved || a.Status == AppointmentStatuses.Confirmed, ct);
+        ViewBag.CountInProgress = await baseQ.CountAsync(a => a.Status == AppointmentStatuses.InProgress, ct);
+        ViewBag.CountCompleted = await baseQ.CountAsync(a => a.Status == AppointmentStatuses.Completed, ct);
+        ViewBag.CountCancelled = await baseQ.CountAsync(a => a.Status == AppointmentStatuses.Cancelled, ct);
+
+        IQueryable<Appointment> q = _db.Appointments
             .AsNoTracking()
             .Include(a => a.Patient)
             .Include(a => a.Service)
             .Include(a => a.NurseProfile)!.ThenInclude(n => n!.User)
-            .Include(a => a.Clinic)
+            .Include(a => a.Clinic);
+        if (!string.IsNullOrEmpty(status))
+            q = q.Where(a => a.Status == status);
+        var list = await q
             .OrderByDescending(a => a.AppointmentDate)
             .Take(500)
             .ToListAsync(ct);

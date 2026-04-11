@@ -22,4 +22,5 @@ public class Appointment
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
     public Rating? Rating { get; set; }
+    public ICollection<AppointmentMessage> Messages { get; set; } = new List<AppointmentMessage>();
 }

@@ -9,7 +9,14 @@
         <p>احجز ممرضاً معتمداً أو عيادة قريبة بخطوات بسيطة، مع متابعة كاملة لمواعيدك وتقييم الخدمة.</p>
         <div class="hero-actions">
             <a class="btn btn-primary" asp-controller="Nurse" asp-action="Browse">تصفح الممرضين</a>
-            <a class="btn btn-outline" asp-controller="Patient" asp-action="Book">احجز الآن</a>
+            @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Patient"))
+            {
+                <a class="btn btn-outline" asp-controller="Patient" asp-action="Book">احجز الآن</a>
+            }
+            else
+            {
+                <a class="btn btn-outline" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient")">احجز الآن</a>
+            }
         </div>
     </div>
 </section>
@@ -46,7 +53,14 @@
                 <p class="muted">@n.Specialization</p>
                 <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", (int)Math.Round((double)n.AverageRating)))</p>
                 <a class="btn btn-sm btn-primary" asp-controller="Nurse" asp-action="Details" asp-route-id="@n.NurseProfileId">الملف</a>
-                <a class="btn btn-sm btn-accent" asp-controller="Patient" asp-action="Book" asp-route-nurseId="@n.NurseProfileId">احجز</a>
+                @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Patient"))
+                {
+                    <a class="btn btn-sm btn-accent" asp-controller="Patient" asp-action="Book" asp-route-nurseId="@n.NurseProfileId">احجز الآن</a>
+                }
+                else
+                {
+                    <a class="btn btn-sm btn-accent" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient", new { nurseId = n.NurseProfileId })">احجز الآن</a>
+                }
             </div>
         }
     </div>

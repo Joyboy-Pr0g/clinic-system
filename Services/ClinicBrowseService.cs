@@ -51,7 +51,12 @@ public class ClinicBrowseService : IClinicBrowseService
         var services = await _db.Services.AsNoTracking()
             .Where(s => s.IsActive)
             .OrderBy(s => s.ServiceName)
-            .Select(s => new ServiceListItemVM { ServiceId = s.ServiceId, ServiceName = s.ServiceName, BasePrice = s.BasePrice })
+            .Select(s => new ServiceListItemVM
+            {
+                ServiceId = s.ServiceId,
+                ServiceName = ServiceNameLocalizer.Localize(s.ServiceName),
+                BasePrice = s.BasePrice
+            })
             .ToListAsync(ct);
 
         return new ClinicDetailsVM

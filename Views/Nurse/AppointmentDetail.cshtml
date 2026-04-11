@@ -1,50 +1,97 @@
 @model HomeNursingSystem.Models.Appointment
+@using HomeNursingSystem.Models
+@using HomeNursingSystem.Services
 @{
     Layout = "_DashboardLayout";
     ViewData["Title"] = "موعد #" + Model.AppointmentId;
-    var key = ViewBag.GoogleMapsApiKey as string;
-    var showMap = Model.Latitude != null && Model.Longitude != null && !string.IsNullOrEmpty(key) && key != "YOUR_GOOGLE_MAPS_API_KEY";
+    var currentUserId = ViewBag.CurrentUserId as string ?? "";
+    var mapsUrl = ViewBag.MapsDirectUrl as string;
+    var mapsLabel = ViewBag.MapsDirectLabel as string ?? "الاتجاهات في Google Maps";
+    var chatOpen = AppointmentChatService.IsChatOpen(Model.Status);
+    var badgeClass = Model.Status == "InProgress" ? "inprogress" : Model.Status.Equals("Approved", StringComparison.OrdinalIgnoreCase) ? "approved" : Model.Status.ToLowerInvariant();
+    var showMapsBtn = !string.IsNullOrEmpty(mapsUrl)
+        && Model.Status != AppointmentStatuses.Cancelled
+        && Model.Status != AppointmentStatuses.Completed;
 }
 @section Sidebar { <partial name="_Sidebar" /> }
 
-<h1 class="page-title">موعد #@Model.AppointmentId</h1>
-<p><span class="badge badge-@(Model.Status == "InProgress" ? "inprogress" : Model.Status.ToLowerInvariant())">@Model.Status</span></p>
-<p><strong>المريض:</strong> @Model.Patient.FullName — @Model.Patient.PhoneNumber</p>
-<p><strong>العنوان:</strong> @Model.AddressText</p>
-<p><strong>الخدمة:</strong> @Model.Service.ServiceName — @Model.TotalPrice.ToString("N2") ر.س</p>
-@if (!string.IsNullOrEmpty(Model.Notes)) { <p><strong>ملاحظات:</strong> @Model.Notes</p> }
-@if (showMap) { <div id="nmap" class="map-canvas"></div> }
+<div id="appt-realtime-root" style="display:none"
+     data-appt-id="@Model.AppointmentId"
+     data-user-id="@currentUserId"
+     data-patient-push="false"
+     data-nurse-push="false"
+     data-listen-nurse="false"
+     data-listen-patient="false"></div>
 
+<h1 class="page-title animate-fade-up">موعد #@Model.AppointmentId</h1>
+
+@if (Model.Status == AppointmentStatuses.Pending)
+{
+    <div class="appointment-pending-banner animate-fade-up" role="status">
+        هذا الطلب <strong>معلق</strong> — راجع التفاصيل ثم قبول أو رفض. بعد الموافقة تُفعَّل الدردشة مع المريض.
+    </div>
+}
+
+<div class="card card--elevated animate-fade-up">
+    <p><span class="badge badge-@badgeClass">@Model.Status</span></p>
+    <p><strong>المريض:</strong> @Model.Patient.FullName — @Model.Patient.PhoneNumber</p>
+    <p><strong>العنوان:</strong> @Model.AddressText</p>
+    <p><strong>الخدمة:</strong> @Model.Service.ServiceName — @Model.TotalPrice.ToString("N2") ر.س</p>
+    @if (!string.IsNullOrEmpty(Model.Notes)) { <p><strong>ملاحظات:</strong> @Model.Notes</p> }
+</div>
+
+@if (showMapsBtn)
+{
+    <div class="maps-track-block animate-fade-up">
+        <a href="@mapsUrl" target="_blank" rel="noopener noreferrer" class="btn btn-maps-track">
+            <span class="btn-maps-track__icon" aria-hidden="true">📍</span>
+            <span class="btn-maps-track__text">@mapsLabel</span>
+        </a>
+        <p class="muted maps-track-block__hint">يفتح Google Maps مباشرة. اسمح للمتصفح بالموقع عند الدخول لتحديث موقعك للمريض.</p>
+    </div>
+}
+
+<div class="appt-action-toolbar animate-fade-up">
 @if (Model.Status == "Pending")
 {
-    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post" style="display:inline">
-        @Html.AntiForgeryToken()<input type="hidden" name="status" value="Confirmed" />
-        <button type="submit" class="btn btn-primary">قبول</button>
+    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post" class="appt-action-toolbar__item">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="status" value="Approved" />
+        <button type="submit" class="btn btn-primary">قبول الطلب</button>
     </form>
-    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post" style="display:inline">
-        @Html.AntiForgeryToken()<input type="hidden" name="status" value="Cancelled" />
+    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post" class="appt-action-toolbar__item">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="status" value="Cancelled" />
         <button type="submit" class="btn btn-ghost">رفض</button>
     </form>
 }
-@if (Model.Status == "Confirmed")
+@if (AppointmentStatuses.IsApproved(Model.Status))
 {
-    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post"><input type="hidden" name="status" value="InProgress" />@Html.AntiForgeryToken()<button type="submit" class="btn btn-accent">بدء الخدمة</button></form>
+    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post" class="appt-action-toolbar__item">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="status" value="InProgress" />
+        <button type="submit" class="btn btn-accent">بدء الخدمة</button>
+    </form>
 }
 @if (Model.Status == "InProgress")
 {
-    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post"><input type="hidden" name="status" value="Completed" />@Html.AntiForgeryToken()<button type="submit" class="btn btn-primary">إكمال</button></form>
+    <form asp-action="SetStatus" asp-route-id="@Model.AppointmentId" method="post" class="appt-action-toolbar__item">
+        @Html.AntiForgeryToken()
+        <input type="hidden" name="status" value="Completed" />
+        <button type="submit" class="btn btn-primary">إكمال الخدمة</button>
+    </form>
+}
+</div>
+
+@if (chatOpen)
+{
+    <partial name="_AppointmentChat" model="Model.AppointmentId" />
 }
 
 @section Scripts {
-    @if (showMap)
+    @if (chatOpen)
     {
-        <script src="https://maps.googleapis.com/maps/api/js?key=@key"></script>
-        <script>
-            (function () {
-                var c = { lat: @Model.Latitude!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture), lng: @Model.Longitude!.Value.ToString(System.Globalization.CultureInfo.InvariantCulture) };
-                var map = new google.maps.Map(document.getElementById("nmap"), { zoom: 14, center: c });
-                new google.maps.Marker({ position: c, map: map });
-            })();
-        </script>
+        <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js" crossorigin="anonymous"></script>
+        <script src="~/js/appointment-realtime.js" asp-append-version="true"></script>
     }
 }

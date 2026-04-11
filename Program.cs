@@ -1,6 +1,8 @@
+using System.Text.Json;
 using HomeNursingSystem.Data;
 using HomeNursingSystem.Data.Repositories;
 using HomeNursingSystem.Filters;
+using HomeNursingSystem.Hubs;
 using HomeNursingSystem.Models;
 using HomeNursingSystem.Services;
 using Microsoft.AspNetCore.Identity;
@@ -46,8 +48,15 @@ builder.Services.AddScoped<IFileUploadService, FileUploadService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IRatingService, RatingService>();
 builder.Services.AddScoped<IAppointmentService, AppointmentService>();
+builder.Services.AddScoped<IAppointmentChatService, AppointmentChatService>();
+builder.Services.AddSingleton<IAppointmentRealtimeDispatcher, AppointmentRealtimeDispatcher>();
 builder.Services.AddScoped<INurseService, NurseService>();
 builder.Services.AddScoped<IClinicBrowseService, ClinicBrowseService>();
+
+builder.Services.AddSignalR().AddJsonProtocol(o =>
+{
+    o.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+});
 
 var app = builder.Build();
 
@@ -70,5 +79,7 @@ app.MapControllerRoute(
         name: "default",
         pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
+
+app.MapHub<AppointmentHub>("/hubs/appointment");
 
 app.Run();

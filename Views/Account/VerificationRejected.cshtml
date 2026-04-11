@@ -1,0 +1,23 @@
+@{
+    ViewData["Title"] = "تم رفض طلب التحقق";
+    var note = ViewBag.RejectionNote as string;
+}
+
+<div class="container section-block" style="max-width:560px">
+    <div class="card card--elevated animate-fade-up" style="border-inline-start:4px solid #c0392b">
+        <h1 class="page-title">تم رفض طلب التحقق</h1>
+        <p>بعد مراجعة الحساب والوثائق المرفوعة، لم يتم قبول طلبك كمقدم خدمة على المنصة في الوقت الحالي.</p>
+        @if (!string.IsNullOrWhiteSpace(note))
+        {
+            <div class="field" style="background:#f8f9fa;padding:0.75rem;border-radius:8px;margin:1rem 0">
+                <strong>ملاحظة الإدارة:</strong>
+                <p class="mb-0 mt-1">@note</p>
+            </div>
+        }
+        <p class="muted">إذا كان لديك استفسار أو ترغب في إعادة التقديم بعد تصحيح الوثائق، تواصل مع دعم المنصة.</p>
+        <form asp-action="Logout" method="post" class="mt-2">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-ghost">تسجيل الخروج</button>
+        </form>
+    </div>
+</div>

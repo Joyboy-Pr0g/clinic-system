@@ -1,4 +1,5 @@
 @model List<HomeNursingSystem.Models.Appointment>
+@using HomeNursingSystem.Models
 @{
     ViewData["Title"] = "مواعيدي";
 }
@@ -9,7 +10,8 @@
     <select name="status" onchange="this.form.submit()">
         <option value="">كل الحالات</option>
         <option value="Pending" selected="@(ViewBag.Status as string == "Pending")">معلقة</option>
-        <option value="Confirmed" selected="@(ViewBag.Status as string == "Confirmed")">مؤكدة</option>
+        <option value="Approved" selected="@(ViewBag.Status as string == "Approved")">مقبولة (Approved)</option>
+        <option value="Confirmed" selected="@(ViewBag.Status as string == "Confirmed")">مؤكدة (قديم)</option>
         <option value="InProgress" selected="@(ViewBag.Status as string == "InProgress")">قيد التنفيذ</option>
         <option value="Completed" selected="@(ViewBag.Status as string == "Completed")">مكتملة</option>
         <option value="Cancelled" selected="@(ViewBag.Status as string == "Cancelled")">ملغاة</option>
@@ -24,7 +26,7 @@
             <tr>
                 <td>@a.AppointmentDate.ToLocalTime().ToString("g")</td>
                 <td>@a.Service.ServiceName</td>
-                <td><span class="badge badge-@(a.Status == "InProgress" ? "inprogress" : a.Status.ToLowerInvariant())">@a.Status</span></td>
+                <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(a.Status)">@a.Status</span></td>
                 <td>@a.TotalPrice.ToString("N2")</td>
                 <td><a asp-action="AppointmentDetail" asp-route-id="@a.AppointmentId">تفاصيل</a></td>
             </tr>

@@ -15,7 +15,12 @@
         <div class="field"><label asp-for="Specialization"></label><input asp-for="Specialization" /><span asp-validation-for="Specialization"></span></div>
         <div class="field"><label asp-for="YearsOfExperience"></label><input asp-for="YearsOfExperience" /></div>
         <div class="field"><label asp-for="Bio"></label><textarea asp-for="Bio" rows="3"></textarea></div>
-        <div class="field"><label asp-for="LicenseFile"></label><input asp-for="LicenseFile" type="file" accept="image/*" /></div>
+        <div class="field">
+            <label asp-for="LicenseFile"></label>
+            <input asp-for="LicenseFile" type="file" accept="image/*,.pdf,application/pdf" required />
+            <span class="muted" style="font-size:0.85rem;display:block;margin-top:0.35rem">إلزامي: تصريح طبي، رخصة مزاولة، أو ما يثبت صفتك كممرض (صورة واضحة أو PDF، حتى 10 ميجابايت).</span>
+            <span asp-validation-for="LicenseFile"></span>
+        </div>
         <div class="field"><label asp-for="City"></label><input asp-for="City" /></div>
         <div class="field"><label asp-for="Neighborhood"></label><input asp-for="Neighborhood" /></div>
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>

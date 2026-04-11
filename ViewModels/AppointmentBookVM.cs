@@ -9,7 +9,7 @@ public class AppointmentBookVM
     public int? NurseProfileId { get; set; }
     public int? ClinicId { get; set; }
 
-    [Required(ErrorMessage = "اختر الخدمة")]
+    [Range(1, int.MaxValue, ErrorMessage = "اختر الخدمة")]
     [Display(Name = "الخدمة")]
     public int ServiceId { get; set; }
 

@@ -11,6 +11,7 @@ public class ApplicationUser : IdentityUser
     public string? Street { get; set; }
     public double? Latitude { get; set; }
     public double? Longitude { get; set; }
+    public DateTime? LastLiveLocationAt { get; set; }
     public string Role { get; set; } = AppRoles.Patient;
     public bool IsActive { get; set; } = true;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -3,9 +3,12 @@ namespace HomeNursingSystem.ViewModels;
 public class PatientDashboardVM
 {
     public int TotalBookings { get; set; }
-    public int Upcoming { get; set; }
+    /// <summary>بانتظار قبول الممرض/العيادة.</summary>
+    public int PendingApproval { get; set; }
+    /// <summary>مقبولة أو قيد التنفيذ (تشمل القيمة القديمة Confirmed).</summary>
+    public int ActiveConfirmed { get; set; }
     public int Completed { get; set; }
-    public int Pending { get; set; }
+    public int Cancelled { get; set; }
     public IReadOnlyList<AppointmentRowVM> RecentAppointments { get; set; } = Array.Empty<AppointmentRowVM>();
 }
 
@@ -25,6 +28,7 @@ public class NurseDashboardVM
     public int TotalCompleted { get; set; }
     public decimal AverageRating { get; set; }
     public int PendingRequests { get; set; }
+    public IReadOnlyList<AppointmentRowVM> PendingAppointments { get; set; } = Array.Empty<AppointmentRowVM>();
     public IReadOnlyList<AppointmentRowVM> Upcoming { get; set; } = Array.Empty<AppointmentRowVM>();
 }
 
@@ -32,6 +36,7 @@ public class ClinicDashboardVM
 {
     public int TodayCount { get; set; }
     public int MonthlyTotal { get; set; }
+    public int PendingRequests { get; set; }
     public decimal AverageRating { get; set; }
     public int StaffCount { get; set; }
     public IReadOnlyList<AppointmentRowVM> Upcoming { get; set; } = Array.Empty<AppointmentRowVM>();

@@ -1,4 +1,5 @@
 @model PatientDashboardVM
+@using HomeNursingSystem.Models
 @{
     ViewData["Title"] = "لوحة المريض";
 }
@@ -6,12 +7,19 @@
 
 <h1 class="page-title">مرحباً</h1>
 <div class="stat-cards">
-    <div class="stat-card"><strong>@Model.TotalBookings</strong><div class="muted">إجمالي الحجوزات</div></div>
-    <div class="stat-card"><strong>@Model.Upcoming</strong><div class="muted">قادمة</div></div>
+    <div class="stat-card"><strong>@Model.TotalBookings</strong><div class="muted">إجمالي المواعيد</div></div>
+    <div class="stat-card"><strong>@Model.PendingApproval</strong><div class="muted">بانتظار الموافقة</div></div>
+    <div class="stat-card"><strong>@Model.ActiveConfirmed</strong><div class="muted">مقبولة / قيد التنفيذ</div></div>
     <div class="stat-card"><strong>@Model.Completed</strong><div class="muted">مكتملة</div></div>
-    <div class="stat-card"><strong>@Model.Pending</strong><div class="muted">معلقة</div></div>
+    <div class="stat-card"><strong>@Model.Cancelled</strong><div class="muted">ملغاة</div></div>
 </div>
-<a class="btn btn-accent" asp-action="Book">احجز موعداً</a>
+<div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin:1rem 0">
+    <a class="btn btn-accent" asp-action="Book">احجز موعداً</a>
+    <a class="btn btn-outline" asp-action="Appointments">كل مواعيدي</a>
+    <a class="btn btn-outline" asp-action="Appointments" asp-route-status="Pending">المعلقة فقط</a>
+    <a class="btn btn-outline" asp-action="Appointments" asp-route-status="Approved">المقبولة</a>
+    <a class="btn btn-outline" asp-action="Appointments" asp-route-status="Completed">المكتملة</a>
+</div>
 <h2 class="page-title" style="margin-top:2rem">آخر المواعيد</h2>
 <div class="table-wrap">
     <table class="data-table">
@@ -23,7 +31,7 @@
                 <td>@r.AppointmentDate.ToLocalTime().ToString("g")</td>
                 <td>@r.ProviderName</td>
                 <td>@r.ServiceName</td>
-                <td><span class="badge badge-@(r.Status == "InProgress" ? "inprogress" : r.Status.ToLowerInvariant())">@r.Status</span></td>
+                <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(r.Status)">@r.Status</span></td>
                 <td><a asp-action="AppointmentDetail" asp-route-id="@r.AppointmentId">تفاصيل</a></td>
             </tr>
         }

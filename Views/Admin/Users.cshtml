@@ -20,7 +20,17 @@
                 <td>
                     @if (u.IsActive)
                     {
-                        <form asp-action="SuspendUser" asp-route-id="@u.Id" method="post" style="display:inline" onsubmit="return confirm('تعليق المستخدم��');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-ghost">تعليق</button></form>
+                        <form asp-action="SuspendUser" asp-route-id="@u.Id" method="post" style="display:inline" onsubmit="return confirm('تعليق هذا المستخدم؟');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-ghost">تعليق</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <form asp-action="UnsuspendUser" asp-route-id="@u.Id" method="post" style="display:inline" onsubmit="return confirm('إلغاء التعليق؟');">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-primary">إلغاء التعليق</button>
+                        </form>
                     }
                 </td>
             </tr>

@@ -100,8 +100,26 @@ public class NurseController : Controller
         if (np == null) return NotFound();
         var appt = await _apptRepo.GetByIdForNurseAsync(id, np.NurseProfileId, ct);
         if (appt == null) return NotFound();
-        ViewBag.GoogleMapsApiKey = _config["GoogleMapsApiKey"];
+        ViewBag.CurrentUserId = user!.Id;
+        var maps = MapsTrackLinkBuilder.TryForProviderTrackingPatient(appt);
+        ViewBag.MapsDirectUrl = maps?.Url;
+        ViewBag.MapsDirectLabel = maps?.Label;
+
         return View(appt);
+    }
+
+    [HttpGet("appointments/{id:int}/maps-link")]
+    public async Task<IActionResult> AppointmentMapsLink(int id, CancellationToken ct)
+    {
+        var user = await _users.GetUserAsync(User);
+        var np = await _profiles.GetByUserIdAsync(user!.Id, ct);
+        if (np == null) return NotFound();
+        var appt = await _apptRepo.GetByIdForNurseAsync(id, np.NurseProfileId, ct);
+        if (appt == null) return NotFound();
+        var link = MapsTrackLinkBuilder.TryForProviderTrackingPatient(appt);
+        if (link == null)
+            return Json(new { error = "لا تتوفر إحداثيات المريض أو عنوان الزيارة في الخرائط حالياً." });
+        return Json(new { url = link.Value.Url, label = link.Value.Label });
     }
 
     [HttpPost("appointments/{id:int}/status")]

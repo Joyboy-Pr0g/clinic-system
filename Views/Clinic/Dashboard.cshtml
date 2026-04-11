@@ -1,4 +1,5 @@
 @model ClinicDashboardVM
+@using HomeNursingSystem.Models
 @{ Layout = "_DashboardLayout"; ViewData["Title"] = "لوحة العيادة"; }
 @section Sidebar { <partial name="_Sidebar" /> }
 
@@ -8,7 +9,11 @@
     <div class="stat-card"><strong>@Model.MonthlyTotal</strong><div class="muted">هذا الشهر</div></div>
     <div class="stat-card"><strong>@Model.AverageRating.ToString("N1")</strong><div class="muted">التقييم</div></div>
     <div class="stat-card"><strong>@Model.StaffCount</strong><div class="muted">الفريق</div></div>
+    <div class="stat-card"><strong>@Model.PendingRequests</strong><div class="muted">طلبات معلقة</div></div>
 </div>
+<p><a class="btn btn-outline" asp-action="Appointments">كل مواعيد العيادة</a>
+   <a class="btn btn-outline" asp-action="Appointments" asp-route-status="Pending">المعلقة</a>
+   <a class="btn btn-outline" asp-action="Appointments" asp-route-status="Completed">المكتملة</a></p>
 <h2 class="page-title">قادمة</h2>
 <div class="table-wrap">
     <table class="data-table">
@@ -20,7 +25,7 @@
                 <td>@r.AppointmentDate.ToLocalTime().ToString("g")</td>
                 <td>@r.ProviderName</td>
                 <td>@r.ServiceName</td>
-                <td><span class="badge badge-@(r.Status == "InProgress" ? "inprogress" : r.Status.ToLowerInvariant())">@r.Status</span></td>
+                <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(r.Status)">@r.Status</span></td>
                 <td><a asp-action="AppointmentDetail" asp-route-id="@r.AppointmentId">فتح</a></td>
             </tr>
         }

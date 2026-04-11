@@ -1,49 +1,105 @@
-@* hksdfksjd *@
-
 @model AppointmentBookVM
+@using System.Globalization
+@using HomeNursingSystem.Models
 @{
     ViewData["Title"] = "حجز موعد";
-    var nurses = ViewBag.Nurses as IReadOnlyList<NurseListItemVM>;
-    var clinics = ViewBag.Clinics as IReadOnlyList<ClinicListItemVM>;
-    var services = ViewBag.Services as IEnumerable<HomeNursingSystem.Models.MedicalService>;
+    var nurses = ViewBag.Nurses as IReadOnlyList<NurseListItemVM> ?? Array.Empty<NurseListItemVM>();
+    var clinics = ViewBag.Clinics as IReadOnlyList<ClinicListItemVM> ?? Array.Empty<ClinicListItemVM>();
+    var services = ViewBag.Services as IEnumerable<HomeNursingSystem.Models.MedicalService> ?? Enumerable.Empty<HomeNursingSystem.Models.MedicalService>();
+    var providerLocked = ViewBag.ProviderLocked as bool? ?? false;
+    var providerDisplayName = ViewBag.ProviderDisplayName as string ?? "";
+    var detailStep = providerLocked ? 1 : 2;
+    var confirmStep = providerLocked ? 2 : 3;
+    var maxStep = providerLocked ? 2 : 3;
+    var apptLocal = Model.AppointmentDate;
+    if (apptLocal.Kind == DateTimeKind.Utc)
+        apptLocal = apptLocal.ToLocalTime();
+    else if (apptLocal.Kind == DateTimeKind.Unspecified)
+        apptLocal = DateTime.SpecifyKind(apptLocal, DateTimeKind.Local);
+    var apptInputValue = apptLocal.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
 }
 @section Sidebar { <partial name="_Sidebar" /> }
 
 <h1 class="page-title">حجز موعد</h1>
+
+@if (providerLocked && !string.IsNullOrWhiteSpace(providerDisplayName))
+{
+    <p class="book-provider-lock" style="margin-bottom:1rem;padding:0.75rem 1rem;background:rgba(42,127,186,0.08);border-radius:8px">
+        أنت تحجز مع <strong>@providerDisplayName</strong> — أكمل الخدمة والموقع والتأكيد أدناه.
+    </p>
+}
+
 <div class="book-steps">
-    <span class="book-step active" data-step-indicator="1">1 النوع</span>
-    <span class="book-step" data-step-indicator="2">2 التفاصيل</span>
-    <span class="book-step" data-step-indicator="3">3 تأكيد</span>
+    @if (providerLocked)
+    {
+        <span class="book-step active" data-step-indicator="1">1 التفاصيل</span>
+        <span class="book-step" data-step-indicator="2">2 تأكيد</span>
+    }
+    else
+    {
+        <span class="book-step active" data-step-indicator="1">1 النوع</span>
+        <span class="book-step" data-step-indicator="2">2 التفاصيل</span>
+        <span class="book-step" data-step-indicator="3">3 تأكيد</span>
+    }
 </div>
 
 <form asp-action="Book" method="post" class="form-stack wide" data-loading id="book-form">
     @Html.AntiForgeryToken()
-    <div data-book-step="1">
-        <label><input type="radio" asp-for="BookType" value="Nurse" checked="@(Model.BookType=="Nurse")" /> ممرض منزلي</label>
-        <label><input type="radio" asp-for="BookType" value="Clinic" checked="@(Model.BookType=="Clinic")" /> عيادة</label>
-        <div class="field nurse-pick">
-            <label>الممرض</label>
-            <select asp-for="NurseProfileId" asp-items="@(new SelectList(nurses ?? Array.Empty<NurseListItemVM>(), "NurseProfileId", "FullName"))">
-                <option value="">— اختر —</option>
-            </select>
+    <input type="hidden" asp-for="GoogleMapsApiKey" />
+    @if (providerLocked)
+    {
+        <input type="hidden" asp-for="BookType" />
+        @if (string.Equals(Model.BookType, "Nurse", StringComparison.OrdinalIgnoreCase) && (Model.NurseProfileId ?? 0) > 0)
+        {
+            <input type="hidden" asp-for="NurseProfileId" />
+        }
+        @if (string.Equals(Model.BookType, "Clinic", StringComparison.OrdinalIgnoreCase) && (Model.ClinicId ?? 0) > 0)
+        {
+            <input type="hidden" asp-for="ClinicId" />
+        }
+    }
+    @if (!providerLocked)
+    {
+        <div data-book-step="1">
+            <label><input type="radio" asp-for="BookType" value="Nurse" /> ممرض منزلي</label>
+            <label><input type="radio" asp-for="BookType" value="Clinic" /> عيادة</label>
+            <div class="field nurse-pick">
+                <label>الممرض</label>
+                <select asp-for="NurseProfileId" asp-items="@(new SelectList(nurses, "NurseProfileId", "FullName"))">
+                    <option value="">— اختر —</option>
+                </select>
+            </div>
+            <div class="field clinic-pick">
+                <label>العيادة</label>
+                <select asp-for="ClinicId" asp-items="@(new SelectList(clinics, "ClinicId", "ClinicName"))">
+                    <option value="">— اختر —</option>
+                </select>
+            </div>
+            <button type="button" class="btn btn-primary" data-next-step>التالي</button>
         </div>
-        <div class="field clinic-pick">
-            <label>العيادة</label>
-            <select asp-for="ClinicId" asp-items="@(new SelectList(clinics ?? Array.Empty<ClinicListItemVM>(), "ClinicId", "ClinicName"))">
-                <option value="">— اختر —</option>
-            </select>
-        </div>
-        <button type="button" class="btn btn-primary" data-next-step>التالي</button>
-    </div>
-    <div data-book-step="2" style="display:none">
+    }
+    <div data-book-step="@detailStep" style="display:none">
         <div class="field">
             <label asp-for="ServiceId"></label>
-            <select asp-for="ServiceId" asp-items="@(new SelectList(services ?? Enumerable.Empty<HomeNursingSystem.Models.MedicalService>(), "ServiceId", "ServiceName"))"></select>
+            <select asp-for="ServiceId">
+                <option value="0">— اختر الخدمة —</option>
+                @foreach (var s in services)
+                {
+                    if (s.ServiceId == Model.ServiceId)
+                    {
+                        <option value="@s.ServiceId" selected>@HomeNursingSystem.Services.ServiceNameLocalizer.Localize(s.ServiceName)</option>
+                    }
+                    else
+                    {
+                        <option value="@s.ServiceId">@HomeNursingSystem.Services.ServiceNameLocalizer.Localize(s.ServiceName)</option>
+                    }
+                }
+            </select>
             <span asp-validation-for="ServiceId"></span>
         </div>
         <div class="field field-ltr">
-            <label asp-for="AppointmentDate"></label>
-            <input asp-for="AppointmentDate" type="datetime-local" />
+            <label asp-for="AppointmentDate">موعد الزيارة</label>
+            <input type="datetime-local" name="AppointmentDate" id="AppointmentDate" value="@apptInputValue" />
             <span asp-validation-for="AppointmentDate"></span>
         </div>
         <div class="field">
@@ -52,14 +108,21 @@
             <span asp-validation-for="AddressText"></span>
         </div>
         <div class="field"><label asp-for="Notes"></label><textarea asp-for="Notes" rows="2"></textarea></div>
-        <p class="muted">حدد موقعك على الخريطة (اسحب العلامة)</p>
-        <div id="map" class="map-canvas"></div>
+        @if (!string.IsNullOrEmpty(Model.GoogleMapsApiKey) && Model.GoogleMapsApiKey != "YOUR_GOOGLE_MAPS_API_KEY")
+        {
+            <p class="muted">حدد موقعك على الخريطة (اسحب العلامة)</p>
+            <div id="map" class="map-canvas"></div>
+        }
+        else
+        {
+            <p class="muted text-danger">مفتاح خرائط Google غير مضبوط في التطبيق؛ يمكنك إدخال العنوان نصياً فقط.</p>
+        }
         <input type="hidden" asp-for="Latitude" id="lat-input" />
         <input type="hidden" asp-for="Longitude" id="lng-input" />
         <button type="button" class="btn btn-ghost" data-prev-step>السابق</button>
         <button type="button" class="btn btn-primary" data-next-step>التالي</button>
     </div>
-    <div data-book-step="3" style="display:none">
+    <div data-book-step="@confirmStep" style="display:none">
         <p>راجع البيانات ثم أرسل الطلب.</p>
         <button type="button" class="btn btn-ghost" data-prev-step>السابق</button>
         <button type="submit" class="btn btn-accent">تأكيد الحجز</button>
@@ -71,15 +134,18 @@
     <partial name="_ValidationScriptsPartial" />
     @if (!string.IsNullOrEmpty(Model.GoogleMapsApiKey) && Model.GoogleMapsApiKey != "YOUR_GOOGLE_MAPS_API_KEY")
     {
-        <script src="https://maps.googleapis.com/maps/api/js?key=@Model.GoogleMapsApiKey&libraries=marker"></script>
+        <script src="https://maps.googleapis.com/maps/api/js?key=@Model.GoogleMapsApiKey"></script>
         <script>
             (function () {
                 var latEl = document.getElementById("lat-input");
                 var lngEl = document.getElementById("lng-input");
+                var mapEl = document.getElementById("map");
+                if (!mapEl || !latEl || !lngEl) return;
                 var defLat = parseFloat(latEl.value) || 24.7136;
                 var defLng = parseFloat(lngEl.value) || 46.6753;
-                window.initBookMap = function () {
-                    var map = new google.maps.Map(document.getElementById("map"), {
+                function initBookMap() {
+                    if (!window.google || !google.maps) return;
+                    var map = new google.maps.Map(mapEl, {
                         center: { lat: defLat, lng: defLng },
                         zoom: 12
                     });
@@ -99,15 +165,18 @@
                         save();
                     });
                     save();
-                };
+                }
                 if (window.google && google.maps) initBookMap();
+                else window.addEventListener("load", initBookMap);
             })();
         </script>
-        <script>if (window.google && google.maps) { if (typeof initBookMap === 'function') initBookMap(); }</script>
     }
     <script>
         (function () {
+            var maxStep = @maxStep;
+            var minStep = 1;
             var step = 1;
+            var providerLocked = @(providerLocked ? "true" : "false");
             function show(s) {
                 document.querySelectorAll("[data-book-step]").forEach(function (el) {
                     el.style.display = el.getAttribute("data-book-step") == s ? "block" : "none";
@@ -118,16 +187,17 @@
                 step = s;
             }
             document.querySelectorAll("[data-next-step]").forEach(function (b) {
-                b.addEventListener("click", function () { show(Math.min(3, step + 1)); });
+                b.addEventListener("click", function () { show(Math.min(maxStep, step + 1)); });
             });
             document.querySelectorAll("[data-prev-step]").forEach(function (b) {
-                b.addEventListener("click", function () { show(Math.max(1, step - 1)); });
+                b.addEventListener("click", function () { show(Math.max(minStep, step - 1)); });
             });
             function toggleType() {
+                if (providerLocked) return;
                 var t = document.querySelector("input[name=\"BookType\"]:checked");
                 var n = document.querySelector(".nurse-pick");
                 var c = document.querySelector(".clinic-pick");
-                if (!t) return;
+                if (!t || !n || !c) return;
                 n.style.display = t.value === "Nurse" ? "block" : "none";
                 c.style.display = t.value === "Clinic" ? "block" : "none";
             }

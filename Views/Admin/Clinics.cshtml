@@ -3,21 +3,48 @@
 @section Sidebar { <partial name="_Sidebar" /> }
 
 <h1 class="page-title">العيادات</h1>
+<p class="muted">راجع رخصة المنشأة أو التصريح ثم <strong>قبول</strong> أو <strong>رفض</strong>.</p>
 <div class="table-wrap">
     <table class="data-table">
-        <thead><tr><th>الاسم</th><th>المدينة</th><th>تحقق</th><th>نشط</th><th></th></tr></thead>
+        <thead><tr><th>الاسم</th><th>المدينة</th><th>الحالة</th><th>نشط</th><th>وثيقة</th><th>إجراءات</th></tr></thead>
         <tbody>
         @foreach (var c in Model)
         {
+            var status = c.IsRejectedByAdmin ? "مرفوض" : c.IsVerified ? "مقبول" : "بانتظار المراجعة";
             <tr>
                 <td>@c.ClinicName</td>
                 <td>@c.City</td>
-                <td>@(c.IsVerified ? "نعم" : "لا")</td>
+                <td><span class="badge @(c.IsRejectedByAdmin ? "badge-cancelled" : c.IsVerified ? "badge-approved" : "badge-pending")">@status</span></td>
                 <td>@(c.IsActive ? "نعم" : "لا")</td>
                 <td>
-                    @if (!c.IsVerified)
-                    { <form asp-action="VerifyClinic" asp-route-id="@c.ClinicId" method="post" style="display:inline">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-primary">تحقق</button></form> }
-                    <form asp-action="SuspendClinic" asp-route-id="@c.ClinicId" method="post" style="display:inline" onsubmit="return confirm('تعليق�');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-ghost">تعليق</button></form>
+                    @if (!string.IsNullOrEmpty(c.LicenseDocumentPath))
+                    {
+                        <a class="btn btn-sm btn-outline" href="@Url.Action("ViewClinicLicense", new { id = c.ClinicId })" target="_blank" rel="noopener">عرض الوثيقة</a>
+                    }
+                    else { <span class="muted">—</span> }
+                </td>
+                <td>
+                    <div class="admin-row-actions">
+                        @if (!c.IsVerified && !c.IsRejectedByAdmin)
+                        {
+                            <form asp-action="VerifyClinic" asp-route-id="@c.ClinicId" method="post" class="admin-row-actions__form">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-primary">قبول</button>
+                            </form>
+                            <form asp-action="RejectClinic" asp-route-id="@c.ClinicId" method="post" class="admin-row-actions__form admin-row-actions__form--wide">
+                                @Html.AntiForgeryToken()
+                                <input type="text" name="note" class="admin-reject-note" placeholder="سبب الرفض (اختياري)" maxlength="500" />
+                                <button type="submit" class="btn btn-sm btn-ghost" style="border-color:#c0392b;color:#c0392b" onclick="return confirm('تأكيد رفض هذه العيادة؟');">رفض</button>
+                            </form>
+                        }
+                        else if (c.IsVerified)
+                        {
+                            <form asp-action="SuspendClinic" asp-route-id="@c.ClinicId" method="post" class="admin-row-actions__form" onsubmit="return confirm('تعليق العيادة؟');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-ghost">تعليق</button>
+                            </form>
+                        }
+                    </div>
                 </td>
             </tr>
         }

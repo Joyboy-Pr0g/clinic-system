@@ -17,6 +17,12 @@
         <div class="field"><label asp-for="Neighborhood"></label><input asp-for="Neighborhood" /></div>
         <div class="field"><label asp-for="City"></label><input asp-for="City" /></div>
         <div class="field"><label asp-for="LogoFile"></label><input asp-for="LogoFile" type="file" accept="image/*" /></div>
+        <div class="field">
+            <label asp-for="LicenseDocumentFile"></label>
+            <input asp-for="LicenseDocumentFile" type="file" accept="image/*,.pdf,application/pdf" required />
+            <span class="muted" style="font-size:0.85rem;display:block;margin-top:0.35rem">إلزامي: رخصة منشأة صحية، تصريح، أو سجل تجاري (صورة أو PDF، حتى 10 ميجابايت).</span>
+            <span asp-validation-for="LicenseDocumentFile"></span>
+        </div>
         <div class="field"><label asp-for="ClinicPhone"></label><input asp-for="ClinicPhone" /></div>
         <div class="field"><label asp-for="ClinicEmail"></label><input asp-for="ClinicEmail" /></div>
         <div asp-validation-summary="ModelOnly" class="text-danger"></div>

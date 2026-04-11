@@ -25,6 +25,6 @@ public class ContactVM
 
     [Required]
     [StringLength(2000)]
-    [Display(Name = "الرسالة")]
+    [Display(Name = "الرسابلبلبللة")]
     public string Message { get; set; } = string.Empty;
 }

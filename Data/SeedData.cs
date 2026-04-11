@@ -17,6 +17,9 @@ public static class SeedData
 
         await context.Database.MigrateAsync();
 
+        await context.Database.ExecuteSqlRawAsync(
+            "UPDATE Appointments SET Status = N'Approved' WHERE Status = N'Confirmed'");
+
         foreach (var role in new[] { AppRoles.Admin, AppRoles.Patient, AppRoles.Nurse, AppRoles.ClinicOwner })
         {
             if (!await roleManager.RoleExistsAsync(role))
@@ -27,14 +30,14 @@ public static class SeedData
         {
             var servicesList = new[]
             {
-                new MedicalService { ServiceName = "Injection", Description = "إعطاء الحقن", IconClass = "fa-syringe", BasePrice = 35 },
-                new MedicalService { ServiceName = "IV Drip Setup", Description = "تركيب المحاليل الوريدية", IconClass = "fa-droplet", BasePrice = 120 },
-                new MedicalService { ServiceName = "Wound Dressing", Description = "تغيير ضمادات الجروح", IconClass = "fa-bandage", BasePrice = 55 },
-                new MedicalService { ServiceName = "Blood Pressure Monitoring", Description = "قياس ضغط الدم", IconClass = "fa-heart-pulse", BasePrice = 30 },
-                new MedicalService { ServiceName = "Blood Sugar Test", Description = "فحص السكر", IconClass = "fa-vial", BasePrice = 25 },
-                new MedicalService { ServiceName = "Minor Surgical Dressing", Description = "تضميد جراحي بسيط", IconClass = "fa-user-doctor", BasePrice = 80 },
-                new MedicalService { ServiceName = "Post-Surgery Care", Description = "رعاية ما بعد الجراحة", IconClass = "fa-hospital", BasePrice = 150 },
-                new MedicalService { ServiceName = "Elderly Care Visit", Description = "زيارة رعاية مسنين", IconClass = "fa-hand-holding-heart", BasePrice = 90 },
+                new MedicalService { ServiceName = "حقن", Description = "إعطاء الحقن", IconClass = "fa-syringe", BasePrice = 35 },
+                new MedicalService { ServiceName = "تركيب محلول وريدي", Description = "تركيب المحاليل الوريدية", IconClass = "fa-droplet", BasePrice = 120 },
+                new MedicalService { ServiceName = "تضميد الجروح", Description = "تغيير ضمادات الجروح", IconClass = "fa-bandage", BasePrice = 55 },
+                new MedicalService { ServiceName = "قياس ضغط الدم", Description = "قياس ضغط الدم", IconClass = "fa-heart-pulse", BasePrice = 30 },
+                new MedicalService { ServiceName = "فحص سكر الدم", Description = "فحص السكر", IconClass = "fa-vial", BasePrice = 25 },
+                new MedicalService { ServiceName = "تضميد جراحي بسيط", Description = "تضميد جراحي بسيط", IconClass = "fa-user-doctor", BasePrice = 80 },
+                new MedicalService { ServiceName = "رعاية ما بعد الجراحة", Description = "رعاية ما بعد الجراحة", IconClass = "fa-hospital", BasePrice = 150 },
+                new MedicalService { ServiceName = "زيارة رعاية كبار السن", Description = "زيارة رعاية مسنين", IconClass = "fa-hand-holding-heart", BasePrice = 90 },
             };
             context.Services.AddRange(servicesList);
             await context.SaveChangesAsync();
@@ -124,7 +127,7 @@ public static class SeedData
         {
             var owner1 = new ApplicationUser
             {
-                UserName = "clinic1@demo.com",
+                UserName = "[clinic1@demo.com]",
                 Email = "clinic1@demo.com",
                 EmailConfirmed = true,
                 FullName = "د. سارة المطيري",

@@ -36,7 +36,7 @@ public class RequireVerifiedProviderFilter : IAsyncActionFilter
 
         var ctrl = context.RouteData.Values["controller"]?.ToString();
         var act = context.RouteData.Values["action"]?.ToString();
-        if (ctrl == "Account" && act is "PendingApproval" or "Logout" or "Login" or "Register" or "RegisterNurse" or "RegisterClinic")
+        if (ctrl == "Account" && act is "PendingApproval" or "VerificationRejected" or "SaveLiveLocation" or "Logout" or "Login" or "Register" or "RegisterNurse" or "RegisterClinic")
         {
             await next();
             return;
@@ -45,7 +45,17 @@ public class RequireVerifiedProviderFilter : IAsyncActionFilter
         if (user.IsInRole(AppRoles.Nurse))
         {
             var np = await _db.NurseProfiles.AsNoTracking().FirstOrDefaultAsync(n => n.UserId == userId);
-            if (np == null || !np.IsVerified)
+            if (np == null)
+            {
+                await next();
+                return;
+            }
+            if (np.IsRejectedByAdmin)
+            {
+                context.Result = new RedirectToActionResult("VerificationRejected", "Account", null);
+                return;
+            }
+            if (!np.IsVerified)
             {
                 context.Result = new RedirectToActionResult("PendingApproval", "Account", null);
                 return;
@@ -54,7 +64,17 @@ public class RequireVerifiedProviderFilter : IAsyncActionFilter
         else if (user.IsInRole(AppRoles.ClinicOwner))
         {
             var clinic = await _db.Clinics.AsNoTracking().FirstOrDefaultAsync(c => c.OwnerId == userId);
-            if (clinic == null || !clinic.IsVerified)
+            if (clinic == null)
+            {
+                await next();
+                return;
+            }
+            if (clinic.IsRejectedByAdmin)
+            {
+                context.Result = new RedirectToActionResult("VerificationRejected", "Account", null);
+                return;
+            }
+            if (!clinic.IsVerified)
             {
                 context.Result = new RedirectToActionResult("PendingApproval", "Account", null);
                 return;

@@ -126,8 +126,13 @@ public class AccountController : Controller
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RegisterNurse(RegisterNursePageVM model)
+    [RequestSizeLimit(12 * 1024 * 1024)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 12 * 1024 * 1024)]
+    public async Task<IActionResult> RegisterNurse(RegisterNursePageVM model, CancellationToken ct)
     {
+        if (model.LicenseFile == null || model.LicenseFile.Length == 0)
+            ModelState.AddModelError(nameof(model.LicenseFile), "يجب إرفاق التصريح الطبي أو رخصة المزاولة (صورة أو PDF) للتحقق من هويتك كممرض.");
+
         if (!ModelState.IsValid)
             return View(model);
 
@@ -154,9 +159,13 @@ public class AccountController : Controller
 
         await _userManager.AddToRoleAsync(user, AppRoles.Nurse);
 
-        string? licensePath = null;
-        if (model.LicenseFile != null)
-            licensePath = await _files.SaveImageAsync(model.LicenseFile, "licenses");
+        var licensePath = await _files.SaveLicenseDocumentAsync(model.LicenseFile!, ct);
+        if (licensePath == null)
+        {
+            await _userManager.DeleteAsync(user);
+            ModelState.AddModelError(nameof(model.LicenseFile), "الملف غير مدعوم (صورة أو PDF فقط) أو يتجاوز 10 ميجابايت.");
+            return View(model);
+        }
 
         _db.NurseProfiles.Add(new NurseProfile
         {
@@ -166,10 +175,11 @@ public class AccountController : Controller
             Bio = model.Bio,
             LicenseImagePath = licensePath,
             IsVerified = false,
+            IsRejectedByAdmin = false,
             IsAvailable = true,
             CreatedAt = DateTime.UtcNow
         });
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
 
         await _signInManager.SignInAsync(user, isPersistent: true);
         return RedirectToAction(nameof(PendingApproval));
@@ -182,8 +192,13 @@ public class AccountController : Controller
     [HttpPost]
     [AllowAnonymous]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RegisterClinic(RegisterClinicPageVM model)
+    [RequestSizeLimit(12 * 1024 * 1024)]
+    [RequestFormLimits(MultipartBodyLengthLimit = 12 * 1024 * 1024)]
+    public async Task<IActionResult> RegisterClinic(RegisterClinicPageVM model, CancellationToken ct)
     {
+        if (model.LicenseDocumentFile == null || model.LicenseDocumentFile.Length == 0)
+            ModelState.AddModelError(nameof(model.LicenseDocumentFile), "يجب إرفاق رخصة المنشأة أو التصريح الطبي أو السجل التجاري (صورة أو PDF).");
+
         if (!ModelState.IsValid)
             return View(model);
 
@@ -212,7 +227,15 @@ public class AccountController : Controller
 
         string? logo = null;
         if (model.LogoFile != null)
-            logo = await _files.SaveImageAsync(model.LogoFile, "clinics");
+            logo = await _files.SaveImageAsync(model.LogoFile, "clinics", ct);
+
+        var licensePath = await _files.SaveLicenseDocumentAsync(model.LicenseDocumentFile!, ct);
+        if (licensePath == null)
+        {
+            await _userManager.DeleteAsync(user);
+            ModelState.AddModelError(nameof(model.LicenseDocumentFile), "وثيقة الرخصة غير مدعومة أو تتجاوز 10 ميجابايت.");
+            return View(model);
+        }
 
         _db.Clinics.Add(new Clinic
         {
@@ -226,18 +249,90 @@ public class AccountController : Controller
             PhoneNumber = model.ClinicPhone,
             Email = model.ClinicEmail,
             LogoImagePath = logo,
+            LicenseDocumentPath = licensePath,
             IsVerified = false,
+            IsRejectedByAdmin = false,
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         });
-        await _db.SaveChangesAsync();
+        await _db.SaveChangesAsync(ct);
 
         await _signInManager.SignInAsync(user, isPersistent: true);
         return RedirectToAction(nameof(PendingApproval));
     }
 
     [Authorize]
-    public IActionResult PendingApproval() => View();
+    public async Task<IActionResult> PendingApproval(CancellationToken ct)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return RedirectToAction(nameof(Login));
+        if (user.Role == AppRoles.Nurse)
+        {
+            var np = await _db.NurseProfiles.AsNoTracking().FirstOrDefaultAsync(n => n.UserId == user.Id, ct);
+            if (np?.IsRejectedByAdmin == true)
+                return RedirectToAction(nameof(VerificationRejected));
+        }
+        else if (user.Role == AppRoles.ClinicOwner)
+        {
+            var c = await _db.Clinics.AsNoTracking().FirstOrDefaultAsync(x => x.OwnerId == user.Id, ct);
+            if (c?.IsRejectedByAdmin == true)
+                return RedirectToAction(nameof(VerificationRejected));
+        }
+        return View();
+    }
+
+    [Authorize]
+    public async Task<IActionResult> VerificationRejected(CancellationToken ct)
+    {
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return RedirectToAction(nameof(Login));
+        if (user.Role == AppRoles.Nurse)
+        {
+            var np = await _db.NurseProfiles.AsNoTracking().FirstOrDefaultAsync(n => n.UserId == user.Id, ct);
+            if (np == null || !np.IsRejectedByAdmin)
+                return RedirectToAction(nameof(PendingApproval));
+            ViewBag.RejectionNote = np.AdminRejectionNote;
+            return View();
+        }
+        if (user.Role == AppRoles.ClinicOwner)
+        {
+            var c = await _db.Clinics.AsNoTracking().FirstOrDefaultAsync(x => x.OwnerId == user.Id, ct);
+            if (c == null || !c.IsRejectedByAdmin)
+                return RedirectToAction(nameof(PendingApproval));
+            ViewBag.RejectionNote = c.AdminRejectionNote;
+            return View();
+        }
+        return RedirectToAction("Index", "Home");
+    }
+
+    /// <summary>يُستدعى من المتصفح بعد تسجيل الدخول لتحديث آخر موقع (مريض/ممرض معتمد) لاستخدامه في روابط الخرائط.</summary>
+    [Authorize]
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> SaveLiveLocation(double lat, double lng, CancellationToken ct)
+    {
+        if (lat is < -90 or > 90 || lng is < -180 or > 180)
+            return BadRequest();
+
+        var user = await _userManager.GetUserAsync(User);
+        if (user == null) return Unauthorized();
+
+        user.Latitude = lat;
+        user.Longitude = lng;
+        user.LastLiveLocationAt = DateTime.UtcNow;
+        await _userManager.UpdateAsync(user);
+
+        var np = await _db.NurseProfiles.FirstOrDefaultAsync(n => n.UserId == user.Id, ct);
+        if (np is { IsVerified: true })
+        {
+            np.LastLatitude = lat;
+            np.LastLongitude = lng;
+            np.LocationUpdatedAt = DateTime.UtcNow;
+            await _db.SaveChangesAsync(ct);
+        }
+
+        return Ok();
+    }
 
     [Authorize]
     [HttpPost]

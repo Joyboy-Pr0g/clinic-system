@@ -25,13 +25,16 @@ public class AppointmentService : IAppointmentService
     public async Task<PatientDashboardVM> GetPatientDashboardAsync(string patientId, CancellationToken ct = default)
     {
         var q = _db.Appointments.Where(a => a.PatientId == patientId);
-        var now = DateTime.UtcNow;
         return new PatientDashboardVM
         {
             TotalBookings = await q.CountAsync(ct),
-            Upcoming = await q.CountAsync(a => a.AppointmentDate >= now && a.Status != AppointmentStatuses.Cancelled && a.Status != AppointmentStatuses.Completed, ct),
+            PendingApproval = await q.CountAsync(a => a.Status == AppointmentStatuses.Pending, ct),
+            ActiveConfirmed = await q.CountAsync(a =>
+                a.Status == AppointmentStatuses.Approved
+                || a.Status == AppointmentStatuses.Confirmed
+                || a.Status == AppointmentStatuses.InProgress, ct),
             Completed = await q.CountAsync(a => a.Status == AppointmentStatuses.Completed, ct),
-            Pending = await q.CountAsync(a => a.Status == AppointmentStatuses.Pending, ct),
+            Cancelled = await q.CountAsync(a => a.Status == AppointmentStatuses.Cancelled, ct),
             RecentAppointments = await q
                 .Include(a => a.NurseProfile)!.ThenInclude(n => n!.User)
                 .Include(a => a.Clinic)
@@ -59,12 +62,29 @@ public class AppointmentService : IAppointmentService
         var today = DateTime.UtcNow.Date;
         var tomorrow = today.AddDays(1);
         var nurse = await _db.NurseProfiles.AsNoTracking().FirstAsync(n => n.NurseProfileId == nurseProfileId, ct);
+        var pendingList = await q
+            .Include(a => a.Patient)
+            .Include(a => a.Service)
+            .Where(a => a.Status == AppointmentStatuses.Pending)
+            .OrderBy(a => a.AppointmentDate)
+            .Take(25)
+            .Select(a => new AppointmentRowVM
+            {
+                AppointmentId = a.AppointmentId,
+                AppointmentDate = a.AppointmentDate,
+                ProviderName = a.Patient.FullName,
+                ServiceName = a.Service.ServiceName,
+                Status = a.Status,
+                TotalPrice = a.TotalPrice
+            })
+            .ToListAsync(ct);
         return new NurseDashboardVM
         {
             TodayCount = await q.CountAsync(a => a.AppointmentDate >= today && a.AppointmentDate < tomorrow && a.Status != AppointmentStatuses.Cancelled, ct),
             TotalCompleted = await q.CountAsync(a => a.Status == AppointmentStatuses.Completed, ct),
             AverageRating = nurse.AverageRating,
             PendingRequests = await q.CountAsync(a => a.Status == AppointmentStatuses.Pending, ct),
+            PendingAppointments = pendingList,
             Upcoming = await q
                 .Include(a => a.Patient)
                 .Include(a => a.Service)
@@ -95,6 +115,7 @@ public class AppointmentService : IAppointmentService
         {
             TodayCount = await q.CountAsync(a => a.AppointmentDate >= today && a.AppointmentDate < tomorrow && a.Status != AppointmentStatuses.Cancelled, ct),
             MonthlyTotal = await q.CountAsync(a => a.AppointmentDate >= monthStart && a.Status != AppointmentStatuses.Cancelled, ct),
+            PendingRequests = await q.CountAsync(a => a.Status == AppointmentStatuses.Pending, ct),
             AverageRating = clinic.AverageRating,
             StaffCount = 1,
             Upcoming = await q
@@ -242,18 +263,27 @@ public class AppointmentService : IAppointmentService
 
         var allowed = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
         {
-            AppointmentStatuses.Pending, AppointmentStatuses.Confirmed,
+            AppointmentStatuses.Pending, AppointmentStatuses.Approved, AppointmentStatuses.Confirmed,
             AppointmentStatuses.InProgress, AppointmentStatuses.Completed, AppointmentStatuses.Cancelled
         };
         if (!allowed.Contains(status))
             return (false, "حالة غير صالحة.");
 
+        var previousStatus = appt.Status;
         appt.Status = status;
         appt.UpdatedAt = DateTime.UtcNow;
         _appointments.Update(appt);
         await _appointments.SaveChangesAsync(ct);
 
-        await _notifications.NotifyAsync(appt.PatientId, "تحديث الموعد", $"حالة موعدك #{appointmentId}: {status}", $"/patient/appointments/{appointmentId}", ct);
+        var title = "تحديث الموعد";
+        var msg = $"حالة موعدك #{appointmentId}: {status}";
+        if (AppointmentStatuses.IsApproved(status) && previousStatus == AppointmentStatuses.Pending)
+        {
+            title = "تم قبول موعدك";
+            msg = "يمكنك متابعة التواصل عبر الدردشة داخل صفحة الموعد.";
+        }
+
+        await _notifications.NotifyAsync(appt.PatientId, title, msg, $"/patient/appointments/{appointmentId}", ct);
 
         return (true, null);
     }

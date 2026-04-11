@@ -16,8 +16,12 @@ public class Clinic
     public string? Email { get; set; }
     public string? LogoImagePath { get; set; }
     public string? CoverImagePath { get; set; }
+    /// <summary>رخصة منشأة / تصريح طبي أو سجل تجاري (مرفق عند التسجيل).</summary>
+    public string? LicenseDocumentPath { get; set; }
     public string? OpeningHours { get; set; }
     public bool IsVerified { get; set; }
+    public bool IsRejectedByAdmin { get; set; }
+    public string? AdminRejectionNote { get; set; }
     public bool IsActive { get; set; } = true;
     public decimal AverageRating { get; set; }
     public int TotalReviews { get; set; }

@@ -1,3 +1,4 @@
+@using System
 @model NurseDashboardVM
 @{ Layout = "_DashboardLayout"; ViewData["Title"] = "لوحة الممرض"; }
 @section Sidebar { <partial name="_Sidebar" /> }
@@ -9,6 +10,42 @@
     <div class="stat-card"><strong>@Model.AverageRating.ToString("N1")</strong><div class="muted">متوسط التقييم</div></div>
     <div class="stat-card"><strong>@Model.PendingRequests</strong><div class="muted">طلبات معلقة</div></div>
 </div>
+
+@if (Model.PendingAppointments.Count > 0)
+{
+    <h2 class="page-title">طلبات بانتظار الموافقة</h2>
+    <p class="muted">راجع الطلبات واضغط <strong>قبول</strong> لتفعيل الحالة «Approved» والدردشة الفورية (SignalR) مع المريض.</p>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th>التاريخ</th><th>المريض</th><th>الخدمة</th><th>السعر</th><th>إجراءات</th></tr></thead>
+            <tbody>
+            @foreach (var r in Model.PendingAppointments)
+            {
+                <tr>
+                    <td>@r.AppointmentDate.ToLocalTime().ToString("g")</td>
+                    <td>@r.ProviderName</td>
+                    <td>@r.ServiceName</td>
+                    <td>@r.TotalPrice.ToString("N2")</td>
+                    <td>
+                        <form asp-controller="Nurse" asp-action="SetStatus" asp-route-id="@r.AppointmentId" method="post" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="status" value="Approved" />
+                            <button type="submit" class="btn btn-sm btn-primary">قبول</button>
+                        </form>
+                        <form asp-controller="Nurse" asp-action="SetStatus" asp-route-id="@r.AppointmentId" method="post" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="status" value="Cancelled" />
+                            <button type="submit" class="btn btn-sm btn-ghost">رفض</button>
+                        </form>
+                        <a asp-action="AppointmentDetail" asp-route-id="@r.AppointmentId" class="btn btn-sm btn-outline" style="margin-inline-start:0.25rem">تفاصيل</a>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    </div>
+}
+
 <h2 class="page-title">الجدول القادم</h2>
 <div class="table-wrap">
     <table class="data-table">
@@ -20,7 +57,7 @@
                 <td>@r.AppointmentDate.ToLocalTime().ToString("g")</td>
                 <td>@r.ProviderName</td>
                 <td>@r.ServiceName</td>
-                <td><span class="badge badge-@(r.Status == "InProgress" ? "inprogress" : r.Status.ToLowerInvariant())">@r.Status</span></td>
+                <td><span class="badge badge-@(r.Status == "InProgress" ? "inprogress" : r.Status.Equals("Approved", StringComparison.OrdinalIgnoreCase) ? "approved" : r.Status.ToLowerInvariant())">@r.Status</span></td>
                 <td><a asp-action="AppointmentDetail" asp-route-id="@r.AppointmentId">فتح</a></td>
             </tr>
         }

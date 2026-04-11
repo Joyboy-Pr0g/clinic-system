@@ -1,0 +1,164 @@
+@model int
+<style>
+    /* الحاوية الكبيرة للدردشة */
+    .appointment-chat-panel {
+        background: #fff;
+        border-radius: 12px;
+        display: flex;
+        flex-direction: column;
+        height: 600px;
+        border: 1px solid #efefef;
+    }
+
+    /* منطقة الرسائل */
+    .appointment-chat-log {
+        flex-grow: 1;
+        overflow-y: auto;
+        padding: 20px;
+        background: #fafafa;
+    }
+
+    /* شريط الكتابة (Instagram Style) */
+    .ig-composer-wrapper {
+        padding: 12px 16px;
+        background: #fff;
+        border-top: 1px solid #efefef;
+    }
+
+    .modern-chat-composer {
+        background: #fff;
+        border: 1px solid #dbdbdb;
+        border-radius: 24px;
+        display: flex;
+        align-items: flex-end;
+        padding: 4px 12px;
+        gap: 8px;
+        min-height: 44px;
+        position: relative;
+    }
+
+    /* صندوق النص */
+    .appointment-chat-form__input {
+        flex-grow: 1;
+        border: none !important;
+        outline: none !important;
+        padding: 8px 4px;
+        font-size: 0.95rem;
+        resize: none;
+        max-height: 120px;
+        background: transparent;
+        line-height: 1.4;
+    }
+
+    /* الأزرار داخل الشريط */
+    .chat-tool-btn {
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        color: #262626;
+        padding: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: color 0.2s;
+    }
+
+    .chat-tool-btn:hover { color: #0095f6; }
+    .chat-tool-btn svg { width: 24px; height: 24px; }
+
+    /* زر الإرسال الأزرق */
+    .chat-send-main-btn {
+        background: transparent;
+        color: #0095f6;
+        border: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        padding: 8px 4px;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+
+    /* واجهة التسجيل الصوتي الجاهز */
+    .voice-overlay-modern {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        gap: 10px;
+        padding: 4px 0;
+        background: #fff;
+        border-radius: 24px;
+    }
+
+    .voice-preview-stream { flex-grow: 1; height: 30px; }
+    .voice-cancel-x { color: #ed4956; font-weight: 600; cursor: pointer; padding: 0 5px; }
+</style>
+
+<section class="appointment-chat-panel animate-fade-up" data-chat-appt="@Model">
+    <div class="appointment-chat-log" data-chat-log id="messagesList"></div>
+
+    <form class="appointment-chat-form ig-composer-wrapper" data-chat-form autocomplete="off" enctype="multipart/form-data">
+        @Html.AntiForgeryToken()
+        
+        <div class="modern-chat-composer">
+            
+            @* زر الزائد (+) لإرسال الصور والفيديو والمستندات (PDF, Word, etc) *@
+            <label class="chat-tool-btn" title="إرفاق ملفات أو مستندات">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                @* هنا أضفنا دعم المستندات PDF و Word و Excel *@
+                <input type="file" data-chat-media-picker data-chat-file hidden 
+                       accept="image/*,video/mp4,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" />
+            </label>
+
+            @* صندوق النص الأساسي *@
+            <textarea name="body" maxlength="4000" placeholder="رسالة..." class="appointment-chat-form__input" rows="1" id="chatInput"></textarea>
+
+            @* زر المايك للتسجيل *@
+            <button type="button" class="chat-tool-btn" data-chat-record-mic id="micBtn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                    <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                    <line x1="12" y1="19" x2="12" y2="23"></line>
+                    <line x1="8" y1="23" x2="16" y2="23"></line>
+                </svg>
+            </button>
+
+            @* زر الإرسال (يظهر عند الكتابة) *@
+            <button type="submit" class="chat-send-main-btn" id="sendBtn" style="display:none;">إرسال</button>
+
+            @* منطقة المعاينة للصوت الجاهز *@
+            <div class="voice-overlay-modern" data-voice-actions hidden>
+                <span class="voice-cancel-x" data-voice-cancel>إلغاء</span>
+                <audio class="voice-preview-stream" controls data-voice-preview></audio>
+                <button type="button" class="chat-send-main-btn" data-voice-send>إرسال</button>
+            </div>
+        </div>
+    </form>
+</section>
+
+<script src="~/js/appointment-chat-rich.js" asp-append-version="true" defer></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chatInput = document.getElementById('chatInput');
+        const sendBtn = document.getElementById('sendBtn');
+        const micBtn = document.getElementById('micBtn');
+
+        // 1. تمدد النص تلقائياً للأعلى
+        chatInput.addEventListener('input', function () {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+
+            // 2. تبديل بين زر الإرسال والمايك
+            if (this.value.trim().length > 0) {
+                sendBtn.style.display = 'block';
+                micBtn.style.display = 'none';
+            } else {
+                sendBtn.style.display = 'none';
+                micBtn.style.display = 'block';
+            }
+        });
+    });
+</script>
