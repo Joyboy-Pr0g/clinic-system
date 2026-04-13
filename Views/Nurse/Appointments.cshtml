@@ -1,31 +1,104 @@
 @model List<HomeNursingSystem.Models.Appointment>
 @using HomeNursingSystem.Models
-@{ Layout = "_DashboardLayout"; ViewData["Title"] = "مواعيد الممرض"; }
+@using HomeNursingSystem.Services
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "مواعيد الممرض";
+    var filterStatus = ViewBag.Status as string;
+}
 @section Sidebar { <partial name="_Sidebar" /> }
 
 <h1 class="page-title">المواعيد</h1>
-<form method="get"><select name="status" onchange="this.form.submit()">
-    <option value="">الكل</option>
-    <option value="Pending" selected="@(ViewBag.Status as string=="Pending")">معلقة</option>
-    <option value="Approved" selected="@(ViewBag.Status as string=="Approved")">مقبولة</option>
-    <option value="Confirmed" selected="@(ViewBag.Status as string=="Confirmed")">مؤكدة (قديم)</option>
-    <option value="InProgress" selected="@(ViewBag.Status as string=="InProgress")">قيد التنفيذ</option>
-    <option value="Completed" selected="@(ViewBag.Status as string=="Completed")">مكتملة</option>
-</select></form>
+<div class="status-filter-bar" role="group" aria-label="تصفية حسب الحالة">
+    <a class="status-filter-btn @(string.IsNullOrEmpty(filterStatus) ? "is-active" : null)" asp-action="Appointments">الكل</a>
+    <a class="status-filter-btn @(filterStatus == "Pending" ? "is-active" : null)" asp-action="Appointments" asp-route-status="Pending">معلقة</a>
+    <a class="status-filter-btn @(filterStatus == "Approved" ? "is-active" : null)" asp-action="Appointments" asp-route-status="Approved">مقبولة</a>
+    <a class="status-filter-btn @(filterStatus == "Confirmed" ? "is-active" : null)" asp-action="Appointments" asp-route-status="Confirmed">مؤكدة (قديم)</a>
+    <a class="status-filter-btn @(filterStatus == "InProgress" ? "is-active" : null)" asp-action="Appointments" asp-route-status="InProgress">قيد التنفيذ</a>
+    <a class="status-filter-btn @(filterStatus == "Completed" ? "is-active" : null)" asp-action="Appointments" asp-route-status="Completed">مكتملة</a>
+    <a class="status-filter-btn @(filterStatus == "Cancelled" ? "is-active" : null)" asp-action="Appointments" asp-route-status="Cancelled">ملغاة</a>
+</div>
+
+<h2 class="section-heading" style="font-size:1.1rem">لوحة سريعة</h2>
+<div class="kanban-board">
+    @foreach (var col in new[] { ("Pending", "معلقة"), ("Approved", "مقبولة"), ("InProgress", "قيد التنفيذ"), ("Completed", "مكتملة") })
+    {
+        var items = Model.Where(a => col.Item1 == "Approved"
+            ? AppointmentStatuses.IsApproved(a.Status)
+            : string.Equals(a.Status, col.Item1, StringComparison.OrdinalIgnoreCase)).Take(8).ToList();
+        <div class="kanban-col">
+            <h3>@col.Item2</h3>
+            @foreach (var a in items)
+            {
+                var canDelete = a.Status == AppointmentStatuses.Cancelled || a.Status == AppointmentStatuses.Completed;
+                var status = a.Status == AppointmentStatuses.Cancelled ? "ملغاة" :
+                 a.Status == AppointmentStatuses.Completed ? "مكتملة" :
+                 a.Status == AppointmentStatuses.Pending ? "معلقة" :
+                 a.Status == AppointmentStatuses.Approved ? "مقبولة" :
+                 a.Status == AppointmentStatuses.InProgress ? "قيد التنفيذ" :
+                 a.Status == AppointmentStatuses.Confirmed ? "مؤكدة" : "";
+                <div class="kanban-card">
+                    <strong>@a.Patient.FullName</strong>
+                    <div class="muted" style="font-size:0.8rem">@a.AppointmentDate.ToLocalTime().ToString("g")</div>
+                    <span class="badge badge-@AppointmentStatuses.BadgeCssClass(a.Status)" style="margin-top:0.35rem">@status</span>
+                    <div style="margin-top:0.5rem; display:flex;gap:0.5rem">
+                        <a class="btn btn-sm btn-primary" asp-action="AppointmentDetail" asp-route-id="@a.AppointmentId">إدارة</a>
+                        @if (canDelete)
+                        {
+                            <form asp-action="DeleteAppointment" asp-route-id="@a.AppointmentId" method="post" class="table-actions__delete">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm-delete>حذف نهائي</button>
+                            </form>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<h2 class="section-heading" style="margin-top:2rem;font-size:1.1rem">جدول المواعيد</h2>
 <div class="table-wrap">
     <table class="data-table">
-        <thead><tr><th>التاريخ</th><th>المريض</th><th>الخدمة</th><th>الحالة</th><th></th></tr></thead>
+        <thead><tr><th>التاريخ</th><th>المريض</th><th>الخدمة</th><th>الحالة</th><th>إجراءات</th></tr></thead>
         <tbody>
         @foreach (var a in Model)
         {
+            var canDelete = a.Status == AppointmentStatuses.Cancelled || a.Status == AppointmentStatuses.Completed;
+            var status = a.Status == AppointmentStatuses.Cancelled ? "ملغاة" :
+             a.Status == AppointmentStatuses.Completed ? "مكتملة" :
+             a.Status == AppointmentStatuses.Pending ? "معلقة" :
+             a.Status == AppointmentStatuses.Approved ? "مقبولة" :
+             a.Status == AppointmentStatuses.InProgress ? "قيد التنفيذ" :
+             a.Status == AppointmentStatuses.Confirmed ? "مؤكدة" : "";
             <tr>
                 <td>@a.AppointmentDate.ToLocalTime().ToString("g")</td>
                 <td>@a.Patient.FullName</td>
-                <td>@a.Service.ServiceName</td>
-                <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(a.Status)">@a.Status</span></td>
-                <td><a asp-action="AppointmentDetail" asp-route-id="@a.AppointmentId">إدارة</a></td>
+                <td>@(a.NurseListingService != null ? a.NurseListingService.Name : a.ClinicService != null ? a.ClinicService.Name : HomeNursingSystem.Services.ServiceNameLocalizer.Localize(a.Service?.ServiceName ?? "—"))</td>
+                <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(a.Status)">@status</span></td>
+                <td>
+                    <div class="appt-toolbar" style="margin:0">
+                        <a class="btn btn-sm btn-outline-edit" asp-action="AppointmentDetail" asp-route-id="@a.AppointmentId">التفاصيل</a>
+                        @if (canDelete)
+                        {
+                            <form asp-action="DeleteAppointment" asp-route-id="@a.AppointmentId" method="post" class="table-actions__delete">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm-delete>حذف نهائي</button>
+                            </form>
+                        }
+                    </div>
+                </td>
             </tr>
         }
         </tbody>
     </table>
 </div>
+@section Scripts {
+    <script>
+        document.querySelectorAll("[data-confirm-delete]").forEach(function (btn) {
+            btn.closest("form").addEventListener("submit", function (e) {
+                if (!confirm("\u0633\u064a\u062a\u0645 \u062d\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u0645\u0648\u0639\u062f \u0646\u0647\u0627\u0626\u064a\u0627\u064b\u060c \u0648\u0644\u0627 \u064a\u0645\u0643\u0646 \u0627\u0633\u062a\u0631\u062c\u0627\u0639\u0647\u061f")) e.preventDefault();
+            });
+        });
+    </script>
+}

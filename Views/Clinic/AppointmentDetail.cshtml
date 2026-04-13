@@ -1,4 +1,5 @@
 @model HomeNursingSystem.Models.Appointment
+@using System.Globalization
 @using HomeNursingSystem.Models
 @using HomeNursingSystem.Services
 @{
@@ -8,11 +9,19 @@
     var mapsUrl = ViewBag.MapsDirectUrl as string;
     var mapsLabel = ViewBag.MapsDirectLabel as string ?? "الاتجاهات في Google Maps";
     var chatOpen = AppointmentChatService.IsChatOpen(Model.Status);
-    var badgeClass = Model.Status == "InProgress" ? "inprogress" : Model.Status.Equals("Approved", StringComparison.OrdinalIgnoreCase) ? "approved" : Model.Status.ToLowerInvariant();
     var showMapsBtn = !string.IsNullOrEmpty(mapsUrl)
         && Model.Status != AppointmentStatuses.Cancelled
         && Model.Status != AppointmentStatuses.Completed;
+    var whenLocal = Model.AppointmentDate.ToLocalTime();
+    var arGreg = (CultureInfo)CultureInfo.GetCultureInfo("ar-SA").Clone();
+    arGreg.DateTimeFormat.Calendar = new GregorianCalendar();
+    var whenDisplay = whenLocal.ToString("dddd، d MMMM yyyy — HH:mm", arGreg);
+    var hasNotes = !string.IsNullOrWhiteSpace(Model.Notes);
+    var patientLine = Model.Patient.FullName;
+    if (!string.IsNullOrWhiteSpace(Model.Patient.PhoneNumber))
+        patientLine += " — " + Model.Patient.PhoneNumber;
 }
+
 @section Sidebar { <partial name="_Sidebar" /> }
 
 <div id="appt-realtime-root" style="display:none"
@@ -23,7 +32,50 @@
      data-listen-nurse="false"
      data-listen-patient="false"></div>
 
-<h1 class="page-title animate-fade-up">موعد #@Model.AppointmentId</h1>
+<style>
+    .appt-detail { padding: 0; overflow: hidden; }
+    .appt-detail__head {
+        display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 0.75rem;
+        padding: 1.1rem 1.25rem;
+        background: linear-gradient(135deg, rgba(0, 168, 132, 0.08), rgba(0, 168, 132, 0.02));
+        border-bottom: 1px solid rgba(0, 168, 132, 0.12);
+    }
+    .appt-detail__id { margin: 0.15rem 0 0; font-size: 0.95rem; color: var(--color-muted); }
+    .appt-detail__grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 0;
+    }
+    @@media (min-width: 640px) {
+        .appt-detail__grid { grid-template-columns: 1fr 1fr; }
+    }
+    .appt-detail__cell {
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        display: flex; flex-direction: column; gap: 0.25rem;
+    }
+    @@media (min-width: 640px) {
+        .appt-detail__cell:nth-child(odd) { border-inline-end: 1px solid rgba(0, 0, 0, 0.06); }
+    }
+    .appt-detail__label { font-size: 0.8rem; font-weight: 600; color: var(--color-muted); }
+    .appt-detail__value { font-size: 1rem; color: var(--color-text, #111); line-height: 1.45; word-break: break-word; }
+    .appt-detail__value--when { font-weight: 600; color: var(--color-primary); }
+    .appt-detail__value--price { font-weight: 700; font-size: 1.05rem; color: var(--color-primary); }
+    .appt-detail__notes {
+        margin: 0 1.25rem 1.25rem;
+        padding: 1rem 1.1rem;
+        background: #f8fafc;
+        border-radius: var(--radius-btn, 10px);
+        border-inline-start: 4px solid var(--color-primary);
+    }
+    .appt-detail__notes-title { margin: 0 0 0.4rem; font-size: 0.85rem; font-weight: 700; color: var(--color-primary); display: flex; align-items: center; gap: 0.4rem; }
+    .appt-detail__notes-body { margin: 0; font-size: 0.95rem; white-space: pre-wrap; color: #334155; line-height: 1.5; }
+</style>
+
+<div class="animate-fade-up" style="display:flex;align-items:center;gap:0.75rem;margin-bottom:0.35rem">
+        <a class="btn btn-outline" asp-action="Appointments">العودة إلى المواعيد</a>
+    <h1 class="page-title" style="margin:0">موعد #@Model.AppointmentId</h1>
+</div>
 
 @if (Model.Status == AppointmentStatuses.Pending)
 {
@@ -32,18 +84,49 @@
     </div>
 }
 
-<div class="card card--elevated animate-fade-up">
-    <p><span class="badge badge-@badgeClass">@Model.Status</span></p>
-    <p><strong>المريض:</strong> @Model.Patient.FullName</p>
-    <p><strong>العنوان:</strong> @Model.AddressText</p>
-    <p><strong>الخدمة:</strong> @Model.Service.ServiceName</p>
+<div class="card card--elevated appt-detail animate-fade-up">
+    <header class="appt-detail__head">
+        <div>
+            <span class="badge badge-@AppointmentStatuses.BadgeCssClass(Model.Status)">@Model.Status</span>
+            <p class="appt-detail__id">طلب رقم <strong>@Model.AppointmentId</strong> — العيادة</p>
+        </div>
+    </header>
+    <div class="appt-detail__grid">
+        <div class="appt-detail__cell">
+            <span class="appt-detail__label">موعد الزيارة</span>
+            <span class="appt-detail__value appt-detail__value--when">@whenDisplay</span>
+        </div>
+        <div class="appt-detail__cell">
+            <span class="appt-detail__label">الخدمة</span>
+            <span class="appt-detail__value">@(Model.NurseListingService != null ? Model.NurseListingService.Name : Model.ClinicService != null ? Model.ClinicService.Name : ServiceNameLocalizer.Localize(Model.Service?.ServiceName ?? "—"))</span>
+        </div>
+        <div class="appt-detail__cell">
+            <span class="appt-detail__label">المريض</span>
+            <span class="appt-detail__value">@patientLine</span>
+        </div>
+        <div class="appt-detail__cell">
+            <span class="appt-detail__label">التكلفة</span>
+            <span class="appt-detail__value appt-detail__value--price">@Model.TotalPrice.ToString("N2") ر.س</span>
+        </div>
+        <div class="appt-detail__cell" style="grid-column: 1 / -1;">
+            <span class="appt-detail__label">العنوان</span>
+            <span class="appt-detail__value">@Model.AddressText</span>
+        </div>
+    </div>
+    @if (hasNotes)
+    {
+        <div class="appt-detail__notes">
+            <p class="appt-detail__notes-title"><i class="fa-solid fa-note-sticky" aria-hidden="true"></i> ملاحظات</p>
+            <p class="appt-detail__notes-body">@Model.Notes</p>
+        </div>
+    }
 </div>
 
 @if (showMapsBtn)
 {
     <div class="maps-track-block animate-fade-up">
         <a href="@mapsUrl" target="_blank" rel="noopener noreferrer" class="btn btn-maps-track">
-            <span class="btn-maps-track__icon" aria-hidden="true">📍</span>
+            <span class="btn-maps-track__icon" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
             <span class="btn-maps-track__text">@mapsLabel</span>
         </a>
         <p class="muted maps-track-block__hint">يفتح Google Maps مباشرة.</p>
@@ -64,7 +147,15 @@
 
 @if (chatOpen)
 {
-    <partial name="_AppointmentChat" model="Model.AppointmentId" />
+    <div class="form-card animate-fade-up" style="margin-top:1.25rem;padding:0;overflow:hidden">
+        <div style="padding:0.85rem 1rem;background:linear-gradient(90deg,var(--color-primary),var(--color-primary-dark));color:#fff;display:flex;align-items:center;gap:0.65rem">
+            <span style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user"></i></span>
+            <span style="font-weight:700">@Model.Patient.FullName</span>
+        </div>
+        <div style="padding:0.5rem">
+            <partial name="_AppointmentChat" model="Model.AppointmentId" />
+        </div>
+    </div>
 }
 
 @section Scripts {
@@ -72,5 +163,11 @@
     {
         <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js" crossorigin="anonymous"></script>
         <script src="~/js/appointment-realtime.js" asp-append-version="true"></script>
+        <script>
+            document.addEventListener("DOMContentLoaded", function () {
+                var msgList = document.querySelector(".appointment-chat-log");
+                if (msgList) msgList.scrollTop = msgList.scrollHeight;
+            });
+        </script>
     }
 }

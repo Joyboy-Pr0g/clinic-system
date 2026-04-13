@@ -1,0 +1,21 @@
+@model ServiceEditVM
+@{ ViewData["Title"] = "تعديل خدمة"; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">تعديل خدمة</h1>
+<div class="form-card" style="max-width:560px">
+    <form asp-action="EditService" asp-route-id="@Model.ServiceId" method="post" class="form-stack wide" style="max-width:none" data-loading>
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="ServiceId" />
+        <div class="field"><label asp-for="ServiceName"></label><input asp-for="ServiceName" /><span asp-validation-for="ServiceName"></span></div>
+        <div class="field"><label asp-for="Description"></label><input asp-for="Description" /></div>
+        <div class="field"><label asp-for="BasePrice"></label><input asp-for="BasePrice" step="0.01" /></div>
+        <div class="field"><label asp-for="IconClass"></label><input asp-for="IconClass" placeholder="fa-syringe" /></div>
+        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+        <div style="display:flex;gap:0.5rem;flex-wrap:wrap">
+            <button type="submit" class="btn btn-primary">حفظ</button>
+            <a class="btn btn-ghost" asp-action="Services">إلغاء</a>
+        </div>
+    </form>
+</div>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

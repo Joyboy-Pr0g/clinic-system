@@ -3,6 +3,7 @@ using HomeNursingSystem.Models;
 using HomeNursingSystem.Services;
 using HomeNursingSystem.ViewModels;
 using System.Globalization;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -51,6 +52,9 @@ public class PatientController : Controller
     {
         var user = await _users.GetUserAsync(User);
         var vm = await _appointments.GetPatientDashboardAsync(user!.Id, ct);
+        vm.PatientDisplayName = string.IsNullOrWhiteSpace(user!.FullName)
+            ? (user.UserName ?? user.Email ?? User.Identity?.Name ?? "")
+            : user.FullName;
         return View(vm);
     }
 
@@ -72,8 +76,28 @@ public class PatientController : Controller
     private async Task PopulateBookPageAsync(AppointmentBookVM vm, CancellationToken ct)
     {
         ViewBag.Nurses = await _nurses.BrowseAsync(null, null, null, true, null, ct);
-        ViewBag.Clinics = await _clinics.ListVerifiedAsync(null, ct);
-        ViewBag.Services = await _db.Services.AsNoTracking().Where(s => s.IsActive).ToListAsync(ct);
+        ViewBag.Clinics = await _clinics.ListVerifiedAsync(null, null, null, ct);
+        var nurseSvcRows = await (
+            from ls in _db.NurseListingServices.AsNoTracking()
+            join np in _db.NurseProfiles.AsNoTracking() on ls.NurseProfileId equals np.NurseProfileId
+            where np.IsVerified && np.IsAvailable
+            select new { ls.NurseProfileId, ls.NurseListingServiceId, ls.Name, ls.Price }
+        ).ToListAsync(ct);
+        var nurseSvcPayload = nurseSvcRows.Select(x => new
+        {
+            nurseProfileId = x.NurseProfileId,
+            nurseListingServiceId = x.NurseListingServiceId,
+            name = x.Name,
+            price = x.Price
+        }).ToList();
+        ViewBag.NurseServicesJson = JsonSerializer.Serialize(nurseSvcPayload);
+
+        var clinicSvcRows = await _db.ClinicServices.AsNoTracking()
+            .Where(cs => _db.Clinics.Any(c => c.ClinicId == cs.ClinicId && c.IsVerified && c.IsActive))
+            .OrderBy(cs => cs.ClinicId).ThenBy(cs => cs.Name)
+            .Select(cs => new { clinicId = cs.ClinicId, clinicServiceId = cs.ClinicServiceId, name = cs.Name, price = cs.Price })
+            .ToListAsync(ct);
+        ViewBag.ClinicServicesJson = JsonSerializer.Serialize(clinicSvcRows);
 
         var locked = (vm.NurseProfileId ?? 0) > 0 || (vm.ClinicId ?? 0) > 0;
         ViewBag.ProviderLocked = locked;
@@ -176,7 +200,7 @@ public class PatientController : Controller
         var q = _apptRepo.Query().Where(a => a.PatientId == user!.Id);
         if (!string.IsNullOrEmpty(status))
             q = q.Where(a => a.Status == status);
-        var list = await q.Include(a => a.Service).Include(a => a.Rating).OrderByDescending(a => a.AppointmentDate).ToListAsync(ct);
+        var list = await q.Include(a => a.Service).Include(a => a.ClinicService).Include(a => a.NurseListingService).Include(a => a.Rating).OrderByDescending(a => a.AppointmentDate).ToListAsync(ct);
         ViewBag.Status = status;
         return View(list);
     }
@@ -216,6 +240,13 @@ public class PatientController : Controller
         var user = await _users.GetUserAsync(User);
         var appt = await _apptRepo.GetByIdForPatientAsync(id, user!.Id, ct);
         if (appt == null) return NotFound();
+        if (string.Equals(appt.Status, AppointmentStatuses.Completed, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(appt.Status, AppointmentStatuses.Cancelled, StringComparison.OrdinalIgnoreCase))
+        {
+            TempData["Error"] = "لا يمكن إلغاء هذا الموعد.";
+            return RedirectToAction(nameof(Appointments));
+        }
+
         appt.Status = AppointmentStatuses.Cancelled;
         appt.UpdatedAt = DateTime.UtcNow;
         _apptRepo.Update(appt);
@@ -224,11 +255,36 @@ public class PatientController : Controller
         return RedirectToAction(nameof(Appointments));
     }
 
+    [HttpPost("appointments/{id:int}/delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAppointment(int id, CancellationToken ct)
+    {
+        var user = await _users.GetUserAsync(User);
+        var appt = await _apptRepo.GetByIdForPatientAsync(id, user!.Id, ct);
+        if (appt == null) return NotFound();
+        if (!string.Equals(appt.Status, AppointmentStatuses.Cancelled, StringComparison.OrdinalIgnoreCase))
+        {
+            TempData["Error"] = "يمكن حذف المواعيد الملغاة فقط من القائمة.";
+            return RedirectToAction(nameof(Appointments));
+        }
+
+        _apptRepo.Remove(appt);
+        await _apptRepo.SaveChangesAsync(ct);
+        TempData["Success"] = "تم حذف الموعد نهائياً من سجلك.";
+        return RedirectToAction(nameof(Appointments));
+    }
+
     [HttpPost("rate/{appointmentId:int}")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Rate(int appointmentId, RatingVM model, CancellationToken ct)
     {
         var user = await _users.GetUserAsync(User);
+        if (model.Stars is < 1 or > 5)
+        {
+            TempData["Error"] = "يرجى اختيار عدد النجوم قبل الإرسال.";
+            return RedirectToAction(nameof(AppointmentDetail), new { id = appointmentId });
+        }
+
         var (ok, err) = await _ratings.SubmitRatingAsync(user!.Id, appointmentId, model.Stars, model.Comment, ct);
         if (!ok)
             TempData["Error"] = err;
@@ -237,7 +293,7 @@ public class PatientController : Controller
         return RedirectToAction(nameof(AppointmentDetail), new { id = appointmentId });
     }
 
-    [HttpGet("profile")]
+       [HttpGet("profile")]
     public async Task<IActionResult> Profile(CancellationToken ct)
     {
         var user = await _users.GetUserAsync(User);
@@ -251,7 +307,54 @@ public class PatientController : Controller
             Street = u.Street,
             ProfileImagePath = u.ProfileImagePath
         };
+
+        var bookings = await _apptRepo.Query()
+            .AsNoTracking()
+            .Where(a => a.PatientId == user!.Id)
+            .Include(a => a.Service)
+            .Include(a => a.NurseListingService)
+            .Include(a => a.NurseProfile)!.ThenInclude(n => n!.User)
+            .Include(a => a.Clinic)
+            .OrderByDescending(a => a.AppointmentDate)
+            .Take(12)
+            .ToListAsync(ct);
+        ViewBag.BookingHistory = bookings;
+
+        var reviews = await _db.Ratings.AsNoTracking()
+            .Where(r => r.PatientId == user!.Id)
+            .OrderByDescending(r => r.CreatedAt)
+            .Take(20)
+            .ToListAsync(ct);
+        ViewBag.ReviewsGiven = reviews;
+
         return View(vm);
+    }
+
+    [HttpGet("conversations")]
+    public async Task<IActionResult> Conversations(int? id, CancellationToken ct)
+    {
+        var user = await _users.GetUserAsync(User);
+        var list = await _apptRepo.Query()
+            .Where(a => a.PatientId == user!.Id)
+            .Where(a =>
+                a.Status == AppointmentStatuses.Approved
+                || a.Status == AppointmentStatuses.Confirmed
+                || a.Status == AppointmentStatuses.InProgress
+                || a.Status == AppointmentStatuses.Completed)
+            .Include(a => a.Service)
+            .Include(a => a.NurseListingService)
+            .Include(a => a.NurseProfile)!.ThenInclude(n => n!.User)
+            .Include(a => a.Clinic)
+            .OrderByDescending(a => a.AppointmentDate)
+            .ToListAsync(ct);
+
+        var selected = id.HasValue
+            ? list.FirstOrDefault(a => a.AppointmentId == id.Value)
+            : list.FirstOrDefault();
+        ViewBag.SelectedAppointmentId = selected?.AppointmentId;
+        ViewBag.CurrentUserId = user!.Id;
+
+        return View(list);
     }
 
     [HttpPost("profile")]

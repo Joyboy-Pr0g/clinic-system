@@ -1,4 +1,9 @@
-<a asp-action="Dashboard">لوحة التحكم</a>
-<a asp-action="Appointments">المواعيد</a>
-<a asp-action="Profile">بيانات العيادة</a>
-<a asp-action="Reviews">التقييمات</a>
+<a asp-controller="Clinic" asp-action="Dashboard">لوحة التحكم</a>
+<a asp-controller="Clinic" asp-action="Appointments">المواعيد</a>
+<a asp-controller="ClinicServices" asp-action="Index">خدمات العيادة</a>
+<a asp-controller="Clinic" asp-action="Reviews">التقييمات</a>
+<a asp-controller="Clinic" asp-action="Profile">بيانات العيادة</a>
+<form asp-controller="Account" asp-action="Logout" method="post" class="logout-form sidebar-logout-form">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="sidebar-logout-btn">تسجيل الخروج</button>
+</form>

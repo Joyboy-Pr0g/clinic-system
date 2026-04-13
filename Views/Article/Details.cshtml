@@ -2,23 +2,40 @@
 @{
     ViewData["Title"] = Model.Title;
 }
+<section class="page-hero">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="مسار التنقل">
+            <a asp-controller="Home" asp-action="Index">الرئيسية</a>
+            <span> / </span>
+            <a asp-action="Index">المقالات</a>
+            <span> / </span>
+            <span>@Model.Title</span>
+        </nav>
+    </div>
+</section>
+
 <div class="container section-block">
-    <article class="card" style="max-width:800px;margin-inline:auto;padding:2rem">
+    <article>
         @if (!string.IsNullOrEmpty(Model.ThumbnailImagePath))
-        { <img src="@Model.ThumbnailImagePath" alt="" style="width:100%;max-height:320px;object-fit:cover;border-radius:8px" /> }
-        <h1 class="page-title">@Model.Title</h1>
-        <p class="muted">@Model.Category · @Model.PublishedAt?.ToLocalTime().ToString("D") · مشاهدات @Model.ViewCount</p>
+        {
+            <img class="article-hero" src="@Model.ThumbnailImagePath" alt="" width="1200" height="420" />
+        }
+        <h1 class="page-title" style="font-size:clamp(1.5rem,3vw,2rem)">@Model.Title</h1>
+        <p class="article-meta">@Model.Category · @Model.PublishedAt?.ToLocalTime().ToString("D") · مشاهدات @Model.ViewCount</p>
         <div class="article-body" style="white-space:pre-wrap">@Model.Content</div>
     </article>
     @if (Model.Related.Count > 0)
     {
-        <h2 class="page-title">ذات الصلة</h2>
-        <div class="card-grid">
+        <h2 class="section-heading" style="margin-top:2.5rem">مقالات ذات صلة</h2>
+        <div class="card-grid card-grid--articles">
             @foreach (var r in Model.Related)
             {
-                <div class="card">
-                    <h3><a asp-action="Details" asp-route-slug="@r.Slug">@r.Title</a></h3>
+                <div class="card card--border-hover">
+                    @if (!string.IsNullOrEmpty(r.ThumbnailImagePath))
+                    { <img class="card-img-top" src="@r.ThumbnailImagePath" alt="" /> }
+                    <h3><a asp-action="Details" asp-route-slug="@r.Slug" style="color:inherit;text-decoration:none">@r.Title</a></h3>
                     <p class="muted">@r.Summary</p>
+                    <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-slug="@r.Slug">اقرأ المزيد</a>
                 </div>
             }
         </div>

@@ -29,4 +29,5 @@ public class Clinic
 
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
+    public ICollection<ClinicService> ClinicServices { get; set; } = new List<ClinicService>();
 }

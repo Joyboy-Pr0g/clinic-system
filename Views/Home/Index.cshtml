@@ -1,79 +1,200 @@
-@model LandingVM
+﻿@model LandingVM
 @{
     ViewData["Title"] = "الرئيسية";
+    var slideImg1 = "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=1600&q=80";
+    var slideImg2 = "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=1600&q=80";
+    var slideImg3 = "https://images.unsplash.com/photo-1584515933487-779824d29309?w=1600&q=80";
+    var nurseHero = "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?w=1200&q=80";
 }
 
-<section class="hero">
-    <div class="container">
-        <h1>رعاية صحية موثوقة في منزلك</h1>
-        <p>احجز ممرضاً معتمداً أو عيادة قريبة بخطوات بسيطة، مع متابعة كاملة لمواعيدك وتقييم الخدمة.</p>
-        <div class="hero-actions">
-            <a class="btn btn-primary" asp-controller="Nurse" asp-action="Browse">تصفح الممرضين</a>
-            @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Patient"))
-            {
-                <a class="btn btn-outline" asp-controller="Patient" asp-action="Book">احجز الآن</a>
-            }
-            else
-            {
-                <a class="btn btn-outline" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient")">احجز الآن</a>
-            }
+<div class="hero-slider" data-hero-slider data-autoplay="6500">
+    <div class="hero-slider__track">
+        <div class="hero-slide" style="background-image:url('@slideImg1')">
+            <div class="hero-slide__overlay"></div>
+            <div class="container hero-slide__inner">
+                <h1>رعاية صحية موثوقة في منزلك</h1>
+                <p>احجز ممرضاً معتمداً أو عيادة قريبة بخطوات بسيطة، مع متابعة كاملة لمواعيدك.</p>
+                <a class="btn btn-primary" asp-controller="Nurse" asp-action="Browse">تصفح الممرضين</a>
+            </div>
+        </div>
+        <div class="hero-slide" style="background-image:url('@slideImg2')">
+            <div class="hero-slide__overlay"></div>
+            <div class="container hero-slide__inner">
+                <h1>عيادات معتمدة بالقرب منك</h1>
+                <p>قارن التقييمات، اختر الخدمة، واحجز الموعد المناسب لك.</p>
+                <a class="btn btn-primary" asp-controller="Clinic" asp-action="Index">استكشف العيادات</a>
+            </div>
+        </div>
+        <div class="hero-slide" style="background-image:url('@slideImg3')">
+            <div class="hero-slide__overlay"></div>
+            <div class="container hero-slide__inner">
+                <h1>مقالات ونصائح صحية</h1>
+                <p>تابع أحدث الأخبار والأدلة للعناية بصحتك ولعائلتك.</p>
+                <a class="btn btn-primary" asp-controller="Article" asp-action="Index">قراءة المقالات</a>
+            </div>
         </div>
     </div>
-</section>
+    <button type="button" class="hero-slider__arrow hero-slider__arrow--prev" data-hero-prev aria-label="السابق"><i class="fa-solid fa-chevron-right"></i></button>
+    <button type="button" class="hero-slider__arrow hero-slider__arrow--next" data-hero-next aria-label="التالي"><i class="fa-solid fa-chevron-left"></i></button>
+    <div class="hero-slider__dots">
+        <button type="button" class="hero-slider__dot is-active" aria-label="شريحة 1"></button>
+        <button type="button" class="hero-slider__dot" aria-label="شريحة 2"></button>
+        <button type="button" class="hero-slider__dot" aria-label="شريحة 3"></button>
+    </div>
+</div>
 
-<div class="container section-block">
+<div style="width: 100%; margin: 0 auto;" class="container section-block">
+    <div class="container-narrow">
     <div class="stats-row">
         <div class="stat-box"><strong>@Model.NursesCount</strong><span class="muted">ممرض معتمد</span></div>
         <div class="stat-box"><strong>@Model.ClinicsCount</strong><span class="muted">عيادة</span></div>
         <div class="stat-box"><strong>@Model.AppointmentsCount</strong><span class="muted">موعد مكتمل</span></div>
     </div>
 
-    <h2 class="page-title">الخدمات</h2>
+    <h2 class="section-heading">مزايا المنصة</h2>
+    <div class="card-grid" style="grid-template-columns:repeat(auto-fit,minmax(240px,1fr))">
+        <div class="card feature-card">
+            <div class="feature-card__icon"><i class="fa-solid fa-user-nurse"></i></div>
+            <h3>ممرضون معتمدون</h3>
+            <p class="muted">ملفات مراجَعة وخدمات بأسعار واضحة.</p>
+        </div>
+        <div class="card feature-card">
+            <div class="feature-card__icon"><i class="fa-solid fa-hospital"></i></div>
+            <h3>عيادات موثوقة</h3>
+            <p class="muted">ابحث حسب المدينة والتخصص وقارن التقييمات.</p>
+        </div>
+        <div class="card feature-card">
+            <div class="feature-card__icon"><i class="fa-solid fa-calendar-check"></i></div>
+            <h3>حجز سهل</h3>
+            <p class="muted">خطوات واضحة من اختيار المقدّم حتى تأكيد الموعد.</p>
+        </div>
+        <div class="card feature-card">
+            <div class="feature-card__icon"><i class="fa-solid fa-comments"></i></div>
+            <h3>متابعة ودردشة</h3>
+            <p class="muted">تواصل آمن مع الممرض أو العيادة بعد قبول الموعد.</p>
+        </div>
+    </div>
+
+    <h2 class="section-heading">الخدمات</h2>
     <div class="card-grid">
         @foreach (var s in Model.Services)
         {
-            <div class="card">
-                <i class="fa-solid @(string.IsNullOrEmpty(s.ServiceName) ? "fa-stethoscope" : "fa-notes-medical")" style="font-size:1.5rem;color:var(--color-primary)"></i>
+            <div class="card card--border-hover">
+                <div class="feature-card__icon" style="margin:0 0 1rem 0"><i class="fa-solid @(string.IsNullOrEmpty(s.ServiceName) ? "fa-stethoscope" : "fa-notes-medical")"></i></div>
                 <h3>@s.ServiceName</h3>
-                <p class="muted">من @s.BasePrice.ToString("N0") ر.س</p>
+                <p class="muted">من @s.BasePrice.ToString("N0") ر.س — رعاية منزلية بمعايير واضحة.</p>
+                @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Patient"))
+                {
+                    <a class="btn btn-sm btn-primary" asp-controller="Patient" asp-action="Book">احجز الخدمة</a>
+                }
+                else
+                {
+                    <a class="btn btn-sm btn-primary" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient")">احجز الخدمة</a>
+                }
             </div>
         }
     </div>
 
-    <h2 class="page-title">ممرضون مميزون</h2>
+    <div class="split-hero">
+        <div>
+            <h2 class="section-heading" style="border:none;padding:0;margin-bottom:1rem">فريق تمريض بخبرة حقيقية</h2>
+            <p class="muted" style="font-size:1.05rem;margin-bottom:1.25rem">
+                نربطك بممرضين وعيادات تخضع لمراجعة الوثائق، لتتلقى رعاية آمنة ومريحة دون عناء التنقل.
+            </p>
+            @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Patient"))
+            {
+                <a class="btn btn-primary" asp-controller="Patient" asp-action="Book">احجز الآن</a>
+            }
+            else
+            {
+                <a class="btn btn-primary" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient")">احجز الآن</a>
+            }
+        </div>
+        <div class="split-hero__visual">
+            <div class="split-hero__blob" aria-hidden="true"></div>
+            <img class="split-hero__img" src="@nurseHero" width="800" height="600" alt="طاقم تمريض" loading="lazy" />
+        </div>
+    </div>
+
+    <h2 class="section-heading">ممرضون مميزون</h2>
     <div class="card-grid">
         @foreach (var n in Model.FeaturedNurses)
         {
-            <div class="card">
+            <div class="card card--border-hover">
                 @if (!string.IsNullOrEmpty(n.ProfileImage))
                 {
                     <img class="card-img-top" src="@n.ProfileImage" alt="" />
                 }
+                else
+                {
+                    <div class="card-img-top" style="display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user-nurse fa-2x" style="color:var(--color-primary)"></i></div>
+                }
                 <h3>@n.FullName</h3>
                 <p class="muted">@n.Specialization</p>
                 <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", (int)Math.Round((double)n.AverageRating)))</p>
-                <a class="btn btn-sm btn-primary" asp-controller="Nurse" asp-action="Details" asp-route-id="@n.NurseProfileId">الملف</a>
+                <a class="btn btn-sm btn-outline-edit" asp-controller="Nurse" asp-action="Details" asp-route-id="@n.NurseProfileId">تعرف أكثر</a>
                 @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Patient"))
                 {
-                    <a class="btn btn-sm btn-accent" asp-controller="Patient" asp-action="Book" asp-route-nurseId="@n.NurseProfileId">احجز الآن</a>
+                    <a class="btn btn-sm btn-primary" asp-controller="Patient" asp-action="Book" asp-route-nurseId="@n.NurseProfileId">احجز الآن</a>
                 }
                 else
                 {
-                    <a class="btn btn-sm btn-accent" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient", new { nurseId = n.NurseProfileId })">احجز الآن</a>
+                    <a class="btn btn-sm btn-primary" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient", new { nurseId = n.NurseProfileId })">احجز الآن</a>
                 }
             </div>
         }
     </div>
+    </div>
+</div>
 
-    <h2 class="page-title">آراء المستخدمين</h2>
-    <div class="card-grid">
-        <div class="card"><p>«خدمة ممتازة ووصول في الوقت المحدد.»</p><strong>— مريض</strong></div>
-        <div class="card"><p>«فريق احترافي ورعاية لكبار السن.»</p><strong>— ولي أمر</strong></div>
-        <div class="card"><p>«الحجز سهل والمتابعة واضحة.»</p><strong>— عميل</strong></div>
+<section class="testimonials-section">
+    <div class="container">
+        <h2 class="section-heading" style="border-color:#fff;color:var(--color-primary-dark)">آراء المستخدمين</h2>
+        <div class="testimonials-scroll">
+            <div class="testimonial-card">
+                <div class="testimonial-card__stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                <p>«خدمة ممتازة ووصول في الوقت المحدد — فريق هادئ ومحترف.»</p>
+                <div class="testimonial-card__meta">
+                    <img class="testimonial-card__avatar" src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=96&q=80" alt="" width="44" height="44" loading="lazy" />
+                    <div><strong>سارة م.</strong><div class="muted" style="font-size:0.85rem">مريضة</div></div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-card__stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                <p>«رعاية لكبار السن بكل احترام — الحجز سهل والمتابعة واضحة.»</p>
+                <div class="testimonial-card__meta">
+                    <img class="testimonial-card__avatar" src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&q=80" alt="" width="44" height="44" loading="lazy" />
+                    <div><strong>فهد الع.</strong><div class="muted" style="font-size:0.85rem">ولي أمر</div></div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-card__stars"><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i></div>
+                <p>«تجربة مريحة من الطلب حتى إكمال الزيارة — أنصح بالمنصة.»</p>
+                <div class="testimonial-card__meta">
+                    <img class="testimonial-card__avatar" src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=96&q=80" alt="" width="44" height="44" loading="lazy" />
+                    <div><strong>نورة خ.</strong><div class="muted" style="font-size:0.85rem">عميلة</div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<div style="width: 100%; margin: 0 auto;" class="container section-block">
+    <div class="container-narrow">
+    <div class="contact-strip">
+        <div class="contact-strip__inner" style="width:100%;margin:0;padding:0 1rem">
+            <div style="display:flex;flex-wrap:wrap;gap:1rem;align-items:center">
+                <span class="contact-strip__item"><i class="fa-solid fa-phone"></i> 920000000</span>
+                <span class="contact-strip__item"><i class="fa-solid fa-envelope"></i> info@homecare.local</span>
+            </div>
+            <a class="btn btn-primary" style="background:#fff;color:var(--color-primary)" asp-controller="Contact" asp-action="Index">أرسل رسالة</a>
+        </div>
     </div>
 
-    <div class="hero" style="margin-top:2rem;border-radius:var(--radius)">
-        <h2>ابدأ اليوم</h2>
-        <a class="btn btn-accent" asp-controller="Account" asp-action="Register">أنشئ حساباً مجاناً</a>
+    <div class="card" style="margin-top:2.5rem;text-align:center;padding:2rem">
+        <h2 class="page-title" style="border:none">ابدأ اليوم</h2>
+        <p class="muted">أنشئ حساباً مجاناً واحجز خدمتك خلال دقائق.</p>
+        <a class="btn btn-primary" asp-controller="Account" asp-action="Register">تسجيل جديد</a>
+    </div>
     </div>
 </div>

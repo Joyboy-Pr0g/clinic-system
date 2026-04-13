@@ -39,6 +39,8 @@ public class AppointmentService : IAppointmentService
                 .Include(a => a.NurseProfile)!.ThenInclude(n => n!.User)
                 .Include(a => a.Clinic)
                 .Include(a => a.Service)
+                .Include(a => a.ClinicService)
+                .Include(a => a.NurseListingService)
                 .OrderByDescending(a => a.AppointmentDate)
                 .Take(8)
                 .Select(a => new AppointmentRowVM
@@ -48,7 +50,11 @@ public class AppointmentService : IAppointmentService
                     ProviderName = a.NurseProfile != null
                         ? a.NurseProfile.User.FullName
                         : (a.Clinic != null ? a.Clinic.ClinicName : ""),
-                    ServiceName = a.Service.ServiceName,
+                    ServiceName = a.NurseListingService != null
+                        ? a.NurseListingService.Name
+                        : a.ClinicService != null
+                            ? a.ClinicService.Name
+                            : (a.Service != null ? a.Service.ServiceName : ""),
                     Status = a.Status,
                     TotalPrice = a.TotalPrice
                 })
@@ -65,6 +71,7 @@ public class AppointmentService : IAppointmentService
         var pendingList = await q
             .Include(a => a.Patient)
             .Include(a => a.Service)
+            .Include(a => a.NurseListingService)
             .Where(a => a.Status == AppointmentStatuses.Pending)
             .OrderBy(a => a.AppointmentDate)
             .Take(25)
@@ -73,7 +80,9 @@ public class AppointmentService : IAppointmentService
                 AppointmentId = a.AppointmentId,
                 AppointmentDate = a.AppointmentDate,
                 ProviderName = a.Patient.FullName,
-                ServiceName = a.Service.ServiceName,
+                ServiceName = a.NurseListingService != null
+                    ? a.NurseListingService.Name
+                    : (a.Service != null ? a.Service.ServiceName : ""),
                 Status = a.Status,
                 TotalPrice = a.TotalPrice
             })
@@ -88,6 +97,7 @@ public class AppointmentService : IAppointmentService
             Upcoming = await q
                 .Include(a => a.Patient)
                 .Include(a => a.Service)
+                .Include(a => a.NurseListingService)
                 .Where(a => a.AppointmentDate >= DateTime.UtcNow && a.Status != AppointmentStatuses.Cancelled && a.Status != AppointmentStatuses.Completed)
                 .OrderBy(a => a.AppointmentDate)
                 .Take(10)
@@ -96,7 +106,9 @@ public class AppointmentService : IAppointmentService
                     AppointmentId = a.AppointmentId,
                     AppointmentDate = a.AppointmentDate,
                     ProviderName = a.Patient.FullName,
-                    ServiceName = a.Service.ServiceName,
+                    ServiceName = a.NurseListingService != null
+                        ? a.NurseListingService.Name
+                        : (a.Service != null ? a.Service.ServiceName : ""),
                     Status = a.Status,
                     TotalPrice = a.TotalPrice
                 })
@@ -121,6 +133,7 @@ public class AppointmentService : IAppointmentService
             Upcoming = await q
                 .Include(a => a.Patient)
                 .Include(a => a.Service)
+                .Include(a => a.ClinicService)
                 .Where(a => a.AppointmentDate >= DateTime.UtcNow && a.Status != AppointmentStatuses.Cancelled && a.Status != AppointmentStatuses.Completed)
                 .OrderBy(a => a.AppointmentDate)
                 .Take(10)
@@ -129,7 +142,9 @@ public class AppointmentService : IAppointmentService
                     AppointmentId = a.AppointmentId,
                     AppointmentDate = a.AppointmentDate,
                     ProviderName = a.Patient.FullName,
-                    ServiceName = a.Service.ServiceName,
+                    ServiceName = a.ClinicService != null
+                        ? a.ClinicService.Name
+                        : (a.Service != null ? a.Service.ServiceName : ""),
                     Status = a.Status,
                     TotalPrice = a.TotalPrice
                 })
@@ -172,36 +187,46 @@ public class AppointmentService : IAppointmentService
 
     public async Task<(bool ok, string? error, int? appointmentId)> BookAsync(AppointmentBookVM model, string patientId, CancellationToken ct = default)
     {
-        MedicalService? svc = await _db.Services.FirstOrDefaultAsync(s => s.ServiceId == model.ServiceId && s.IsActive, ct);
-        if (svc == null)
-            return (false, "الخدمة غير متاحة.", null);
-
         decimal price;
         int? nurseId = null;
         int? clinicId = null;
-
+        int? serviceId = null;
+        int? clinicServiceId = null;
+        int? nurseListingServiceId = null;
         if (model.BookType.Equals("Nurse", StringComparison.OrdinalIgnoreCase))
         {
             if (!model.NurseProfileId.HasValue)
                 return (false, "اختر الممرض.", null);
+            if (!model.NurseListingServiceId.HasValue)
+                return (false, "اختر الخدمة.", null);
             var nurse = await _db.NurseProfiles
-                .Include(n => n.NurseServices)
                 .FirstOrDefaultAsync(n => n.NurseProfileId == model.NurseProfileId && n.IsVerified && n.IsAvailable, ct);
             if (nurse == null)
                 return (false, "الممرض غير متاح.", null);
-            var ns = nurse.NurseServices.FirstOrDefault(x => x.ServiceId == model.ServiceId);
-            price = ns?.CustomPrice ?? svc.BasePrice;
+            var listing = await _db.NurseListingServices.FirstOrDefaultAsync(
+                x => x.NurseListingServiceId == model.NurseListingServiceId && x.NurseProfileId == model.NurseProfileId, ct);
+            if (listing == null)
+                return (false, "الخدمة غير متاحة.", null);
+            price = listing.Price;
             nurseId = nurse.NurseProfileId;
+            nurseListingServiceId = listing.NurseListingServiceId;
         }
         else if (model.BookType.Equals("Clinic", StringComparison.OrdinalIgnoreCase))
         {
             if (!model.ClinicId.HasValue)
                 return (false, "اختر العيادة.", null);
+            if (!model.ClinicServiceId.HasValue)
+                return (false, "اختر خدمة العيادة.", null);
             var clinic = await _db.Clinics.FirstOrDefaultAsync(c => c.ClinicId == model.ClinicId && c.IsVerified && c.IsActive, ct);
             if (clinic == null)
                 return (false, "العيادة غير متاحة.", null);
-            price = svc.BasePrice;
+            var cs = await _db.ClinicServices.FirstOrDefaultAsync(
+                x => x.ClinicServiceId == model.ClinicServiceId && x.ClinicId == model.ClinicId, ct);
+            if (cs == null)
+                return (false, "خدمة العيادة غير متاحة.", null);
+            price = cs.Price;
             clinicId = clinic.ClinicId;
+            clinicServiceId = cs.ClinicServiceId;
         }
         else
             return (false, "نوع الحجز غير صالح.", null);
@@ -211,7 +236,9 @@ public class AppointmentService : IAppointmentService
             PatientId = patientId,
             NurseProfileId = nurseId,
             ClinicId = clinicId,
-            ServiceId = model.ServiceId,
+            ServiceId = serviceId,
+            ClinicServiceId = clinicServiceId,
+            NurseListingServiceId = nurseListingServiceId,
             AppointmentDate = model.AppointmentDate.ToUniversalTime(),
             AddressText = model.AddressText,
             Latitude = model.Latitude,

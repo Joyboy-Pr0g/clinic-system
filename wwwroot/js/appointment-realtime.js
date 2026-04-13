@@ -22,7 +22,7 @@
     var seenChat = new Set();
 
     function appendChatRow(logEl, m, me) {
-        var mine = m.senderUserId === me;
+        var mine = m.isMine === true || m.senderUserId === me;
         var row = document.createElement("div");
         row.className = "appointment-chat-msg" + (mine ? " appointment-chat-msg--mine" : "");
         var who = document.createElement("div");
@@ -109,6 +109,16 @@
             e.preventDefault();
             var text = (input.value || "").trim();
             var file = fileInput && fileInput.files && fileInput.files[0];
+            var pendingVoice = form.querySelector("[data-voice-actions]");
+            if (pendingVoice && !pendingVoice.hidden) {
+                alert("أرسل التسجيل الصوتي أو ارفضه من شريط المعاينة أولاً.");
+                return;
+            }
+            var pendingMedia = form.querySelector("[data-media-preview]");
+            if (pendingMedia && !pendingMedia.hidden) {
+                alert("أرسل المرفق أو ارفضه من شريط المعاينة أولاً.");
+                return;
+            }
             if (!text && !file) {
                 alert("اكتب رسالة أو استخدم الكاميرا / المعرض / الميكروفون أسفل الصندوق.");
                 return;

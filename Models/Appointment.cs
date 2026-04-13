@@ -9,8 +9,15 @@ public class Appointment
     public NurseProfile? NurseProfile { get; set; }
     public int? ClinicId { get; set; }
     public Clinic? Clinic { get; set; }
-    public int ServiceId { get; set; }
-    public MedicalService Service { get; set; } = null!;
+    /// <summary>ممرض منزلي — خدمة من الكتالوج العام.</summary>
+    public int? ServiceId { get; set; }
+    public MedicalService? Service { get; set; }
+    /// <summary>حجز عيادة — خدمة من قائمة العيادة.</summary>
+    public int? ClinicServiceId { get; set; }
+    public ClinicService? ClinicService { get; set; }
+    /// <summary>حجز ممرض — خدمة من قائمة الممرض (اسم/سعر حر).</summary>
+    public int? NurseListingServiceId { get; set; }
+    public NurseListingService? NurseListingService { get; set; }
     public DateTime AppointmentDate { get; set; }
     public string AddressText { get; set; } = string.Empty;
     public double? Latitude { get; set; }

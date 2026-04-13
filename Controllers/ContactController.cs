@@ -8,11 +8,28 @@ namespace HomeNursingSystem.Controllers;
 public class ContactController : Controller
 {
     private readonly ApplicationDbContext _db;
+    private readonly IConfiguration _config;
 
-    public ContactController(ApplicationDbContext db) => _db = db;
+    public ContactController(ApplicationDbContext db, IConfiguration config)
+    {
+        _db = db;
+        _config = config;
+    }
 
     [HttpGet("/contact")]
-    public IActionResult Index() => View(new ContactVM());
+    public IActionResult Index()
+    {
+        var key = _config["GoogleMapsApiKey"];
+        var place = _config["GoogleMapsContactPlaceQuery"] ?? "Riyadh Saudi Arabia";
+        if (!string.IsNullOrEmpty(key) && key != "YOUR_GOOGLE_MAPS_API_KEY")
+        {
+            ViewBag.MapEmbedUrl =
+                "https://www.google.com/maps/embed/v1/place?key=" + Uri.EscapeDataString(key)
+                + "&q=" + Uri.EscapeDataString(place);
+        }
+
+        return View(new ContactVM());
+    }
 
     [HttpPost("/contact")]
     [ValidateAntiForgeryToken]

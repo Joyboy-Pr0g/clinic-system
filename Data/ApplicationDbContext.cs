@@ -21,6 +21,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ContactMessage> ContactMessages => Set<ContactMessage>();
     public DbSet<Notification> Notifications => Set<Notification>();
     public DbSet<AppointmentMessage> AppointmentMessages => Set<AppointmentMessage>();
+    public DbSet<ClinicService> ClinicServices => Set<ClinicService>();
+    public DbSet<NurseListingService> NurseListingServices => Set<NurseListingService>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -53,6 +55,30 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
                 .OnDelete(DeleteBehavior.Restrict);
         });
 
+        builder.Entity<ClinicService>(e =>
+        {
+            e.ToTable("ClinicServices");
+            e.HasKey(x => x.ClinicServiceId);
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.Price).HasPrecision(10, 2);
+            e.HasOne(x => x.Clinic)
+                .WithMany(c => c.ClinicServices)
+                .HasForeignKey(x => x.ClinicId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<NurseListingService>(e =>
+        {
+            e.ToTable("NurseListingServices");
+            e.HasKey(x => x.NurseListingServiceId);
+            e.Property(x => x.Name).HasMaxLength(200);
+            e.Property(x => x.Price).HasPrecision(10, 2);
+            e.HasOne(x => x.NurseProfile)
+                .WithMany(n => n.NurseListingServices)
+                .HasForeignKey(x => x.NurseProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         builder.Entity<NurseServiceLink>(e =>
         {
             e.HasKey(x => x.NurseServiceId);
@@ -75,6 +101,18 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             e.HasOne(x => x.Clinic)
                 .WithMany(x => x.Appointments)
                 .HasForeignKey(x => x.ClinicId)
+                .OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.Service)
+                .WithMany(x => x.Appointments)
+                .HasForeignKey(x => x.ServiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+            e.HasOne(x => x.ClinicService)
+                .WithMany(x => x.Appointments)
+                .HasForeignKey(x => x.ClinicServiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+            e.HasOne(x => x.NurseListingService)
+                .WithMany(x => x.Appointments)
+                .HasForeignKey(x => x.NurseListingServiceId)
                 .OnDelete(DeleteBehavior.Restrict);
         });
 

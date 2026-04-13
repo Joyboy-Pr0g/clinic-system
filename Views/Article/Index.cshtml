@@ -2,25 +2,43 @@
 @{
     ViewData["Title"] = "المقالات والأخبار";
 }
-<div class="container section-block">
-    <h1 class="page-title">المقالات والأخبار</h1>
-    <div class="book-steps" style="margin-bottom:1rem">
+<section class="page-hero">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="مسار التنقل">
+            <a asp-controller="Home" asp-action="Index">الرئيسية</a>
+            <span> / </span>
+            <span>المقالات</span>
+        </nav>
+        <h1>المقالات والأخبار</h1>
+    </div>
+</section>
+
+<div style="width: 100%; margin: 0 auto; padding: 0 1rem;" class="container section-block">
+    <div class="book-steps" style="margin-bottom:1.25rem">
         <a class="book-step @(ViewBag.Category == null ? "active" : null)" href="@Url.Action("Index")">الكل</a>
         <a class="book-step @(ViewBag.Category as string == ArticleCategories.HealthTips ? "active" : null)" href="@Url.Action("Index", new { category = ArticleCategories.HealthTips })">نصائح</a>
         <a class="book-step @(ViewBag.Category as string == ArticleCategories.News ? "active" : null)" href="@Url.Action("Index", new { category = ArticleCategories.News })">أخبار</a>
         <a class="book-step @(ViewBag.Category as string == ArticleCategories.Guides ? "active" : null)" href="@Url.Action("Index", new { category = ArticleCategories.Guides })">أدلة</a>
     </div>
-    <div class="card-grid">
+    <div class="card-grid card-grid--articles">
         @foreach (var a in Model)
         {
-            <div class="card">
+            <article class="card card--border-hover">
                 @if (!string.IsNullOrEmpty(a.ThumbnailImagePath))
-                { <img class="card-img-top" src="@a.ThumbnailImagePath" alt="" /> }
-                <h3>@a.Title</h3>
-                <p class="muted">@(a.Summary ?? "")</p>
+                {
+                    <img class="card-img-top" src="@a.ThumbnailImagePath" alt="" />
+                }
+                else
+                {
+                    <div class="card-img-top" style="display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-newspaper fa-2x" style="color:var(--color-primary)"></i></div>
+                }
+                <h3 style="margin:0 0 0.5rem;font-size:1.1rem">@a.Title</h3>
+                <p class="muted" style="margin:0 0 0.75rem;font-size:0.95rem">@(a.Summary ?? "")</p>
                 <small class="muted">@a.PublishedAt?.ToLocalTime().ToString("d")</small>
-                <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-slug="@a.Slug">قراءة</a>
-            </div>
+                <div style="margin-top:1rem">
+                    <a class="btn btn-sm btn-primary" asp-action="Details" asp-route-slug="@a.Slug">اقرأ المزيد</a>
+                </div>
+            </article>
         }
     </div>
 </div>

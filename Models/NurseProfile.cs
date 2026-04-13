@@ -23,6 +23,7 @@ public class NurseProfile
     public DateTime? LocationUpdatedAt { get; set; }
 
     public ICollection<NurseServiceLink> NurseServices { get; set; } = new List<NurseServiceLink>();
+    public ICollection<NurseListingService> NurseListingServices { get; set; } = new List<NurseListingService>();
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
 }

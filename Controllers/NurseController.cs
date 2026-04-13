@@ -87,7 +87,7 @@ public class NurseController : Controller
         var q = _apptRepo.Query().Where(a => a.NurseProfileId == np.NurseProfileId);
         if (!string.IsNullOrEmpty(status))
             q = q.Where(a => a.Status == status);
-        var list = await q.Include(a => a.Patient).Include(a => a.Service).OrderByDescending(a => a.AppointmentDate).ToListAsync(ct);
+        var list = await q.Include(a => a.Patient).Include(a => a.Service).Include(a => a.ClinicService).Include(a => a.NurseListingService).OrderByDescending(a => a.AppointmentDate).ToListAsync(ct);
         ViewBag.Status = status;
         return View(list);
     }
@@ -133,6 +133,29 @@ public class NurseController : Controller
         else
             TempData["Success"] = "تم تحديث الحالة.";
         return RedirectToAction(nameof(AppointmentDetail), new { id });
+    }
+
+    [HttpPost("appointments/{id:int}/delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAppointment(int id, CancellationToken ct)
+    {
+        var user = await _users.GetUserAsync(User);
+        var np = await _profiles.GetByUserIdAsync(user!.Id, ct);
+        if (np == null) return NotFound();
+        var appt = await _apptRepo.GetByIdForNurseAsync(id, np.NurseProfileId, ct);
+        if (appt == null) return NotFound();
+        var st = appt.Status ?? "";
+        if (!string.Equals(st, AppointmentStatuses.Cancelled, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(st, AppointmentStatuses.Completed, StringComparison.OrdinalIgnoreCase))
+        {
+            TempData["Error"] = "يمكن حذف المواعيد الملغاة أو المكتملة فقط.";
+            return RedirectToAction(nameof(Appointments));
+        }
+
+        _apptRepo.Remove(appt);
+        await _apptRepo.SaveChangesAsync(ct);
+        TempData["Success"] = "تم حذف الموعد من سجلك.";
+        return RedirectToAction(nameof(Appointments));
     }
 
     [HttpGet("profile")]

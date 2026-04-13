@@ -5,7 +5,8 @@
     ViewData["Title"] = "حجز موعد";
     var nurses = ViewBag.Nurses as IReadOnlyList<NurseListItemVM> ?? Array.Empty<NurseListItemVM>();
     var clinics = ViewBag.Clinics as IReadOnlyList<ClinicListItemVM> ?? Array.Empty<ClinicListItemVM>();
-    var services = ViewBag.Services as IEnumerable<HomeNursingSystem.Models.MedicalService> ?? Enumerable.Empty<HomeNursingSystem.Models.MedicalService>();
+    var nurseServicesJson = ViewBag.NurseServicesJson as string ?? "[]";
+    var clinicServicesJson = ViewBag.ClinicServicesJson as string ?? "[]";
     var providerLocked = ViewBag.ProviderLocked as bool? ?? false;
     var providerDisplayName = ViewBag.ProviderDisplayName as string ?? "";
     var detailStep = providerLocked ? 1 : 2;
@@ -22,9 +23,11 @@
 
 <h1 class="page-title">حجز موعد</h1>
 
+<div class="book-layout">
+<div class="form-card" style="margin:0">
 @if (providerLocked && !string.IsNullOrWhiteSpace(providerDisplayName))
 {
-    <p class="book-provider-lock" style="margin-bottom:1rem;padding:0.75rem 1rem;background:rgba(42,127,186,0.08);border-radius:8px">
+    <p class="book-provider-lock">
         أنت تحجز مع <strong>@providerDisplayName</strong> — أكمل الخدمة والموقع والتأكيد أدناه.
     </p>
 }
@@ -43,7 +46,7 @@
     }
 </div>
 
-<form asp-action="Book" method="post" class="form-stack wide" data-loading id="book-form">
+<form asp-action="Book" method="post" class="form-stack wide" style="max-width:none" data-loading id="book-form">
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="GoogleMapsApiKey" />
     @if (providerLocked)
@@ -61,6 +64,7 @@
     @if (!providerLocked)
     {
         <div data-book-step="1">
+            <p class="text-danger book-step-validation-msg" data-step-validation-msg style="display:none;margin:0 0 0.75rem;font-weight:600" role="alert"></p>
             <label><input type="radio" asp-for="BookType" value="Nurse" /> ممرض منزلي</label>
             <label><input type="radio" asp-for="BookType" value="Clinic" /> عيادة</label>
             <div class="field nurse-pick">
@@ -75,30 +79,29 @@
                     <option value="">— اختر —</option>
                 </select>
             </div>
-            <button type="button" class="btn btn-primary" data-next-step>التالي</button>
+            <button style="margin-top: 1rem;" type="button" class="btn btn-primary" data-next-step>التالي</button>
         </div>
     }
     <div data-book-step="@detailStep" style="display:none">
-        <div class="field">
-            <label asp-for="ServiceId"></label>
-            <select asp-for="ServiceId">
+        <p class="text-danger book-step-validation-msg" data-step-validation-msg style="display:none;margin:0 0 0.75rem;font-weight:600" role="alert"></p>
+        <div class="field service-pick-nurse">
+            <label asp-for="NurseListingServiceId">خدمة الممرض</label>
+            <select asp-for="NurseListingServiceId">
                 <option value="0">— اختر الخدمة —</option>
-                @foreach (var s in services)
-                {
-                    if (s.ServiceId == Model.ServiceId)
-                    {
-                        <option value="@s.ServiceId" selected>@HomeNursingSystem.Services.ServiceNameLocalizer.Localize(s.ServiceName)</option>
-                    }
-                    else
-                    {
-                        <option value="@s.ServiceId">@HomeNursingSystem.Services.ServiceNameLocalizer.Localize(s.ServiceName)</option>
-                    }
-                }
             </select>
-            <span asp-validation-for="ServiceId"></span>
+            <span asp-validation-for="NurseListingServiceId"></span>
+            <p class="muted" style="margin:0.35rem 0 0;font-size:0.88rem;display:none" data-nurse-services-empty>هذا الممرض لم يضف خدمات بعد أو لا توجد خدمات متاحة؛ اختر ممرضاً آخر أو تواصل معه.</p>
+        </div>
+        <div class="field service-pick-clinic" style="display:none">
+            <label asp-for="ClinicServiceId">خدمة العيادة</label>
+            <select asp-for="ClinicServiceId">
+                <option value="">— اختر خدمة العيادة —</option>
+            </select>
+            <span asp-validation-for="ClinicServiceId"></span>
+            <p class="muted" style="margin:0.35rem 0 0;font-size:0.88rem;display:none" data-clinic-services-empty>هذه العيادة لم تضف خدمات بعد؛ تواصل مع العيادة أو جرّب لاحقاً.</p>
         </div>
         <div class="field field-ltr">
-            <label asp-for="AppointmentDate">موعد الزيارة</label>
+            <label style="text-align: right;" asp-for="AppointmentDate">موعد الزيارة</label>
             <input type="datetime-local" name="AppointmentDate" id="AppointmentDate" value="@apptInputValue" />
             <span asp-validation-for="AppointmentDate"></span>
         </div>
@@ -129,6 +132,18 @@
     </div>
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 </form>
+</div>
+<aside class="book-summary" aria-label="ملخص الحجز">
+    <h3>ملخص سريع</h3>
+    <ul class="muted" style="padding-inline-start:1.1rem;margin:0;font-size:0.95rem;line-height:1.7">
+        <li>اختر الممرض أو العيادة</li>
+        <li>حدد الخدمة والموعد</li>
+        <li>أدخل العنوان أو الموقع على الخريطة</li>
+        <li>راجع ثم أرسل الطلب</li>
+    </ul>
+    <p class="muted" style="font-size:0.85rem;margin:1rem 0 0">بعد الإرسال ستصلك حالة الطلب من مقدم الخدمة.</p>
+</aside>
+</div>
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
@@ -177,7 +192,167 @@
             var minStep = 1;
             var step = 1;
             var providerLocked = @(providerLocked ? "true" : "false");
+            var detailStep = @detailStep;
+            var clinicServicesCatalog = @Html.Raw(clinicServicesJson);
+            var nurseServicesCatalog = @Html.Raw(nurseServicesJson);
+
+            function clearStepMessages() {
+                document.querySelectorAll("[data-step-validation-msg]").forEach(function (el) {
+                    el.textContent = "";
+                    el.style.display = "none";
+                });
+            }
+
+            function setStepMessage(stepNum, msg) {
+                var panel = document.querySelector('[data-book-step="' + stepNum + '"]');
+                if (!panel) return;
+                var el = panel.querySelector("[data-step-validation-msg]");
+                if (!el) return;
+                if (msg) {
+                    el.textContent = msg;
+                    el.style.display = "block";
+                } else {
+                    el.textContent = "";
+                    el.style.display = "none";
+                }
+            }
+
+            function validateTypeStep() {
+                var t = document.querySelector('input[name="BookType"]:checked');
+                if (!t) {
+                    setStepMessage(1, "يرجى اختيار نوع الحجز (ممرض منزلي أو عيادة).");
+                    return false;
+                }
+                if (t.value === "Nurse") {
+                    var sel = document.querySelector('select[name="NurseProfileId"]');
+                    if (!sel || !sel.value || sel.value === "0") {
+                        setStepMessage(1, "يرجى اختيار الممرض من القائمة.");
+                        return false;
+                    }
+                } else {
+                    var selc = document.querySelector('select[name="ClinicId"]');
+                    if (!selc || !selc.value || selc.value === "0") {
+                        setStepMessage(1, "يرجى اختيار العيادة من القائمة.");
+                        return false;
+                    }
+                }
+                setStepMessage(1, "");
+                return true;
+            }
+
+            function isClinicBooking() {
+                if (providerLocked) {
+                    var cid = document.querySelector('input[name="ClinicId"]');
+                    return !!(cid && cid.value && cid.value !== "0");
+                }
+                var t = document.querySelector('input[name="BookType"]:checked');
+                return !!(t && t.value === "Clinic");
+            }
+
+            function fillNurseServices(nurseProfileId) {
+                var sel = document.querySelector('select[name="NurseListingServiceId"]');
+                var emptyHint = document.querySelector("[data-nurse-services-empty]");
+                if (!sel) return;
+                var prev = sel.value;
+                sel.innerHTML = '<option value=\"0\">— اختر الخدمة —</option>';
+                var id = parseInt(String(nurseProfileId || "0"), 10);
+                var rows = (nurseServicesCatalog || []).filter(function (x) { return x.nurseProfileId === id; });
+                rows.forEach(function (x) {
+                    var o = document.createElement("option");
+                    o.value = String(x.nurseListingServiceId);
+                    o.textContent = x.name + " — " + Number(x.price).toFixed(2) + " ر.س";
+                    sel.appendChild(o);
+                });
+                if (prev && rows.some(function (x) { return String(x.nurseListingServiceId) === prev; }))
+                    sel.value = prev;
+                if (emptyHint) {
+                    emptyHint.style.display = rows.length ? "none" : "block";
+                }
+            }
+
+            function fillClinicServices(clinicId) {
+                var sel = document.querySelector('select[name="ClinicServiceId"]');
+                var emptyHint = document.querySelector("[data-clinic-services-empty]");
+                if (!sel) return;
+                var prev = sel.value;
+                sel.innerHTML = '<option value=\"\">— اختر خدمة العيادة —</option>';
+                var id = parseInt(String(clinicId || "0"), 10);
+                var rows = (clinicServicesCatalog || []).filter(function (x) { return x.clinicId === id; });
+                rows.forEach(function (x) {
+                    var o = document.createElement("option");
+                    o.value = String(x.clinicServiceId);
+                    o.textContent = x.name + " — " + Number(x.price).toFixed(2) + " ر.س";
+                    sel.appendChild(o);
+                });
+                if (prev && rows.some(function (x) { return String(x.clinicServiceId) === prev; }))
+                    sel.value = prev;
+                if (emptyHint) {
+                    emptyHint.style.display = rows.length ? "none" : "block";
+                }
+            }
+
+            function refreshServicePickVisibility() {
+                var nurseField = document.querySelector(".service-pick-nurse");
+                var clinicField = document.querySelector(".service-pick-clinic");
+                if (!nurseField || !clinicField) return;
+                var clinic = isClinicBooking();
+                nurseField.style.display = clinic ? "none" : "block";
+                clinicField.style.display = clinic ? "block" : "none";
+                if (clinic) {
+                    var cidEl = document.querySelector('select[name="ClinicId"]') || document.querySelector('input[name="ClinicId"]');
+                    var cid = cidEl ? cidEl.value : "";
+                    fillClinicServices(cid);
+                } else {
+                    var npEl = document.querySelector('select[name="NurseProfileId"]') || document.querySelector('input[name="NurseProfileId"]');
+                    var npid = npEl ? npEl.value : "";
+                    fillNurseServices(npid);
+                }
+            }
+
+            function validateDetailsStep() {
+                if (isClinicBooking()) {
+                    var cs = document.querySelector('select[name="ClinicServiceId"]');
+                    if (!cs || !cs.value) {
+                        setStepMessage(detailStep, "يرجى اختيار خدمة العيادة.");
+                        return false;
+                    }
+                } else {
+                    var service = document.querySelector('select[name="NurseListingServiceId"]');
+                    if (!service || !service.value || service.value === "0") {
+                        setStepMessage(detailStep, "يرجى اختيار الخدمة.");
+                        return false;
+                    }
+                }
+                var dt = document.getElementById("AppointmentDate");
+                if (!dt || !dt.value) {
+                    setStepMessage(detailStep, "يرجى تحديد تاريخ ووقت الزيارة.");
+                    return false;
+                }
+                if (typeof dt.checkValidity === "function" && !dt.checkValidity()) {
+                    setStepMessage(detailStep, "تاريخ أو وقت الزيارة غير صالح.");
+                    return false;
+                }
+                var addr = document.querySelector('input[name="AddressText"]');
+                if (!addr || !String(addr.value || "").trim()) {
+                    setStepMessage(detailStep, "يرجى إدخال عنوان الزيارة.");
+                    return false;
+                }
+                setStepMessage(detailStep, "");
+                return true;
+            }
+
+            function canLeaveStep(currentStep) {
+                if (providerLocked) {
+                    if (currentStep === 1) return validateDetailsStep();
+                    return true;
+                }
+                if (currentStep === 1) return validateTypeStep();
+                if (currentStep === detailStep) return validateDetailsStep();
+                return true;
+            }
+
             function show(s) {
+                clearStepMessages();
                 document.querySelectorAll("[data-book-step]").forEach(function (el) {
                     el.style.display = el.getAttribute("data-book-step") == s ? "block" : "none";
                 });
@@ -186,11 +361,27 @@
                 });
                 step = s;
             }
+
             document.querySelectorAll("[data-next-step]").forEach(function (b) {
-                b.addEventListener("click", function () { show(Math.min(maxStep, step + 1)); });
+                b.addEventListener("click", function () {
+                    if (!canLeaveStep(step)) return;
+                    if (step === 1) {
+                        if (isClinicBooking()) {
+                            var cidEl = document.querySelector('select[name="ClinicId"]') || document.querySelector('input[name="ClinicId"]');
+                            if (cidEl) fillClinicServices(cidEl.value);
+                        } else {
+                            var npEl = document.querySelector('select[name="NurseProfileId"]') || document.querySelector('input[name="NurseProfileId"]');
+                            if (npEl) fillNurseServices(npEl.value);
+                        }
+                    }
+                    show(Math.min(maxStep, step + 1));
+                });
             });
             document.querySelectorAll("[data-prev-step]").forEach(function (b) {
-                b.addEventListener("click", function () { show(Math.max(minStep, step - 1)); });
+                b.addEventListener("click", function () {
+                    clearStepMessages();
+                    show(Math.max(minStep, step - 1));
+                });
             });
             function toggleType() {
                 if (providerLocked) return;
@@ -202,10 +393,26 @@
                 c.style.display = t.value === "Clinic" ? "block" : "none";
             }
             document.querySelectorAll("input[name=\"BookType\"]").forEach(function (r) {
-                r.addEventListener("change", toggleType);
+                r.addEventListener("change", function () {
+                    toggleType();
+                    refreshServicePickVisibility();
+                });
             });
+            var clinicSel = document.querySelector('select[name="ClinicId"]');
+            if (clinicSel) {
+                clinicSel.addEventListener("change", function () {
+                    if (isClinicBooking()) fillClinicServices(clinicSel.value);
+                });
+            }
+            var nurseSel = document.querySelector('select[name="NurseProfileId"]');
+            if (nurseSel) {
+                nurseSel.addEventListener("change", function () {
+                    if (!isClinicBooking()) fillNurseServices(nurseSel.value);
+                });
+            }
             toggleType();
-            show(1);
+            refreshServicePickVisibility();
+            show(providerLocked ? 1 : 1);
         })();
     </script>
 }

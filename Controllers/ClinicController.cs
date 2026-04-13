@@ -45,10 +45,13 @@ public class ClinicController : Controller
 
     [AllowAnonymous]
     [HttpGet("/clinics")]
-    public async Task<IActionResult> Index(string? search, CancellationToken ct)
+    public async Task<IActionResult> Index(string? search, string? city, string? specialty, CancellationToken ct)
     {
         ViewBag.Search = search;
-        var list = await _browse.ListVerifiedAsync(search, ct);
+        ViewBag.City = city;
+        ViewBag.Specialty = specialty;
+        ViewBag.Cities = await _browse.DistinctClinicCitiesAsync(ct);
+        var list = await _browse.ListVerifiedAsync(search, city, specialty, ct);
         return View("PublicIndex", list);
     }
 
@@ -81,7 +84,7 @@ public class ClinicController : Controller
         var q = _apptRepo.Query().Where(a => a.ClinicId == clinic.ClinicId);
         if (!string.IsNullOrEmpty(status))
             q = q.Where(a => a.Status == status);
-        var list = await q.Include(a => a.Patient).Include(a => a.Service).OrderByDescending(a => a.AppointmentDate).ToListAsync(ct);
+        var list = await q.Include(a => a.Patient).Include(a => a.Service).Include(a => a.ClinicService).Include(a => a.NurseListingService).OrderByDescending(a => a.AppointmentDate).ToListAsync(ct);
         ViewBag.Status = status;
         return View(list);
     }
@@ -125,6 +128,29 @@ public class ClinicController : Controller
         if (!ok) TempData["Error"] = err;
         else TempData["Success"] = "تم التحديث.";
         return RedirectToAction(nameof(AppointmentDetail), new { id });
+    }
+
+    [HttpPost("appointments/{id:int}/delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAppointment(int id, CancellationToken ct)
+    {
+        var user = await _users.GetUserAsync(User);
+        var clinic = await _clinics.GetByOwnerIdAsync(user!.Id, ct);
+        if (clinic == null) return NotFound();
+        var appt = await _apptRepo.GetByIdForClinicAsync(id, clinic.ClinicId, ct);
+        if (appt == null) return NotFound();
+        var st = appt.Status ?? "";
+        if (!string.Equals(st, AppointmentStatuses.Cancelled, StringComparison.OrdinalIgnoreCase)
+            && !string.Equals(st, AppointmentStatuses.Completed, StringComparison.OrdinalIgnoreCase))
+        {
+            TempData["Error"] = "يمكن حذف المواعيد الملغاة أو المكتملة فقط.";
+            return RedirectToAction(nameof(Appointments));
+        }
+
+        _apptRepo.Remove(appt);
+        await _apptRepo.SaveChangesAsync(ct);
+        TempData["Success"] = "تم حذف الموعد من سجل العيادة.";
+        return RedirectToAction(nameof(Appointments));
     }
 
     [HttpGet("profile")]

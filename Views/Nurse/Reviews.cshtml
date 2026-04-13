@@ -3,11 +3,19 @@
 @section Sidebar { <partial name="_Sidebar" /> }
 
 <h1 class="page-title">التقييمات</h1>
-@foreach (var r in Model)
-{
-    <div class="card" style="margin-bottom:0.75rem">
-        <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", r.Stars))</p>
-        <p>@r.Comment</p>
-        <small class="muted">@r.Patient.FullName — @r.CreatedAt.ToLocalTime().ToString("g")</small>
-    </div>
-}
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>النجوم</th><th>التعليق</th><th>المريض</th><th>التاريخ</th></tr></thead>
+        <tbody>
+        @foreach (var r in Model)
+        {
+            <tr>
+                <td><span class="stars-readonly">@string.Join("", Enumerable.Repeat("★", r.Stars))</span></td>
+                <td>@r.Comment</td>
+                <td>@r.Patient.FullName</td>
+                <td>@r.CreatedAt.ToLocalTime().ToString("g")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>

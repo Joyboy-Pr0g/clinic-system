@@ -66,6 +66,7 @@ public class NurseService : INurseService
             Specialization = n.Specialization,
             YearsOfExperience = n.YearsOfExperience,
             Bio = n.Bio,
+            IsVerified = n.IsVerified,
             AverageRating = n.AverageRating,
             TotalReviews = n.TotalReviews,
             IsAvailable = n.IsAvailable,

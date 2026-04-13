@@ -1,4 +1,8 @@
-<a asp-action="Dashboard">لوحة التحكم</a>
-<a asp-action="Book">حجز جديد</a>
-<a asp-action="Appointments">مواعيدي</a>
-<a asp-action="Profile">الملف الشخصي</a>
+<a asp-controller="Patient" asp-action="Dashboard">لوحة التحكم</a>
+<a asp-controller="Patient" asp-action="Book">حجز جديد</a>
+<a asp-controller="Patient" asp-action="Appointments">مواعيدي</a>
+<a asp-controller="Patient" asp-action="Profile">الملف الشخصي</a>
+<form asp-controller="Account" asp-action="Logout" method="post" class="logout-form sidebar-logout-form">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="sidebar-logout-btn">تسجيل الخروج</button>
+</form>

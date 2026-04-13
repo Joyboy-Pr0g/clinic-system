@@ -7,7 +7,7 @@
 
     var form = panel.querySelector("[data-chat-form]");
     var tokenInput = form && form.querySelector("input[name=\"__RequestVerificationToken\"]");
-    var bodyInput = form && form.querySelector("input[name=\"body\"]");
+    var bodyInput = form && form.querySelector("textarea[name=\"body\"], input[name=\"body\"]");
     var mediaPicker = form && form.querySelector("[data-chat-media-picker]");
     var micBtn = form && form.querySelector("[data-chat-record-mic]");
     var recBar = form && form.querySelector("[data-recording-bar]");
@@ -16,6 +16,11 @@
     var voicePreview = form && form.querySelector("[data-voice-preview]");
     var voiceCancel = form && form.querySelector("[data-voice-cancel]");
     var voiceSend = form && form.querySelector("[data-voice-send]");
+    var mediaPreview = form && form.querySelector("[data-media-preview]");
+    var mediaSlot = form && form.querySelector("[data-media-preview-slot]");
+    var mediaName = form && form.querySelector("[data-media-preview-name]");
+    var mediaCancel = form && form.querySelector("[data-media-preview-cancel]");
+    var mediaSend = form && form.querySelector("[data-media-preview-send]");
 
     if (!form || !tokenInput) return;
 
@@ -39,16 +44,98 @@
         form.querySelectorAll("input[type=\"file\"]").forEach(function (el) { el.value = ""; });
     }
 
+    function isMediaPreviewActive() {
+        return mediaPreview && !mediaPreview.hidden;
+    }
+
+    var pendingMediaFile = null;
+    var pendingMediaObjectUrl = null;
+
+    function clearMediaPreview() {
+        if (pendingMediaObjectUrl) {
+            try { URL.revokeObjectURL(pendingMediaObjectUrl); } catch (e) { }
+            pendingMediaObjectUrl = null;
+        }
+        pendingMediaFile = null;
+        if (mediaSlot) mediaSlot.innerHTML = "";
+        if (mediaName) {
+            mediaName.textContent = "";
+            mediaName.hidden = true;
+        }
+        if (mediaPreview) mediaPreview.hidden = true;
+        if (mediaPicker) mediaPicker.value = "";
+    }
+
+    function showMediaPreview(file) {
+        if (!file || !mediaPreview || !mediaSlot) return;
+        if (mediaRecorder && mediaRecorder.state === "recording") {
+            alert("أوقف التسجيل أولاً.");
+            if (mediaPicker) mediaPicker.value = "";
+            return;
+        }
+        if (voiceActions && !voiceActions.hidden) {
+            alert("أرسل التسجيل الصوتي أو ارفضه أولاً.");
+            if (mediaPicker) mediaPicker.value = "";
+            return;
+        }
+        clearVoicePreview();
+        clearMediaPreview();
+        pendingMediaFile = file;
+        var t = file.type || "";
+        var n = file.name || "";
+        if (t.indexOf("image/") === 0) {
+            pendingMediaObjectUrl = URL.createObjectURL(file);
+            var img = document.createElement("img");
+            img.src = pendingMediaObjectUrl;
+            img.alt = "";
+            mediaSlot.appendChild(img);
+        } else if (t.indexOf("video/") === 0) {
+            pendingMediaObjectUrl = URL.createObjectURL(file);
+            var vid = document.createElement("video");
+            vid.src = pendingMediaObjectUrl;
+            vid.controls = true;
+            vid.playsInline = true;
+            vid.muted = true;
+            mediaSlot.appendChild(vid);
+        } else if (t.indexOf("audio/") === 0) {
+            pendingMediaObjectUrl = URL.createObjectURL(file);
+            var aud = document.createElement("audio");
+            aud.src = pendingMediaObjectUrl;
+            aud.controls = true;
+            mediaSlot.appendChild(aud);
+        } else if (mediaName) {
+            mediaName.textContent = n || "مرفق";
+            mediaName.hidden = false;
+        }
+        mediaPreview.hidden = false;
+        if (mediaPicker) mediaPicker.value = "";
+    }
+
     function onFileChosen(input) {
         if (!input || !input.files || !input.files[0]) return;
-        var f = input.files[0];
-        var cap = bodyInput ? bodyInput.value : "";
-        postMedia(f, cap)
-            .then(function () { afterSend(); })
-            .catch(function (e) { alert(e.message || "تعذر الإرسال"); input.value = ""; });
+        showMediaPreview(input.files[0]);
     }
 
     if (mediaPicker) mediaPicker.addEventListener("change", function () { onFileChosen(mediaPicker); });
+
+    if (mediaCancel) {
+        mediaCancel.addEventListener("click", function () {
+            clearMediaPreview();
+        });
+    }
+
+    if (mediaSend) {
+        mediaSend.addEventListener("click", function () {
+            if (!pendingMediaFile) return;
+            var cap = bodyInput ? bodyInput.value : "";
+            postMedia(pendingMediaFile, cap)
+                .then(function () {
+                    clearMediaPreview();
+                    afterSend();
+                })
+                .catch(function (err) { alert(err.message || "تعذر الإرسال"); });
+        });
+    }
 
     var mediaRecorder = null;
     var chunks = [];
@@ -70,7 +157,7 @@
         if (voiceActions) voiceActions.hidden = true;
     }
 
-    /** إيقاف التسجيل وعرض معاينة (إرسال / إلغاء) */
+    /** إيقاف التسجيل وعرض معاينة (إرسال / رفض) */
     function stopRecordingForPreview() {
         if (recordTimer) {
             clearTimeout(recordTimer);
@@ -101,6 +188,7 @@
                 try { URL.revokeObjectURL(pendingVoiceObjectUrl); } catch (e) { }
                 pendingVoiceObjectUrl = null;
             }
+            clearMediaPreview();
             pendingVoiceFile = new File([blob], "voice-" + Date.now() + "." + ext, { type: blob.type || "audio/webm" });
             pendingVoiceObjectUrl = URL.createObjectURL(blob);
             if (voicePreview) voicePreview.src = pendingVoiceObjectUrl;
@@ -115,8 +203,12 @@
     }
 
     function startRecording() {
+        if (isMediaPreviewActive()) {
+            alert("أرسل المرفق أو ارفضه أولاً.");
+            return;
+        }
         if (voiceActions && !voiceActions.hidden) {
-            alert("أرسل التسجيل الحالي أو ألغِه أولاً.");
+            alert("أرسل التسجيل الحالي أو ارفضه أولاً.");
             return;
         }
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -150,7 +242,7 @@
                 micBtn.classList.add("chat-ig-btn--recording");
                 micBtn.setAttribute("aria-pressed", "true");
             }
-            if (recLabel) recLabel.textContent = "جاري التسجيل… اضغط «صوت» مرة أخرى للإيقاف ثم اختر إرسال أو إلغاء";
+            if (recLabel) recLabel.textContent = "جاري التسجيل… اضغط «صوت» مرة أخرى للإيقاف ثم اختر إرسال أو رفض";
             recordTimer = setTimeout(function () {
                 if (mediaRecorder && mediaRecorder.state === "recording") stopRecordingForPreview();
             }, maxMs);
@@ -168,6 +260,31 @@
             }
             startRecording();
         });
+    }
+
+    /** Long-press on message field to start recording (tap still types normally). */
+    var longPressTimer = null;
+    var longPressMs = 550;
+    if (bodyInput) {
+        bodyInput.addEventListener("pointerdown", function () {
+            if (longPressTimer) clearTimeout(longPressTimer);
+            longPressTimer = setTimeout(function () {
+                longPressTimer = null;
+                if (voiceActions && !voiceActions.hidden) return;
+                if (mediaRecorder && mediaRecorder.state === "recording") return;
+                if (isMediaPreviewActive()) return;
+                startRecording();
+            }, longPressMs);
+        });
+        function cancelLongPress() {
+            if (longPressTimer) {
+                clearTimeout(longPressTimer);
+                longPressTimer = null;
+            }
+        }
+        bodyInput.addEventListener("pointerup", cancelLongPress);
+        bodyInput.addEventListener("pointercancel", cancelLongPress);
+        bodyInput.addEventListener("pointerleave", cancelLongPress);
     }
 
     if (voiceCancel) {
@@ -258,13 +375,8 @@
                     return;
                 }
                 var file = new File([blob], "camera-" + Date.now() + ".jpg", { type: "image/jpeg" });
-                var cap = bodyInput ? bodyInput.value : "";
-                postMedia(file, cap)
-                    .then(function () {
-                        closeCameraModal();
-                        afterSend();
-                    })
-                    .catch(function (e) { alert(e.message || "تعذر الإرسال"); });
+                closeCameraModal();
+                showMediaPreview(file);
             }, "image/jpeg", 0.88);
         });
     }

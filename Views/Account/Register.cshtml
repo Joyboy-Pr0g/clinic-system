@@ -3,23 +3,47 @@
     ViewData["Title"] = "تسجيل مريض";
 }
 
-<div class="container section-block" style="max-width:520px">
-    <h1 class="page-title">تسجيل حساب مريض</h1>
-    <p class="muted">لممرض أو مالك عيادة استخدم الروابط أدناه.</p>
-    <p><a asp-action="RegisterNurse">تسجيل ممرض</a> — <a asp-action="RegisterClinic">تسجيل عيادة</a></p>
-    <form asp-action="Register" method="post" class="form-stack" data-loading>
-        @Html.AntiForgeryToken()
-        <div class="field"><label asp-for="FullName"></label><input asp-for="FullName" /><span asp-validation-for="FullName"></span></div>
-        <div class="field"><label asp-for="Email"></label><input asp-for="Email" /><span asp-validation-for="Email"></span></div>
-        <div class="field"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" /><span asp-validation-for="PhoneNumber"></span></div>
-        <div class="field"><label asp-for="Password"></label><input asp-for="Password" /><span asp-validation-for="Password"></span></div>
-        <div class="field"><label asp-for="ConfirmPassword"></label><input asp-for="ConfirmPassword" /><span asp-validation-for="ConfirmPassword"></span></div>
-        <div class="field"><label asp-for="City"></label><input asp-for="City" /></div>
-        <div class="field"><label asp-for="Neighborhood"></label><input asp-for="Neighborhood" /></div>
-        <div class="field"><label asp-for="Street"></label><input asp-for="Street" /></div>
-        <input type="hidden" asp-for="SelectedRole" value="@HomeNursingSystem.Models.AppRoles.Patient" />
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <button type="submit" class="btn btn-primary">إنشاء الحساب</button>
-    </form>
+<section class="page-hero" style="padding:2rem 0">
+    <div class="container" style="text-align:center">
+        <h1 style="margin:0;font-size:1.5rem">إنشاء حساب</h1>
+    </div>
+</section>
+
+<div style="width: 100%; margin: 0 auto; padding: 0 1rem;" class="container section-block">
+    <div class="auth-card" style="max-width:720px">
+        <div class="auth-card__brand">
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                <span class="brand__logo-mark" aria-hidden="true"><i class="fa-solid fa-heart-pulse"></i></span>
+                رعاية<span>منزلية</span>
+            </a>
+        </div>
+        <p class="muted" style="text-align:center">لممرض أو مالك عيادة اختر نوع الحساب أدناه أو استخدم الروابط المتخصصة.</p>
+        <form asp-action="Register" method="post" class="form-grid-2 wide" style="max-width:none" data-loading>
+            @Html.AntiForgeryToken()
+            <div class="field field-full">
+                <label asp-for="SelectedRole"></label>
+                <select asp-for="SelectedRole">
+                    <option value="@AppRoles.Patient">مريض</option>
+                    <option value="@AppRoles.Nurse">ممرض (الانتقال لنموذج التسجيل)</option>
+                    <option value="@AppRoles.ClinicOwner">مالك عيادة (الانتقال لنموذج التسجيل)</option>
+                </select>
+            </div>
+            <div class="field"><label asp-for="FullName"></label><input asp-for="FullName" /><span asp-validation-for="FullName"></span></div>
+            <div class="field"><label asp-for="Email"></label><input asp-for="Email" /><span asp-validation-for="Email"></span></div>
+            <div class="field"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" /></div>
+            <div class="field"><label asp-for="City"></label><input asp-for="City" /></div>
+            <div class="field"><label asp-for="Password"></label><input asp-for="Password" /><span asp-validation-for="Password"></span></div>
+            <div class="field"><label asp-for="ConfirmPassword"></label><input asp-for="ConfirmPassword" /><span asp-validation-for="ConfirmPassword"></span></div>
+            <div class="field"><label asp-for="Neighborhood"></label><input asp-for="Neighborhood" /></div>
+            <div class="field"><label asp-for="Street"></label><input asp-for="Street" /></div>
+            <div asp-validation-summary="ModelOnly" class="text-danger field-full"></div>
+            <div class="field-full">
+                <button type="submit" class="btn btn-primary" style="width:100%">إنشاء الحساب</button>
+            </div>
+        </form>
+        <p class="muted" style="text-align:center;margin-top:1rem;font-size:0.9rem">
+            <a asp-action="RegisterNurse">تسجيل ممرض</a> — <a asp-action="RegisterClinic">تسجيل عيادة</a>
+        </p>
+    </div>
 </div>
 @section Scripts { <partial name="_ValidationScriptsPartial" /> }

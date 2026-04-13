@@ -2,29 +2,78 @@
     ViewData["Title"] = "من نحن";
 }
 
-<div class="container section-block">
-    <h1 class="page-title">من نحن</h1>
-    <p class="muted" style="max-width:720px">نسعى لربط المرضى بممرضين وعيادات معتمدة لتقديم رعاية منزلية آمنة ومريحة.</p>
+<section class="page-hero">
+    <div class="container">
+        <div class="container-narrow" style="text-align: center;">
+            <nav class="breadcrumb" aria-label="مسار التنقل">
+                <a asp-controller="Home" asp-action="Index">الرئيسية</a>
+                <span> / </span>
+                <span>من نحن</span>
+            </nav>
+            <h1 style="margin-bottom: 0.5rem;">من نحن</h1>
+            <p style="margin:0;opacity:0.95">نسعى لربط المرضى بممرضين وعيادات معتمدة لتقديم رعاية منزلية آمنة ومريحة.</p>
+        </div>
+    </div>
+</section>
 
-    <h2>رؤيتنا</h2>
-    <p>تمكين كل أسرة من الوصول لخدمات صحية موثوقة دون عناء التنقل.</p>
+<div style="width: 100%; margin: 0 auto; padding: 0 1rem;" class="container section-block">
+    <div class="container-narrow">
+    <div class="mission-grid">
+        <div class="card feature-card">
+            <div class="feature-card__icon"><i class="fa-solid fa-eye"></i></div>
+            <h3 class="page-title" style="font-size:1.15rem">رؤيتنا</h3>
+            <p class="muted">تمكين كل أسرة من الوصول لخدمات صحية موثوقة دون عناء التنقل.</p>
+        </div>
+        <div class="card feature-card">
+            <div class="feature-card__icon"><i class="fa-solid fa-bullseye"></i></div>
+            <h3 class="page-title" style="font-size:1.15rem">رسالتنا</h3>
+            <p class="muted">جودة الرعاية، شفافية الأسعار، ودعم مستمر قبل وبعد الموعد.</p>
+        </div>
+    </div>
 
-    <h2>كيف تعمل المنصة</h2>
-    <div class="card-grid" style="margin-top:1rem">
+    <h2 class="section-heading">كيف تعمل المنصة</h2>
+    <div class="card-grid">
         <div class="card">
-            <strong>1 — اختر</strong>
+            <div class="feature-card__icon" style="margin-bottom:0.75rem"><span class="badge-tag">1</span></div>
+            <h3>اختر</h3>
             <p class="muted">ممرضاً منزالياً أو عيادة من القائمة المعتمدة.</p>
         </div>
         <div class="card">
-            <strong>2 — احجز</strong>
+            <div class="feature-card__icon" style="margin-bottom:0.75rem"><span class="badge-tag">2</span></div>
+            <h3>احجز</h3>
             <p class="muted">حدد الخدمة والوقت والموقع على الخريطة.</p>
         </div>
         <div class="card">
-            <strong>3 — تقييم</strong>
+            <div class="feature-card__icon" style="margin-bottom:0.75rem"><span class="badge-tag">3</span></div>
+            <h3>قيّم</h3>
             <p class="muted">بعد إتمام الزيارة، قيّم التجربة لمساعدة الآخرين.</p>
         </div>
     </div>
 
-    <h2>الفريق</h2>
-    <p class="muted">فريق تقني وطبي يعمل على مراجعة التراخيص ودعم المستخدمين.</p>
+    <h2 class="section-heading">الفريق</h2>
+    <p class="muted">فريق تقني وطبي يعمل على مراجعة التراخيص ودعم المستخدمين على مدار الأسبوع.</p>
+    <div class="team-grid" style="margin-top:1.5rem">
+        <div class="team-card">
+            <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=600&q=80" width="400" height="200" alt="" loading="lazy" />
+            <div class="team-card__body">
+                <strong>د. أحمد القحطاني</strong>
+                <p class="muted" style="margin:0.35rem 0 0;font-size:0.9rem">الإشراف الطبي</p>
+            </div>
+        </div>
+        <div class="team-card">
+            <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=600&q=80" width="400" height="200" alt="" loading="lazy" />
+            <div class="team-card__body">
+                <strong>م. ليان السبيعي</strong>
+                <p class="muted" style="margin:0.35rem 0 0;font-size:0.9rem">مدير المنتج</p>
+            </div>
+        </div>
+        <div class="team-card">
+            <img src="https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=600&q=80" width="400" height="200" alt="" loading="lazy" />
+            <div class="team-card__body">
+                <strong>عمر الحربي</strong>
+                <p class="muted" style="margin:0.35rem 0 0;font-size:0.9rem">دعم العملاء</p>
+            </div>
+        </div>
+    </div>
+    </div>
 </div>

@@ -3,7 +3,8 @@
 @section Sidebar { <partial name="_Sidebar" /> }
 
 <h1 class="page-title">@ViewData["Title"]</h1>
-<form asp-action="SaveArticle" method="post" enctype="multipart/form-data" class="form-stack wide" data-loading>
+<div class="form-card">
+<form asp-action="SaveArticle" method="post" enctype="multipart/form-data" class="form-stack wide" style="max-width:none" data-loading>
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="ArticleId" />
     <div class="field"><label asp-for="Title"></label><input asp-for="Title" /><span asp-validation-for="Title"></span></div>
@@ -23,4 +24,5 @@
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <button type="submit" class="btn btn-primary">حفظ</button>
 </form>
+</div>
 @section Scripts { <partial name="_ValidationScriptsPartial" /> }

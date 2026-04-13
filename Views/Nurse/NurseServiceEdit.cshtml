@@ -1,0 +1,33 @@
+@model NurseListingServiceEditVM
+@{
+    Layout = "_DashboardLayout";
+    var isEdit = Model.NurseListingServiceId.HasValue;
+    ViewData["Title"] = isEdit ? "تعديل خدمة" : "إضافة خدمة";
+}
+@section Sidebar { <partial name="~/Views/Nurse/_Sidebar.cshtml" /> }
+
+<h1 class="page-title">@ViewData["Title"]</h1>
+
+<div class="form-card" style="max-width:520px">
+    <form method="post" action="@(isEdit ? Url.Action("Edit", "NurseServices", new { id = Model.NurseListingServiceId })! : Url.Action("Create", "NurseServices")!)">
+        @Html.AntiForgeryToken()
+        <div class="form-stack wide" style="max-width:none">
+            <div class="field">
+                <label asp-for="Name"></label>
+                <input asp-for="Name" type="text" autocomplete="off" />
+                <span asp-validation-for="Name"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Price"></label>
+                <input asp-for="Price" type="text" inputmode="decimal" autocomplete="off" />
+                <span asp-validation-for="Price"></span>
+            </div>
+            <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.5rem">
+                <button type="submit" class="btn btn-primary">حفظ</button>
+                <a class="btn btn-outline" asp-controller="NurseServices" asp-action="Index">إلغاء</a>
+            </div>
+        </div>
+    </form>
+</div>
+
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

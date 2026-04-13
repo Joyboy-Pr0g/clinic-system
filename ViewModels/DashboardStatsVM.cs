@@ -2,6 +2,8 @@ namespace HomeNursingSystem.ViewModels;
 
 public class PatientDashboardVM
 {
+    /// <summary>الاسم المعروض للمريض (الاسم الكامل من الحساب).</summary>
+    public string PatientDisplayName { get; set; } = string.Empty;
     public int TotalBookings { get; set; }
     /// <summary>بانتظار قبول الممرض/العيادة.</summary>
     public int PendingApproval { get; set; }
@@ -90,6 +92,7 @@ public class NurseDetailsVM
     public string Specialization { get; set; } = string.Empty;
     public int YearsOfExperience { get; set; }
     public string? Bio { get; set; }
+    public bool IsVerified { get; set; }
     public decimal AverageRating { get; set; }
     public int TotalReviews { get; set; }
     public bool IsAvailable { get; set; }
@@ -117,9 +120,11 @@ public class ClinicListItemVM
     public int ClinicId { get; set; }
     public string ClinicName { get; set; } = string.Empty;
     public string? LogoImagePath { get; set; }
+    public string? CoverImagePath { get; set; }
     public string Address { get; set; } = string.Empty;
     public string? Neighborhood { get; set; }
     public string? City { get; set; }
+    public string? OpeningHours { get; set; }
     public decimal AverageRating { get; set; }
     public double Latitude { get; set; }
     public double Longitude { get; set; }
@@ -139,8 +144,15 @@ public class ClinicDetailsVM
     public decimal AverageRating { get; set; }
     public double Latitude { get; set; }
     public double Longitude { get; set; }
-    public IReadOnlyList<ServiceListItemVM> ServicesOffered { get; set; } = Array.Empty<ServiceListItemVM>();
+    /// <summary>خدمات العيادة (الكتالوج الخاص بالعيادة).</summary>
+    public IReadOnlyList<ClinicServicePublicVM> ClinicServices { get; set; } = Array.Empty<ClinicServicePublicVM>();
     public IReadOnlyList<RatingDisplayVM> Reviews { get; set; } = Array.Empty<RatingDisplayVM>();
+}
+
+public class ClinicServicePublicVM
+{
+    public string Name { get; set; } = string.Empty;
+    public decimal Price { get; set; }
 }
 
 public class ServiceListItemVM

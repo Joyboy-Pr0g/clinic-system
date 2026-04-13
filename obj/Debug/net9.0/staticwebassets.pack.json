@@ -1,272 +1,396 @@
 {
   "Files": [
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\obj\\Debug\\net9.0\\scopedcss\\projectbundle\\clinic-system.bundle.scp.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\obj\\Debug\\net9.0\\scopedcss\\projectbundle\\clinic-system.bundle.scp.css",
       "PackagePath": "staticwebassets\\clinic-system.5bavw8nj24.bundle.scp.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\css\\app.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\css\\app.css",
       "PackagePath": "staticwebassets\\css\\app.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\css\\site.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\css\\site.css",
       "PackagePath": "staticwebassets\\css\\site.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\favicon.ico",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\favicon.ico",
       "PackagePath": "staticwebassets\\favicon.ico"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\js\\app.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\js\\app.js",
       "PackagePath": "staticwebassets\\js\\app.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\js\\site.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\js\\appointment-chat-rich.js",
+      "PackagePath": "staticwebassets\\js\\appointment-chat-rich.js"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\js\\appointment-realtime.js",
+      "PackagePath": "staticwebassets\\js\\appointment-realtime.js"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\js\\live-location.js",
+      "PackagePath": "staticwebassets\\js\\live-location.js"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\js\\maps-link-button.js",
+      "PackagePath": "staticwebassets\\js\\maps-link-button.js"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\js\\site.js",
       "PackagePath": "staticwebassets\\js\\site.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\LICENSE",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\LICENSE",
       "PackagePath": "staticwebassets\\lib\\bootstrap"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.min.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-grid.rtl.min.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.min.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-reboot.rtl.min.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.min.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap-utilities.rtl.min.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.min.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.min.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\css\\bootstrap.rtl.min.css.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.js.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.bundle.min.js.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.js.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.esm.min.js.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.js.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.min.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map",
       "PackagePath": "staticwebassets\\lib\\bootstrap\\dist\\js\\bootstrap.min.js.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery-validation-unobtrusive\\LICENSE.txt",
       "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\LICENSE.txt"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery-validation-unobtrusive\\dist\\jquery.validate.unobtrusive.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery-validation-unobtrusive\\dist\\jquery.validate.unobtrusive.js",
       "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\dist\\jquery.validate.unobtrusive.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery-validation-unobtrusive\\dist\\jquery.validate.unobtrusive.min.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery-validation-unobtrusive\\dist\\jquery.validate.unobtrusive.min.js",
       "PackagePath": "staticwebassets\\lib\\jquery-validation-unobtrusive\\dist\\jquery.validate.unobtrusive.min.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery-validation\\LICENSE.md",
       "PackagePath": "staticwebassets\\lib\\jquery-validation\\LICENSE.md"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.js",
       "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\additional-methods.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery-validation\\dist\\additional-methods.min.js",
       "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\additional-methods.min.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.js",
       "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\jquery.validate.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery-validation\\dist\\jquery.validate.min.js",
       "PackagePath": "staticwebassets\\lib\\jquery-validation\\dist\\jquery.validate.min.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery\\LICENSE.txt",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery\\LICENSE.txt",
       "PackagePath": "staticwebassets\\lib\\jquery\\LICENSE.txt"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.js",
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.min.js",
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.min.map",
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.min.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.slim.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.slim.js",
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.slim.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.slim.min.js",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.slim.min.js",
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.slim.min.js"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.slim.min.map",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\lib\\jquery\\dist\\jquery.slim.min.map",
       "PackagePath": "staticwebassets\\lib\\jquery\\dist\\jquery.slim.min.map"
     },
     {
-      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\wwwroot\\uploads\\.gitkeep",
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\.gitkeep",
       "PackagePath": "staticwebassets\\uploads\\.gitkeep"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\0c5a59a3770d4ed6b25426c5efdfb719.webm",
+      "PackagePath": "staticwebassets\\uploads\\chat\\0c5a59a3770d4ed6b25426c5efdfb719.webm"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\2a9c13be81a741ffab4ca09d55a7594d.webm",
+      "PackagePath": "staticwebassets\\uploads\\chat\\2a9c13be81a741ffab4ca09d55a7594d.webm"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\33cb7d478bb444b4ab41b9aa04af0811.webm",
+      "PackagePath": "staticwebassets\\uploads\\chat\\33cb7d478bb444b4ab41b9aa04af0811.webm"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\4d54dd74c9fa4122b8e538715c6bd64f.jpg",
+      "PackagePath": "staticwebassets\\uploads\\chat\\4d54dd74c9fa4122b8e538715c6bd64f.jpg"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\4f4dd46484324e1a8034e21b010d75d8.webm",
+      "PackagePath": "staticwebassets\\uploads\\chat\\4f4dd46484324e1a8034e21b010d75d8.webm"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\5bea9d793f7c4066b828cf40af296c78.webm",
+      "PackagePath": "staticwebassets\\uploads\\chat\\5bea9d793f7c4066b828cf40af296c78.webm"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\6a45d7543d814135879e79f0ea82370f.jpeg",
+      "PackagePath": "staticwebassets\\uploads\\chat\\6a45d7543d814135879e79f0ea82370f.jpeg"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\6f348479053744d39303e424f4bdee57.png",
+      "PackagePath": "staticwebassets\\uploads\\chat\\6f348479053744d39303e424f4bdee57.png"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\8036b4d8a9114379b961a9a38a5664b6.webm",
+      "PackagePath": "staticwebassets\\uploads\\chat\\8036b4d8a9114379b961a9a38a5664b6.webm"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\82d77f7124be4b5d9487c611be030c97.mp3",
+      "PackagePath": "staticwebassets\\uploads\\chat\\82d77f7124be4b5d9487c611be030c97.mp3"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\dddd8f077411402fa7ef6da034454457.mp4",
+      "PackagePath": "staticwebassets\\uploads\\chat\\dddd8f077411402fa7ef6da034454457.mp4"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\ee84cc0269d1443489df5f6d81110a96.jpeg",
+      "PackagePath": "staticwebassets\\uploads\\chat\\ee84cc0269d1443489df5f6d81110a96.jpeg"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\chat\\f539d7c30517416ca2a557a45c8b9019.webm",
+      "PackagePath": "staticwebassets\\uploads\\chat\\f539d7c30517416ca2a557a45c8b9019.webm"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\clinics\\02734cba863b4e779026cd6a3396da48.jpg",
+      "PackagePath": "staticwebassets\\uploads\\clinics\\02734cba863b4e779026cd6a3396da48.jpg"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\clinics\\0ddf5c53fc164d578db634349d6776de.jpg",
+      "PackagePath": "staticwebassets\\uploads\\clinics\\0ddf5c53fc164d578db634349d6776de.jpg"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\clinics\\14fc616123b04a0094687bc2af682ad7.jpg",
+      "PackagePath": "staticwebassets\\uploads\\clinics\\14fc616123b04a0094687bc2af682ad7.jpg"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\clinics\\1c3e9628fb8044f29f788dad7c374df1.png",
+      "PackagePath": "staticwebassets\\uploads\\clinics\\1c3e9628fb8044f29f788dad7c374df1.png"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\clinics\\22fd3bec671047d58f38a4a8149d1548.png",
+      "PackagePath": "staticwebassets\\uploads\\clinics\\22fd3bec671047d58f38a4a8149d1548.png"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\clinics\\2324bcf69b614a108ccfcdc5ae9c3672.jpeg",
+      "PackagePath": "staticwebassets\\uploads\\clinics\\2324bcf69b614a108ccfcdc5ae9c3672.jpeg"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\clinics\\2c2e3245871744ab8d5f5f6e1224c3a2.jpg",
+      "PackagePath": "staticwebassets\\uploads\\clinics\\2c2e3245871744ab8d5f5f6e1224c3a2.jpg"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\clinics\\4b3ea891fdfc4d60b0a5a34ef5032f1b.png",
+      "PackagePath": "staticwebassets\\uploads\\clinics\\4b3ea891fdfc4d60b0a5a34ef5032f1b.png"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\clinics\\4b5d3b0f32524479950eb9185d91cf65.png",
+      "PackagePath": "staticwebassets\\uploads\\clinics\\4b5d3b0f32524479950eb9185d91cf65.png"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\clinics\\6735776cf4f24af69d108a6e4d5d4c73.jpeg",
+      "PackagePath": "staticwebassets\\uploads\\clinics\\6735776cf4f24af69d108a6e4d5d4c73.jpeg"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\clinics\\f5c26d3420b24a5383eafaf5299d9361.jpg",
+      "PackagePath": "staticwebassets\\uploads\\clinics\\f5c26d3420b24a5383eafaf5299d9361.jpg"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\licenses\\82ad0467bb1a4bab93b672cbc1ff3cae.jpeg",
+      "PackagePath": "staticwebassets\\uploads\\licenses\\82ad0467bb1a4bab93b672cbc1ff3cae.jpeg"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\licenses\\d4661b05d6e3469bb28440a3278f8530.png",
+      "PackagePath": "staticwebassets\\uploads\\licenses\\d4661b05d6e3469bb28440a3278f8530.png"
+    },
+    {
+      "Id": "C:\\Users\\HP\\source\\repos\\clinic-system\\clinic-system\\wwwroot\\uploads\\profiles\\9445ee642d894693821b03f5de98ac53.png",
+      "PackagePath": "staticwebassets\\uploads\\profiles\\9445ee642d894693821b03f5de98ac53.png"
     },
     {
       "Id": "obj\\Debug\\net9.0\\staticwebassets\\msbuild.build.clinic-system.props",

@@ -15,6 +15,8 @@ public class AppointmentRepository : IAppointmentRepository
             .Include(a => a.NurseProfile)!.ThenInclude(n => n!.User)
             .Include(a => a.Clinic)
             .Include(a => a.Service)
+            .Include(a => a.ClinicService)
+            .Include(a => a.NurseListingService)
             .Include(a => a.Rating);
 
     public Task<Appointment?> GetByIdAsync(int id, CancellationToken ct = default) =>
@@ -33,6 +35,8 @@ public class AppointmentRepository : IAppointmentRepository
         await _db.Appointments.AddAsync(entity, ct);
 
     public void Update(Appointment entity) => _db.Appointments.Update(entity);
+
+    public void Remove(Appointment entity) => _db.Appointments.Remove(entity);
 
     public Task SaveChangesAsync(CancellationToken ct = default) => _db.SaveChangesAsync(ct);
 }

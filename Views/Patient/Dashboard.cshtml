@@ -3,15 +3,27 @@
 @{
     ViewData["Title"] = "لوحة المريض";
 }
-@section Sidebar { <partial name="_Sidebar" /> }
+@section Sidebar {
+    <partial name="_Sidebar" />
+}
 
-<h1 class="page-title">مرحباً</h1>
+<h1 class="page-title">مرحباً، @Model.PatientDisplayName</h1>
 <div class="stat-cards">
-    <div class="stat-card"><strong>@Model.TotalBookings</strong><div class="muted">إجمالي المواعيد</div></div>
-    <div class="stat-card"><strong>@Model.PendingApproval</strong><div class="muted">بانتظار الموافقة</div></div>
-    <div class="stat-card"><strong>@Model.ActiveConfirmed</strong><div class="muted">مقبولة / قيد التنفيذ</div></div>
-    <div class="stat-card"><strong>@Model.Completed</strong><div class="muted">مكتملة</div></div>
-    <div class="stat-card"><strong>@Model.Cancelled</strong><div class="muted">ملغاة</div></div>
+    <div class="stat-card"><strong>@Model.TotalBookings</strong>
+        <div class="muted">إجمالي المواعيد</div>
+    </div>
+    <div class="stat-card"><strong>@Model.PendingApproval</strong>
+        <div class="muted">بانتظار الموافقة</div>
+    </div>
+    <div class="stat-card"><strong>@Model.ActiveConfirmed</strong>
+        <div class="muted">مقبولة / قيد التنفيذ</div>
+    </div>
+    <div class="stat-card"><strong>@Model.Completed</strong>
+        <div class="muted">مكتملة</div>
+    </div>
+    <div class="stat-card"><strong>@Model.Cancelled</strong>
+        <div class="muted">ملغاة</div>
+    </div>
 </div>
 <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin:1rem 0">
     <a class="btn btn-accent" asp-action="Book">احجز موعداً</a>
@@ -23,18 +35,33 @@
 <h2 class="page-title" style="margin-top:2rem">آخر المواعيد</h2>
 <div class="table-wrap">
     <table class="data-table">
-        <thead><tr><th>التاريخ</th><th>المقدم</th><th>الخدمة</th><th>الحالة</th><th></th></tr></thead>
-        <tbody>
-        @foreach (var r in Model.RecentAppointments)
-        {
+        <thead>
             <tr>
-                <td>@r.AppointmentDate.ToLocalTime().ToString("g")</td>
-                <td>@r.ProviderName</td>
-                <td>@r.ServiceName</td>
-                <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(r.Status)">@r.Status</span></td>
-                <td><a asp-action="AppointmentDetail" asp-route-id="@r.AppointmentId">تفاصيل</a></td>
+                <th>التاريخ</th>
+                <th>المقدم</th>
+                <th>الخدمة</th>
+                <th>الحالة</th>
+                <th></th>
             </tr>
-        }
+        </thead>
+        <tbody>
+            @foreach (var r in Model.RecentAppointments)
+            {
+                var status = r.Status == AppointmentStatuses.Cancelled ? "ملغاة" :
+                r.Status == AppointmentStatuses.Completed ? "مكتملة" :
+                r.Status == AppointmentStatuses.Pending ? "معلقة" :
+                r.Status == AppointmentStatuses.Approved ? "مقبولة" :
+                r.Status == AppointmentStatuses.InProgress ? "قيد التنفيذ" :
+                r.Status == AppointmentStatuses.Confirmed ? "مؤكدة" : "";
+                <tr>
+                    <td>@r.AppointmentDate.ToLocalTime().ToString("g")</td>
+                    <td>@r.ProviderName</td>
+                    <td>@r.ServiceName</td>
+                    <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(r.Status)">@status</span></td>
+                    <td><a class="btn btn-sm btn-primary" asp-action="AppointmentDetail" asp-route-id="@r.AppointmentId">تفاصيل</a></td>    
+
+                </tr>
+            }
         </tbody>
     </table>
 </div>

@@ -1,22 +1,42 @@
 @model PatientProfileVM
 @{
     ViewData["Title"] = "الملف الشخصي";
+    var history = ViewBag.BookingHistory as List<HomeNursingSystem.Models.Appointment>;
+    var reviews = ViewBag.ReviewsGiven as List<HomeNursingSystem.Models.Rating>;
 }
 @section Sidebar { <partial name="_Sidebar" /> }
 
 <h1 class="page-title">الملف الشخصي</h1>
-@if (!string.IsNullOrEmpty(Model.ProfileImagePath))
-{
-    <img src="@Model.ProfileImagePath" alt="" style="max-width:120px;border-radius:50%" />
-}
-<form asp-action="Profile" method="post" enctype="multipart/form-data" class="form-stack" data-loading>
-    @Html.AntiForgeryToken()
-    <div class="field"><label asp-for="FullName"></label><input asp-for="FullName" /><span asp-validation-for="FullName"></span></div>
-    <div class="field"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" /></div>
-    <div class="field"><label asp-for="City"></label><input asp-for="City" /></div>
-    <div class="field"><label asp-for="Neighborhood"></label><input asp-for="Neighborhood" /></div>
-    <div class="field"><label asp-for="Street"></label><input asp-for="Street" /></div>
-    <div class="field"><label asp-for="ProfileImage"></label><input asp-for="ProfileImage" type="file" accept="image/*" /></div>
-    <button type="submit" class="btn btn-primary">حفظ</button>
-</form>
+
+<div class="profile-header-card">
+    @if (!string.IsNullOrEmpty(Model.ProfileImagePath))
+    {
+        <img src="@Model.ProfileImagePath" alt="" width="96" height="96" />
+    }
+    else
+    {
+        <div style="width:96px;height:96px;border-radius:50%;background:var(--color-bg);display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user fa-2x" style="color:var(--color-primary)"></i></div>
+    }
+    <div>
+        <h2 style="margin:0 0 0.25rem;font-size:1.25rem">@Model.FullName</h2>
+        <p class="muted" style="margin:0">@Model.PhoneNumber · @Model.City</p>
+    </div>
+</div>
+
+
+<h2 class="section-heading">تعديل البيانات</h2>
+<div class="form-card" style="max-width:none;width:100%">
+    <form asp-action="Profile" method="post" enctype="multipart/form-data" class="form-grid-2" style="max-width:none;width:100%" data-loading>
+        @Html.AntiForgeryToken()
+        <div class="field"><label asp-for="FullName"></label><input asp-for="FullName" /><span asp-validation-for="FullName"></span></div>
+        <div class="field"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" /></div>
+        <div class="field"><label asp-for="City"></label><input asp-for="City" /></div>
+        <div class="field"><label asp-for="Neighborhood"></label><input asp-for="Neighborhood" /></div>
+        <div class="field field-full"><label asp-for="Street"></label><input asp-for="Street" /></div>
+        <div class="field field-full"><label asp-for="ProfileImage"></label><input asp-for="ProfileImage" type="file" accept="image/*" /></div>
+        <div class="field field-full" style="margin-top:0.25rem">
+            <button type="submit" class="btn btn-primary">حفظ التغييرات</button>
+        </div>
+    </form>
+</div>
 @section Scripts { <partial name="_ValidationScriptsPartial" /> }

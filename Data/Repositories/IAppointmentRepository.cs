@@ -11,5 +11,6 @@ public interface IAppointmentRepository
     IQueryable<Appointment> Query();
     Task AddAsync(Appointment entity, CancellationToken ct = default);
     void Update(Appointment entity);
+    void Remove(Appointment entity);
     Task SaveChangesAsync(CancellationToken ct = default);
 }

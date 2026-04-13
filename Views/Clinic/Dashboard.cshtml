@@ -21,12 +21,18 @@
         <tbody>
         @foreach (var r in Model.Upcoming)
         {
+            var status = r.Status == AppointmentStatuses.Cancelled ? "ملغاة" :
+             r.Status == AppointmentStatuses.Completed ? "مكتملة" : 
+             r.Status == AppointmentStatuses.Pending ? "معلقة" : 
+             r.Status == AppointmentStatuses.Approved ? "مقبولة" : 
+             r.Status == AppointmentStatuses.InProgress ? "قيد التنفيذ" : 
+             r.Status == AppointmentStatuses.Confirmed ? "مؤكدة" : "";
             <tr>
                 <td>@r.AppointmentDate.ToLocalTime().ToString("g")</td>
                 <td>@r.ProviderName</td>
                 <td>@r.ServiceName</td>
-                <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(r.Status)">@r.Status</span></td>
-                <td><a asp-action="AppointmentDetail" asp-route-id="@r.AppointmentId">فتح</a></td>
+                <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(r.Status)">@status</span></td>
+                <td><a class="btn btn-sm btn-primary" asp-action="AppointmentDetail" asp-route-id="@r.AppointmentId">فتح</a></td>
             </tr>
         }
         </tbody>

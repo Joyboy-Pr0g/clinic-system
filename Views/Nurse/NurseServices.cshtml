@@ -1,0 +1,59 @@
+@model List<HomeNursingSystem.Models.NurseListingService>
+@{ Layout = "_DashboardLayout"; ViewData["Title"] = "خدماتي"; }
+@section Sidebar { <partial name="~/Views/Nurse/_Sidebar.cshtml" /> }
+
+<h1 class="page-title">خدماتي</h1>
+<p class="muted" style="margin-top:-0.5rem">أضف الخدمات التي تقدمها مع الاسم والسعر كما يظهر للمرضى.</p>
+
+<div style="margin:1rem 0">
+    <a class="btn btn-primary" asp-controller="NurseServices" asp-action="Create">إضافة خدمة</a>
+</div>
+
+<div class="table-wrap">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>اسم الخدمة</th>
+                <th>السعر (ر.س)</th>
+                <th style="min-width:10rem">إجراءات</th>
+            </tr>
+        </thead>
+        <tbody>
+        @if (Model.Count == 0)
+        {
+            <tr><td colspan="4" class="muted" style="text-align:center;padding:1.5rem">لا توجد خدمات بعد. اضغط «إضافة خدمة».</td></tr>
+        }
+        else
+        {
+            @foreach (var s in Model)
+            {
+                <tr>
+                    <td>@s.NurseListingServiceId</td>
+                    <td>@s.Name</td>
+                    <td>@s.Price.ToString("N2")</td>
+                    <td>
+                        <div class="table-actions">
+                            <a class="btn btn-sm btn-outline-edit" asp-controller="NurseServices" asp-action="Edit" asp-route-id="@s.NurseListingServiceId">تعديل</a>
+                            <form asp-controller="NurseServices" asp-action="Delete" asp-route-id="@s.NurseListingServiceId" method="post" class="table-actions__delete" style="display:inline">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm-delete>حذف</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+        }
+        </tbody>
+    </table>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll("[data-confirm-delete]").forEach(function (btn) {
+            btn.closest("form").addEventListener("submit", function (e) {
+                if (!confirm("\u062d\u0630\u0641 \u0647\u0630\u0647 \u0627\u0644\u062e\u062f\u0645\u0629\u061f")) e.preventDefault();
+            });
+        });
+    </script>
+}

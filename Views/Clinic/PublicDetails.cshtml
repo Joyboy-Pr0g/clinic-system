@@ -3,35 +3,93 @@
     ViewData["Title"] = Model.ClinicName;
     var key = ViewBag.GoogleMapsApiKey as string;
     var showMap = !string.IsNullOrEmpty(key) && key != "YOUR_GOOGLE_MAPS_API_KEY";
+    var banner = !string.IsNullOrEmpty(Model.CoverImagePath) ? Model.CoverImagePath : Model.LogoImagePath;
 }
-<div class="container section-block">
-    <div class="card">
-        @if (!string.IsNullOrEmpty(Model.CoverImagePath)) { <img class="card-img-top" src="@Model.CoverImagePath" alt="" style="height:200px" /> }
-        <h1 class="page-title">@Model.ClinicName</h1>
+<section class="page-hero">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="مسار التنقل">
+            <a asp-controller="Home" asp-action="Index">الرئيسية</a>
+            <span> / </span>
+            <a asp-action="Index">العيادات</a>
+            <span> / </span>
+            <span>@Model.ClinicName</span>
+        </nav>
+    </div>
+</section>
+
+<div style="margin: 0 auto; padding: 0 1rem;" class="container section-block">
+    @if (!string.IsNullOrEmpty(banner))
+    {
+        <img class="detail-banner" src="@banner" alt="" width="1200" height="860" />
+    }
+    <div class="form-card">
+        <h1 class="page-title" style="margin-top:0">@Model.ClinicName</h1>
+        <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", (int)Math.Round((double)Model.AverageRating))) <span class="muted">متوسط @Model.AverageRating.ToString("N1")</span></p>
         <p>@Model.Description</p>
-        <p class="muted">@Model.Address · @Model.OpeningHours</p>
-        <p class="stars-readonly">متوسط @Model.AverageRating.ToString("N1")</p>
-        <h3>خدمات شائعة (أسعار تقريبية)</h3>
-        <ul>
-            @foreach (var s in Model.ServicesOffered)
+        <div class="contact-info-cards" style="margin:1rem 0">
+            <div class="contact-info-card">
+                <i class="fa-solid fa-location-dot"></i>
+                <div><strong>الموقع</strong><div class="muted">@Model.Address</div></div>
+            </div>
+            @if (!string.IsNullOrEmpty(Model.PhoneNumber))
             {
-                <li>@s.ServiceName — من @s.BasePrice.ToString("N0") ر.س</li>
+                <div class="contact-info-card">
+                    <i class="fa-solid fa-phone"></i>
+                    <div><strong>الهاتف</strong><div class="muted">@Model.PhoneNumber</div></div>
+                </div>
             }
-        </ul>
-        @if (showMap) { <div id="cmap" class="map-canvas"></div> }
-        @if (User.IsInRole("Patient"))
+            @if (!string.IsNullOrEmpty(Model.OpeningHours))
+            {
+                <div class="contact-info-card">
+                    <i class="fa-solid fa-clock"></i>
+                    <div><strong>أوقات الدوام</strong><div class="muted">@Model.OpeningHours</div></div>
+                </div>
+            }
+        </div>
+
+        <h2 class="section-heading" style="margin-top:1.5rem">خدمات مقدّمة</h2>
+        @if (Model.ClinicServices.Count == 0)
         {
-            <a class="btn btn-accent" asp-controller="Patient" asp-action="Book" asp-route-clinicId="@Model.ClinicId">احجز الآن</a>
+            <p class="muted">لم تُعرض خدمات لهذه العيادة بعد. يمكنك الحجز من المنصة بعد إضافة العيادة لخدماتها.</p>
         }
         else
         {
-            <a class="btn btn-outline" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient", new { clinicId = Model.ClinicId })">سجّل دخول للحجز</a>
+            <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+                @foreach (var s in Model.ClinicServices)
+                {
+                    <div class="card">
+                        <strong><i class="fa-solid fa-check" style="color:var(--color-primary)"></i> @s.Name</strong>
+                        <p class="muted" style="margin:0.35rem 0 0">@s.Price.ToString("N0") ر.س</p>
+                    </div>
+                }
+            </div>
         }
-        <h3 style="margin-top:2rem">آراء</h3>
+
+        <h2 class="section-heading">فريق العيادة</h2>
+        <p class="muted">للاستفسار عن الأطباء والمواعيد المتاحة، تواصل مع العيادة مباشرة أو احجز عبر المنصة.</p>
+
+        @if (showMap)
+        {
+            <h2 class="section-heading">الخريطة</h2>
+            <div id="cmap" class="map-canvas"></div>
+        }
+
+        <div class="detail-actions">
+            @if (User.IsInRole("Patient"))
+            {
+                <a class="btn btn-primary" asp-controller="Patient" asp-action="Book" asp-route-clinicId="@Model.ClinicId">احجز موعداً</a>
+            }
+            else
+            {
+                <a class="btn btn-primary" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient", new { clinicId = Model.ClinicId })">سجّل دخول للحجز</a>
+            }
+        </div>
+
+        <h2 class="section-heading">آراء المرضى</h2>
         @foreach (var r in Model.Reviews)
         {
-            <div class="card" style="margin-bottom:0.5rem">
-                <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", r.Stars))</p>
+            <div class="testimonial-card" style="margin-bottom:0.75rem">
+                <div class="testimonial-card__stars">@string.Join("", Enumerable.Repeat("★", r.Stars))</div>
                 <p>@r.Comment</p>
                 <small class="muted">@r.PatientName</small>
             </div>

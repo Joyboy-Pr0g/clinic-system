@@ -2,16 +2,20 @@ using System.ComponentModel.DataAnnotations;
 
 namespace HomeNursingSystem.ViewModels;
 
-public class AppointmentBookVM
+public class AppointmentBookVM : IValidatableObject
 {
     public string BookType { get; set; } = "Nurse"; // Nurse | Clinic
 
     public int? NurseProfileId { get; set; }
     public int? ClinicId { get; set; }
 
-    [Range(1, int.MaxValue, ErrorMessage = "اختر الخدمة")]
+    /// <summary>خدمة الممرض — من قائمة الممرض (NurseListingService).</summary>
     [Display(Name = "الخدمة")]
-    public int ServiceId { get; set; }
+    public int? NurseListingServiceId { get; set; }
+
+    /// <summary>خدمة العيادة من قائمة العيادة.</summary>
+    [Display(Name = "خدمة العيادة")]
+    public int? ClinicServiceId { get; set; }
 
     [Required(ErrorMessage = "التاريخ والوقت مطلوبان")]
     [Display(Name = "موعد الزيارة")]
@@ -30,4 +34,18 @@ public class AppointmentBookVM
     public string? Notes { get; set; }
 
     public string? GoogleMapsApiKey { get; set; }
+
+    public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
+    {
+        if (string.Equals(BookType, "Nurse", StringComparison.OrdinalIgnoreCase))
+        {
+            if (NurseListingServiceId is null or < 1)
+                yield return new ValidationResult("اختر الخدمة.", new[] { nameof(NurseListingServiceId) });
+        }
+        else if (string.Equals(BookType, "Clinic", StringComparison.OrdinalIgnoreCase))
+        {
+            if (ClinicServiceId is null or < 1)
+                yield return new ValidationResult("اختر خدمة العيادة.", new[] { nameof(ClinicServiceId) });
+        }
+    }
 }

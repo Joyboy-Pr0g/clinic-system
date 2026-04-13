@@ -16,13 +16,30 @@ public class ClinicBrowseService : IClinicBrowseService
         _db = db;
     }
 
-    public async Task<IReadOnlyList<ClinicListItemVM>> ListVerifiedAsync(string? search, CancellationToken ct = default)
+    public async Task<IReadOnlyList<ClinicListItemVM>> ListVerifiedAsync(string? search, string? city, string? specialty, CancellationToken ct = default)
     {
         var q = _clinics.QueryVerified();
         if (!string.IsNullOrWhiteSpace(search))
         {
             var s = search.Trim();
-            q = q.Where(c => c.ClinicName.Contains(s) || (c.City != null && c.City.Contains(s)));
+            q = q.Where(c => c.ClinicName.Contains(s)
+                || (c.City != null && c.City.Contains(s))
+                || c.Address.Contains(s));
+        }
+
+        if (!string.IsNullOrWhiteSpace(city))
+        {
+            var cty = city.Trim();
+            q = q.Where(c => c.City != null && c.City.Contains(cty));
+        }
+
+        if (!string.IsNullOrWhiteSpace(specialty))
+        {
+            var sp = specialty.Trim();
+            q = q.Where(c =>
+                (c.Description != null && c.Description.Contains(sp))
+                || c.ClinicName.Contains(sp)
+                || (c.Neighborhood != null && c.Neighborhood.Contains(sp)));
         }
 
         return await q
@@ -32,13 +49,25 @@ public class ClinicBrowseService : IClinicBrowseService
                 ClinicId = c.ClinicId,
                 ClinicName = c.ClinicName,
                 LogoImagePath = c.LogoImagePath,
+                CoverImagePath = c.CoverImagePath,
                 Address = c.Address,
                 Neighborhood = c.Neighborhood,
                 City = c.City,
+                OpeningHours = c.OpeningHours,
                 AverageRating = c.AverageRating,
                 Latitude = c.Latitude,
                 Longitude = c.Longitude
             })
+            .ToListAsync(ct);
+    }
+
+    public async Task<IReadOnlyList<string>> DistinctClinicCitiesAsync(CancellationToken ct = default)
+    {
+        return await _clinics.QueryVerified()
+            .Where(c => c.City != null && c.City != "")
+            .Select(c => c.City!)
+            .Distinct()
+            .OrderBy(c => c)
             .ToListAsync(ct);
     }
 
@@ -48,14 +77,13 @@ public class ClinicBrowseService : IClinicBrowseService
         if (c == null || !c.IsVerified || !c.IsActive)
             return null;
 
-        var services = await _db.Services.AsNoTracking()
-            .Where(s => s.IsActive)
-            .OrderBy(s => s.ServiceName)
-            .Select(s => new ServiceListItemVM
+        var clinicServices = await _db.ClinicServices.AsNoTracking()
+            .Where(s => s.ClinicId == c.ClinicId)
+            .OrderBy(s => s.Name)
+            .Select(s => new ClinicServicePublicVM
             {
-                ServiceId = s.ServiceId,
-                ServiceName = ServiceNameLocalizer.Localize(s.ServiceName),
-                BasePrice = s.BasePrice
+                Name = s.Name,
+                Price = s.Price
             })
             .ToListAsync(ct);
 
@@ -73,7 +101,7 @@ public class ClinicBrowseService : IClinicBrowseService
             AverageRating = c.AverageRating,
             Latitude = c.Latitude,
             Longitude = c.Longitude,
-            ServicesOffered = services,
+            ClinicServices = clinicServices,
             Reviews = c.Ratings
                 .Where(r => r.IsApproved)
                 .OrderByDescending(r => r.CreatedAt)

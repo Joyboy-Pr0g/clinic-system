@@ -1,37 +1,125 @@
 @model NurseDetailsVM
 @{
     ViewData["Title"] = Model.FullName;
+    var reviews = Model.Reviews.ToList();
+    var total = reviews.Count;
+    var c5 = total == 0 ? 0 : reviews.Count(r => r.Stars == 5) * 100 / total;
+    var c4 = total == 0 ? 0 : reviews.Count(r => r.Stars == 4) * 100 / total;
+    var c3 = total == 0 ? 0 : reviews.Count(r => r.Stars == 3) * 100 / total;
+    var c2 = total == 0 ? 0 : reviews.Count(r => r.Stars == 2) * 100 / total;
+    var c1 = total == 0 ? 0 : reviews.Count(r => r.Stars == 1) * 100 / total;
 }
+<section class="page-hero">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="مسار التنقل">
+            <a asp-controller="Home" asp-action="Index">الرئيسية</a>
+            <span> / </span>
+            <a asp-action="Browse">الممرضون</a>
+            <span> / </span>
+            <span>@Model.FullName</span>
+        </nav>
+    </div>
+</section>
+
 <div class="container section-block">
-    <div class="card" style="max-width:720px;margin-inline:auto">
-        <h1 class="page-title">@Model.FullName</h1>
-        <p class="muted">@Model.Specialization · خبرة @Model.YearsOfExperience سنوات</p>
-        <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", (int)Math.Round((double)Model.AverageRating)))</p>
-        @if (!Model.IsAvailable) { <p class="text-danger">غير متاح حالياً</p> }
-        <p>@Model.Bio</p>
-        <h3>الخدمات والأسعار</h3>
-        <ul>
-            @foreach (var s in Model.Services)
-            {
-                <li>@s.ServiceName — @s.Price.ToString("N2") ر.س</li>
-            }
-        </ul>
-        @if (User.IsInRole("Patient"))
+    <div class="profile-header-card">
+        @if (!string.IsNullOrEmpty(Model.ProfileImage))
         {
-            <a class="btn btn-accent" asp-controller="Patient" asp-action="Book" asp-route-nurseId="@Model.NurseProfileId">احجز الآن</a>
+            <img src="@Model.ProfileImage" alt="" width="120" height="120" style="width:120px;height:120px;border-radius:16px;object-fit:cover;border:3px solid rgba(0,168,132,0.35)" />
         }
         else
         {
-            <a class="btn btn-outline" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient", new { nurseId = Model.NurseProfileId })">سجّل دخول للحجز</a>
+            <div style="width:120px;height:120px;border-radius:16px;background:var(--color-bg);display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user-nurse fa-3x" style="color:var(--color-primary)"></i></div>
         }
-        <h3 style="margin-top:2rem">آراء</h3>
-        @foreach (var r in Model.Reviews)
+        <div style="flex:1">
+            <h1 class="page-title" style="margin:0 0 0.35rem">@Model.FullName</h1>
+            <p class="muted" style="margin:0">@Model.Specialization · خبرة @Model.YearsOfExperience سنوات</p>
+            <p class="stars-readonly" style="margin:0.5rem 0">@string.Join("", Enumerable.Repeat("★", (int)Math.Round((double)Model.AverageRating))) <span class="muted">(@Model.TotalReviews تقييم)</span></p>
+            @if (!Model.IsAvailable)
+            {
+                <p class="text-danger" style="margin:0">غير متاح حالياً</p>
+            }
+        </div>
+        <div>
+            @if (User.IsInRole("Patient"))
+            {
+                <a class="btn btn-primary" asp-controller="Patient" asp-action="Book" asp-route-nurseId="@Model.NurseProfileId">احجز موعداً</a>
+            }
+            else
+            {
+                <a class="btn btn-primary" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient", new { nurseId = Model.NurseProfileId })">سجّل دخول للحجز</a>
+            }
+        </div>
+    </div>
+
+    <div class="form-card">
+        <h2 class="section-heading">نبذة</h2>
+        <p>@Model.Bio</p>
+
+        <h2 class="section-heading">الخدمات والأسعار</h2>
+        <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+            @foreach (var s in Model.Services)
+            {
+                <div class="card card--border-hover">
+                    <strong><i class="fa-solid fa-hand-holding-medical" style="color:var(--color-primary)"></i> @s.ServiceName</strong>
+                    <p class="muted" style="margin:0.35rem 0 0">@s.Price.ToString("N2") ر.س</p>
+                </div>
+            }
+        </div>
+
+        <h2 class="section-heading">الاعتماد والترخيص</h2>
+        <div class="card" style="display:flex;gap:1rem;align-items:center">
+            <i class="fa-solid fa-id-card-clip fa-2x" style="color:var(--color-primary)"></i>
+            <div>
+                @if (Model.IsVerified)
+                {
+                    <strong>حساب موثّق</strong>
+                    <p class="muted" style="margin:0.25rem 0 0">تمت مراجعة الوثائق من قبل الإدارة.</p>
+                }
+                else
+                {
+                    <span class="muted">بانتظار التحقق</span>
+                }
+            </div>
+        </div>
+
+        <h2 class="section-heading">التوفر</h2>
+        <p class="muted">@(Model.IsAvailable ? "الممرض متاح لاستقبال طلبات جديدة حسب أوقات الاستجابة." : "غير متاح لحجوزات جديدة حالياً.")</p>
+    </div>
+
+    <div class="form-card" style="margin-top:1.5rem">
+        <h2 class="section-heading">تقييمات المرضى</h2>
+        @if (total > 0)
         {
-            <div class="card" style="margin-bottom:0.5rem">
-                <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", r.Stars))</p>
+            <div class="star-breakdown">
+                @foreach (var (label, pct) in new[] { ("5", c5), ("4", c4), ("3", c3), ("2", c2), ("1", c1) })
+                {
+                    <div class="star-breakdown__row">
+                        <span>@label <i class="fa-solid fa-star" style="color:var(--color-primary);font-size:0.75rem"></i></span>
+                        <div class="star-breakdown__bar"><div class="star-breakdown__fill" style="width:@pct%"></div></div>
+                        <span class="muted">@pct%</span>
+                    </div>
+                }
+            </div>
+        }
+        @foreach (var r in reviews)
+        {
+            <div class="testimonial-card" style="margin-bottom:0.75rem">
+                <div class="testimonial-card__stars">@string.Join("", Enumerable.Repeat("★", r.Stars))</div>
                 <p>@r.Comment</p>
                 <small class="muted">@r.PatientName — @r.CreatedAt.ToLocalTime().ToString("d")</small>
             </div>
         }
     </div>
+</div>
+
+<div class="sticky-book-bar">
+    @if (User.IsInRole("Patient"))
+    {
+        <a class="btn btn-primary" asp-controller="Patient" asp-action="Book" asp-route-nurseId="@Model.NurseProfileId">احجز مع @Model.FullName</a>
+    }
+    else
+    {
+        <a class="btn btn-primary" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient", new { nurseId = Model.NurseProfileId })">تسجيل دخول للحجز</a>
+    }
 </div>

@@ -1,20 +1,73 @@
 @model IReadOnlyList<ClinicListItemVM>
 @{
     ViewData["Title"] = "العيادات";
+    var cities = ViewBag.Cities as IReadOnlyList<string> ?? Array.Empty<string>();
 }
-<div class="container section-block">
-    <h1 class="page-title">عيادات معتمدة</h1>
-    <form method="get" class="form-inline-search" style="max-width:320px"><input name="search" value="@ViewBag.Search" placeholder="بحث..." /><button class="btn btn-primary btn-sm" type="submit">بحث</button></form>
+<section class="page-hero">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="مسار التنقل">
+            <a asp-controller="Home" asp-action="Index">الرئيسية</a>
+            <span> / </span>
+            <span>العيادات</span>
+        </nav>
+        <h1>عيادات معتمدة</h1>
+        <p style="margin:0;opacity:0.95">صفِّ حسب الموقع أو التخصص وقارن التقييمات.</p>
+    </div>
+</section>
+
+<div style="width: 100%; margin: 0 auto; padding: 0 1rem;" class="container section-block">
+    <form method="get" class="form-card" style="margin-bottom:1.5rem">
+        <div class="form-inline-search" style="gap:0.75rem">
+            <input name="search" value="@ViewBag.Search" placeholder="بحث بالاسم أو العنوان..." />
+            <select name="city">
+                <option value="">كل المدن</option>
+                @foreach (var ct in cities)
+                {
+                    <option value="@ct" selected="@(ViewBag.City as string == ct)">@ct</option>
+                }
+            </select>
+            <input name="specialty" value="@ViewBag.Specialty" placeholder="تخصص / وصف..." />
+            <button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-magnifying-glass"></i> تصفية</button>
+        </div>
+    </form>
+
     <div class="card-grid">
         @foreach (var c in Model)
         {
-            <div class="card">
-                @if (!string.IsNullOrEmpty(c.LogoImagePath)) { <img class="card-img-top" src="@c.LogoImagePath" alt="" /> }
-                <h3>@c.ClinicName</h3>
-                <p class="muted">@c.Address</p>
-                <p class="stars-readonly">@string.Join("", Enumerable.Repeat("★", (int)Math.Round((double)c.AverageRating)))</p>
-                <a class="btn btn-sm btn-primary" asp-action="PublicDetails" asp-route-id="@c.ClinicId">عرض</a>
-            </div>
+            var img = !string.IsNullOrEmpty(c.CoverImagePath) ? c.CoverImagePath : c.LogoImagePath;
+            <article class="card card--border-hover">
+                @if (!string.IsNullOrEmpty(img))
+                {
+                    <img class="card-img-top" src="@img" alt="" style="height:180px" />
+                }
+                else
+                {
+                    <div class="card-img-top" style="height:180px;display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-hospital fa-2x" style="color:var(--color-primary)"></i></div>
+                }
+                <h3 style="margin:0 0 0.35rem">@c.ClinicName</h3>
+                <p class="clinic-card__meta muted"><i class="fa-solid fa-stethoscope" style="color:var(--color-primary)"></i> عيادة عامة · @(c.City ?? c.Neighborhood ?? "—")</p>
+                <p class="muted clinic-card__meta"><i class="fa-solid fa-location-dot" style="color:var(--color-primary)"></i> @c.Address</p>
+                <p class="stars-readonly" style="margin:0.5rem 0">@string.Join("", Enumerable.Repeat("★", (int)Math.Round((double)c.AverageRating))) <span class="muted" style="font-size:0.85rem">@c.AverageRating.ToString("N1")</span></p>
+                @if (!string.IsNullOrEmpty(c.OpeningHours))
+                {
+                    <p class="badge-tag" style="display:inline-block;margin-bottom:0.5rem;font-weight:600"><i class="fa-regular fa-clock"></i> @c.OpeningHours</p>
+                }
+                else
+                {
+                    <p class="muted" style="font-size:0.85rem;margin:0 0 0.5rem">أوقات الحجز حسب توفر العيادة</p>
+                }
+                <div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-top:0.75rem">
+                    <a class="btn btn-sm btn-outline-edit" asp-action="PublicDetails" asp-route-id="@c.ClinicId">التفاصيل</a>
+                    @if (User.IsInRole("Patient"))
+                    {
+                        <a class="btn btn-sm btn-primary" asp-controller="Patient" asp-action="Book" asp-route-clinicId="@c.ClinicId">احجز الآن</a>
+                    }
+                    else
+                    {
+                        <a class="btn btn-sm btn-primary" asp-controller="Account" asp-action="Login" asp-route-returnUrl="@Url.Action("Book","Patient", new { clinicId = c.ClinicId })">احجز الآن</a>
+                    }
+                </div>
+            </article>
         }
     </div>
 </div>

@@ -6,9 +6,8 @@ public class RatingVM
 {
     public int AppointmentId { get; set; }
 
-    [Range(1, 5)]
     [Display(Name = "التقييم")]
-    public int Stars { get; set; } = 5;
+    public int Stars { get; set; }
 
     [StringLength(1000)]
     [Display(Name = "تعليق (اختياري)")]

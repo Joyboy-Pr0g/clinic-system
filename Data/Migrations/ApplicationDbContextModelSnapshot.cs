@@ -140,6 +140,9 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Property<int?>("ClinicId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("ClinicServiceId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -152,6 +155,9 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Property<string>("Notes")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int?>("NurseListingServiceId")
+                        .HasColumnType("int");
+
                     b.Property<int?>("NurseProfileId")
                         .HasColumnType("int");
 
@@ -159,7 +165,7 @@ namespace HomeNursingSystem.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int>("ServiceId")
+                    b.Property<int?>("ServiceId")
                         .HasColumnType("int");
 
                     b.Property<string>("Status")
@@ -176,6 +182,10 @@ namespace HomeNursingSystem.Data.Migrations
                     b.HasKey("AppointmentId");
 
                     b.HasIndex("ClinicId");
+
+                    b.HasIndex("ClinicServiceId");
+
+                    b.HasIndex("NurseListingServiceId");
 
                     b.HasIndex("NurseProfileId");
 
@@ -365,6 +375,33 @@ namespace HomeNursingSystem.Data.Migrations
                     b.ToTable("Clinics");
                 });
 
+            modelBuilder.Entity("HomeNursingSystem.Models.ClinicService", b =>
+                {
+                    b.Property<int>("ClinicServiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ClinicServiceId"));
+
+                    b.Property<int>("ClinicId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("ClinicServiceId");
+
+                    b.HasIndex("ClinicId");
+
+                    b.ToTable("ClinicServices", (string)null);
+                });
+
             modelBuilder.Entity("HomeNursingSystem.Models.ContactMessage", b =>
                 {
                     b.Property<int>("ContactMessageId")
@@ -473,6 +510,33 @@ namespace HomeNursingSystem.Data.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("Notifications");
+                });
+
+            modelBuilder.Entity("HomeNursingSystem.Models.NurseListingService", b =>
+                {
+                    b.Property<int>("NurseListingServiceId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NurseListingServiceId"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("NurseProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)");
+
+                    b.HasKey("NurseListingServiceId");
+
+                    b.HasIndex("NurseProfileId");
+
+                    b.ToTable("NurseListingServices", (string)null);
                 });
 
             modelBuilder.Entity("HomeNursingSystem.Models.NurseProfile", b =>
@@ -758,6 +822,16 @@ namespace HomeNursingSystem.Data.Migrations
                         .HasForeignKey("ClinicId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("HomeNursingSystem.Models.ClinicService", "ClinicService")
+                        .WithMany("Appointments")
+                        .HasForeignKey("ClinicServiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("HomeNursingSystem.Models.NurseListingService", "NurseListingService")
+                        .WithMany("Appointments")
+                        .HasForeignKey("NurseListingServiceId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("HomeNursingSystem.Models.NurseProfile", "NurseProfile")
                         .WithMany("Appointments")
                         .HasForeignKey("NurseProfileId")
@@ -772,10 +846,13 @@ namespace HomeNursingSystem.Data.Migrations
                     b.HasOne("HomeNursingSystem.Models.MedicalService", "Service")
                         .WithMany("Appointments")
                         .HasForeignKey("ServiceId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Cascade);
 
                     b.Navigation("Clinic");
+
+                    b.Navigation("ClinicService");
+
+                    b.Navigation("NurseListingService");
 
                     b.Navigation("NurseProfile");
 
@@ -825,6 +902,17 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Navigation("Owner");
                 });
 
+            modelBuilder.Entity("HomeNursingSystem.Models.ClinicService", b =>
+                {
+                    b.HasOne("HomeNursingSystem.Models.Clinic", "Clinic")
+                        .WithMany("ClinicServices")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+                });
+
             modelBuilder.Entity("HomeNursingSystem.Models.Notification", b =>
                 {
                     b.HasOne("HomeNursingSystem.Models.ApplicationUser", "User")
@@ -834,6 +922,17 @@ namespace HomeNursingSystem.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("HomeNursingSystem.Models.NurseListingService", b =>
+                {
+                    b.HasOne("HomeNursingSystem.Models.NurseProfile", "NurseProfile")
+                        .WithMany("NurseListingServices")
+                        .HasForeignKey("NurseProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("NurseProfile");
                 });
 
             modelBuilder.Entity("HomeNursingSystem.Models.NurseProfile", b =>
@@ -974,7 +1073,14 @@ namespace HomeNursingSystem.Data.Migrations
                 {
                     b.Navigation("Appointments");
 
+                    b.Navigation("ClinicServices");
+
                     b.Navigation("Ratings");
+                });
+
+            modelBuilder.Entity("HomeNursingSystem.Models.ClinicService", b =>
+                {
+                    b.Navigation("Appointments");
                 });
 
             modelBuilder.Entity("HomeNursingSystem.Models.MedicalService", b =>
@@ -984,9 +1090,16 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Navigation("NurseServices");
                 });
 
+            modelBuilder.Entity("HomeNursingSystem.Models.NurseListingService", b =>
+                {
+                    b.Navigation("Appointments");
+                });
+
             modelBuilder.Entity("HomeNursingSystem.Models.NurseProfile", b =>
                 {
                     b.Navigation("Appointments");
+
+                    b.Navigation("NurseListingServices");
 
                     b.Navigation("NurseServices");
 

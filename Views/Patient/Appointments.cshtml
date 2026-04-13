@@ -1,5 +1,6 @@
 @model List<HomeNursingSystem.Models.Appointment>
 @using HomeNursingSystem.Models
+@using HomeNursingSystem.Services
 @{
     ViewData["Title"] = "مواعيدي";
 }
@@ -19,18 +20,67 @@
 </form>
 <div class="table-wrap">
     <table class="data-table">
-        <thead><tr><th>التاريخ</th><th>الخدمة</th><th>الحالة</th><th>السعر</th><th></th></tr></thead>
+        <thead>
+            <tr>
+                <th>التاريخ</th>
+                <th>الخدمة</th>
+                <th>الحالة</th>
+                <th>السعر</th>
+                <th style="min-width: 13rem">إجراءات</th>
+            </tr>
+        </thead>
         <tbody>
         @foreach (var a in Model)
         {
+            var canCancel = !string.Equals(a.Status, AppointmentStatuses.Completed, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(a.Status, AppointmentStatuses.Cancelled, StringComparison.OrdinalIgnoreCase);
+            var canDelete = a.Status == AppointmentStatuses.Cancelled || a.Status == AppointmentStatuses.Completed;
+            var status = a.Status == AppointmentStatuses.Cancelled ? "ملغاة" :
+             a.Status == AppointmentStatuses.Completed ? "مكتملة" : 
+             a.Status == AppointmentStatuses.Pending ? "معلقة" : 
+             a.Status == AppointmentStatuses.Approved ? "مقبولة" : 
+             a.Status == AppointmentStatuses.InProgress ? "قيد التنفيذ" : 
+             a.Status == AppointmentStatuses.Confirmed ? "مؤكدة" : "";
             <tr>
                 <td>@a.AppointmentDate.ToLocalTime().ToString("g")</td>
-                <td>@a.Service.ServiceName</td>
-                <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(a.Status)">@a.Status</span></td>
+                <td>@(a.NurseListingService != null ? a.NurseListingService.Name : a.ClinicService != null ? a.ClinicService.Name : HomeNursingSystem.Services.ServiceNameLocalizer.Localize(a.Service?.ServiceName ?? "—"))</td>
+                <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(a.Status)">@status </span></td>
                 <td>@a.TotalPrice.ToString("N2")</td>
-                <td><a asp-action="AppointmentDetail" asp-route-id="@a.AppointmentId">تفاصيل</a></td>
+                <td>
+                    <div class="table-actions">
+                        <a class="btn btn-sm btn-primary" asp-action="AppointmentDetail" asp-route-id="@a.AppointmentId">تفاصيل</a>
+                        @if (canCancel)
+                        {
+                            <form asp-action="Cancel" asp-route-id="@a.AppointmentId" method="post" class="table-actions__cancel">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm-cancel>إلغاء الموعد</button>
+                            </form>
+                        }
+                        @if (canDelete)
+                        {
+                            <form asp-action="DeleteAppointment" asp-route-id="@a.AppointmentId" method="post" class="table-actions__delete">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-sm btn-outline-danger" data-confirm-delete>حذف نهائي</button>
+                            </form>
+                        }
+                    </div>
+                </td>
             </tr>
         }
         </tbody>
     </table>
 </div>
+@section Scripts {
+    <script>
+        document.querySelectorAll("[data-confirm-cancel]").forEach(function (btn) {
+            btn.closest("form").addEventListener("submit", function (e) {
+                if (!confirm("\u0647\u0644 \u0623\u0646\u062a \u0645\u062a\u0623\u0643\u062f \u0645\u0646 \u0625\u0644\u063a\u0627\u0621 \u0647\u0630\u0627 \u0627\u0644\u0645\u0648\u0639\u062f\u061f")) e.preventDefault();
+            });
+        });
+        document.querySelectorAll("[data-confirm-delete]").forEach(function (btn) {
+            btn.closest("form").addEventListener("submit", function (e) {
+                if (!confirm("\u0633\u064a\u062a\u0645 \u062d\u0630\u0641 \u0647\u0630\u0627 \u0627\u0644\u0645\u0648\u0639\u062f \u0646\u0647\u0627\u0626\u064a\u0627\u064b \u0645\u0646 \u0633\u062c\u0644\u0643\u060c \u0648\u0644\u0627 \u064a\u0645\u0643\u0646 \u0627\u0633\u062a\u0631\u062c\u0627\u0639\u0647\u061f")) e.preventDefault();
+            });
+        });
+    </script>
+}

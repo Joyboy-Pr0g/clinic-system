@@ -1,18 +1,62 @@
 @model ContactVM
 @{
     ViewData["Title"] = "اتصل بنا";
+    var mapUrl = ViewBag.MapEmbedUrl as string;
 }
-<div class="container section-block" style="max-width:560px">
-    <h1 class="page-title">اتصل بنا</h1>
-    <form asp-action="Index" method="post" class="form-stack" data-loading>
-        @Html.AntiForgeryToken()
-        <div class="field"><label asp-for="FullName"></label><input asp-for="FullName" /><span asp-validation-for="FullName"></span></div>
-        <div class="field"><label asp-for="Email"></label><input asp-for="Email" /><span asp-validation-for="Email"></span></div>
-        <div class="field"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" /></div>
-        <div class="field"><label asp-for="Subject"></label><input asp-for="Subject" /><span asp-validation-for="Subject"></span></div>
-        <div class="field"><label asp-for="Message"></label><textarea asp-for="Message" rows="5"></textarea><span asp-validation-for="Message"></span></div>
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <button type="submit" class="btn btn-primary">إرسال</button>
-    </form>
+<section class="page-hero">
+    <div class="container">
+        <nav class="breadcrumb" aria-label="مسار التنقل">
+            <a asp-controller="Home" asp-action="Index">الرئيسية</a>
+            <span> / </span>
+            <span>اتصل بنا</span>
+        </nav>
+        <h1>اتصل بنا</h1>
+        <p style="margin:0;opacity:0.95">نرد على استفساراتك في أقرب وقت ممكن.</p>
+    </div>
+</section>
+
+<div style="width: 100%; margin: 0 auto; padding: 0 1rem;" class="container section-block">
+    <div class="contact-info-cards">
+        <div class="contact-info-card">
+            <i class="fa-solid fa-phone"></i>
+            <div><strong>الهاتف</strong><div class="muted">920000000</div></div>
+        </div>
+        <div class="contact-info-card">
+            <i class="fa-solid fa-envelope"></i>
+            <div><strong>البريد</strong><div class="muted">info@homecare.local</div></div>
+        </div>
+        <div class="contact-info-card">
+            <i class="fa-solid fa-location-dot"></i>
+            <div><strong>العنوان</strong><div class="muted">الرياض — المملكة العربية السعودية</div></div>
+        </div>
+    </div>
+
+    <div class="contact-page-grid">
+        <div class="form-card">
+            <h2 class="page-title" style="font-size:1.2rem;margin-top:0">أرسل رسالة</h2>
+            <form asp-action="Index" method="post" class="form-stack wide" style="max-width:none" data-loading>
+                @Html.AntiForgeryToken()
+                <div class="field"><label asp-for="FullName"></label><input asp-for="FullName" /><span asp-validation-for="FullName"></span></div>
+                <div class="field"><label asp-for="Email"></label><input asp-for="Email" /><span asp-validation-for="Email"></span></div>
+                <div class="field"><label asp-for="PhoneNumber"></label><input asp-for="PhoneNumber" /></div>
+                <div class="field"><label asp-for="Subject"></label><input asp-for="Subject" /><span asp-validation-for="Subject"></span></div>
+                <div class="field"><label asp-for="Message"></label><textarea asp-for="Message" rows="5"></textarea><span asp-validation-for="Message"></span></div>
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <button type="submit" class="btn btn-primary">إرسال</button>
+            </form>
+        </div>
+        <div>
+            @if (!string.IsNullOrEmpty(mapUrl))
+            {
+                <iframe class="map-embed" title="موقع الشركة" src="@mapUrl" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            }
+            else
+            {
+                <div class="form-card muted" style="min-height:320px;display:flex;align-items:center;justify-content:center;text-align:center">
+                    أضف مفتاح Google Maps الصالح في الإعدادات لعرض الخريطة هنا.
+                </div>
+            }
+        </div>
+    </div>
 </div>
 @section Scripts { <partial name="_ValidationScriptsPartial" /> }

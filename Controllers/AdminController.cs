@@ -90,6 +90,17 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Nurses));
     }
 
+    [HttpPost("nurses/{id:int}/unsuspend")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UnsuspendNurse(int id, CancellationToken ct)
+    {
+        var np = await _db.NurseProfiles.Include(n => n.User).FirstAsync(n => n.NurseProfileId == id, ct);
+        np.User.IsActive = true;
+        await _db.SaveChangesAsync(ct);
+        TempData["Success"] = "تم إلغاء تعليق حساب الممرض.";
+        return RedirectToAction(nameof(Nurses));
+    }
+
     [HttpGet("nurses/{id:int}/license")]
     public async Task<IActionResult> ViewLicense(int id, CancellationToken ct)
     {
@@ -174,6 +185,18 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Clinics));
     }
 
+    [HttpPost("clinics/{id:int}/unsuspend")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UnsuspendClinic(int id, CancellationToken ct)
+    {
+        var c = await _db.Clinics.Include(x => x.Owner).FirstAsync(x => x.ClinicId == id, ct);
+        c.IsActive = true;
+        c.Owner.IsActive = true;
+        await _db.SaveChangesAsync(ct);
+        TempData["Success"] = "تم إلغاء تعليق العيادة.";
+        return RedirectToAction(nameof(Clinics));
+    }
+
     [HttpGet("users")]
     public async Task<IActionResult> Users(CancellationToken ct)
     {
@@ -226,6 +249,8 @@ public class AdminController : Controller
             .AsNoTracking()
             .Include(a => a.Patient)
             .Include(a => a.Service)
+            .Include(a => a.ClinicService)
+            .Include(a => a.NurseListingService)
             .Include(a => a.NurseProfile)!.ThenInclude(n => n!.User)
             .Include(a => a.Clinic);
         if (!string.IsNullOrEmpty(status))
@@ -387,6 +412,62 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Services));
     }
 
+    [HttpGet("services/{id:int}/edit")]
+    public async Task<IActionResult> EditService(int id, CancellationToken ct)
+    {
+        var s = await _db.Services.AsNoTracking().FirstOrDefaultAsync(x => x.ServiceId == id, ct);
+        if (s == null) return NotFound();
+        var vm = new ServiceEditVM
+        {
+            ServiceId = s.ServiceId,
+            ServiceName = s.ServiceName,
+            Description = s.Description,
+            BasePrice = s.BasePrice,
+            IconClass = s.IconClass
+        };
+        return View(vm);
+    }
+
+    [HttpPost("services/{id:int}/edit")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditService(int id, ServiceEditVM model, CancellationToken ct)
+    {
+        if (id != model.ServiceId) return BadRequest();
+        if (!ModelState.IsValid)
+            return View(model);
+        var s = await _db.Services.FirstOrDefaultAsync(x => x.ServiceId == id, ct);
+        if (s == null) return NotFound();
+        s.ServiceName = model.ServiceName.Trim();
+        s.Description = string.IsNullOrWhiteSpace(model.Description) ? null : model.Description.Trim();
+        s.BasePrice = model.BasePrice;
+        s.IconClass = string.IsNullOrWhiteSpace(model.IconClass) ? null : model.IconClass.Trim();
+        await _db.SaveChangesAsync(ct);
+        TempData["Success"] = "تم تحديث الخدمة.";
+        return RedirectToAction(nameof(Services));
+    }
+
+    [HttpPost("services/{id:int}/delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteService(int id, CancellationToken ct)
+    {
+        var s = await _db.Services.FirstOrDefaultAsync(x => x.ServiceId == id, ct);
+        if (s != null)
+        {
+            s.IsActive = false;
+            await _db.SaveChangesAsync(ct);
+            TempData["Success"] = "تم إلغاء تفعيل الخدمة.";
+        }
+        return RedirectToAction(nameof(Services));
+    }
+
+    [HttpGet("articles/{id:int}/details")]
+    public async Task<IActionResult> ArticleDetails(int id, CancellationToken ct)
+    {
+        var a = await _db.Articles.AsNoTracking().FirstOrDefaultAsync(x => x.ArticleId == id, ct);
+        if (a == null) return NotFound();
+        return View(a);
+    }
+
     [HttpGet("ratings")]
     public async Task<IActionResult> Ratings(CancellationToken ct)
     {
@@ -407,6 +488,15 @@ public class AdminController : Controller
         r.IsApproved = string.Equals(approved, "true", StringComparison.OrdinalIgnoreCase);
         await _db.SaveChangesAsync(ct);
         TempData["Success"] = "تم التحديث.";
+        return RedirectToAction(nameof(Ratings));
+    }
+
+    [HttpPost("ratings/{id:int}/delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteRating(int id, CancellationToken ct)
+    {
+        await _db.Ratings.Where(r => r.RatingId == id).ExecuteDeleteAsync(ct);
+        TempData["Success"] = "تم حذف التقييم.";
         return RedirectToAction(nameof(Ratings));
     }
 

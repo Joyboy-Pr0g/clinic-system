@@ -3,28 +3,33 @@
 @section Sidebar { <partial name="_Sidebar" /> }
 
 <h1 class="page-title">العيادات</h1>
-<p class="muted">راجع رخصة المنشأة أو التصريح ثم <strong>قبول</strong> أو <strong>رفض</strong>.</p>
+<p class="muted">راجع بيانات العيادة العامة أو الوثيقة ثم قبول أو رفض أو تعليق.</p>
 <div class="table-wrap">
     <table class="data-table">
-        <thead><tr><th>الاسم</th><th>المدينة</th><th>الحالة</th><th>نشط</th><th>وثيقة</th><th>إجراءات</th></tr></thead>
+        <thead><tr><th>صورة</th><th>الاسم</th><th>المدينة</th><th>الحالة</th><th>نشط</th><th>إجراءات</th></tr></thead>
         <tbody>
         @foreach (var c in Model)
         {
             var status = c.IsRejectedByAdmin ? "مرفوض" : c.IsVerified ? "مقبول" : "بانتظار المراجعة";
+            var img = !string.IsNullOrEmpty(c.CoverImagePath) ? c.CoverImagePath : c.LogoImagePath;
             <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(img))
+                    {
+                        <img class="table-thumb" src="@img" alt="" width="56" height="56" />
+                    }
+                    else { <span class="muted">—</span> }
+                </td>
                 <td>@c.ClinicName</td>
                 <td>@c.City</td>
                 <td><span class="badge @(c.IsRejectedByAdmin ? "badge-cancelled" : c.IsVerified ? "badge-approved" : "badge-pending")">@status</span></td>
                 <td>@(c.IsActive ? "نعم" : "لا")</td>
                 <td>
-                    @if (!string.IsNullOrEmpty(c.LicenseDocumentPath))
-                    {
-                        <a class="btn btn-sm btn-outline" href="@Url.Action("ViewClinicLicense", new { id = c.ClinicId })" target="_blank" rel="noopener">عرض الوثيقة</a>
-                    }
-                    else { <span class="muted">—</span> }
-                </td>
-                <td>
                     <div class="admin-row-actions">
+                        @if (c.IsVerified)
+                        {
+                            <a class="btn btn-sm btn-outline-edit" asp-controller="Clinic" asp-action="PublicDetails" asp-route-id="@c.ClinicId" target="_blank" rel="noopener">عرض تفاصيل العيادة</a>
+                        }
                         @if (!c.IsVerified && !c.IsRejectedByAdmin)
                         {
                             <form asp-action="VerifyClinic" asp-route-id="@c.ClinicId" method="post" class="admin-row-actions__form">
@@ -34,15 +39,29 @@
                             <form asp-action="RejectClinic" asp-route-id="@c.ClinicId" method="post" class="admin-row-actions__form admin-row-actions__form--wide">
                                 @Html.AntiForgeryToken()
                                 <input type="text" name="note" class="admin-reject-note" placeholder="سبب الرفض (اختياري)" maxlength="500" />
-                                <button type="submit" class="btn btn-sm btn-ghost" style="border-color:#c0392b;color:#c0392b" onclick="return confirm('تأكيد رفض هذه العيادة؟');">رفض</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Reject this clinic?');">رفض</button>
                             </form>
                         }
                         else if (c.IsVerified)
                         {
-                            <form asp-action="SuspendClinic" asp-route-id="@c.ClinicId" method="post" class="admin-row-actions__form" onsubmit="return confirm('تعليق العيادة؟');">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-ghost">تعليق</button>
-                            </form>
+                            @if (c.IsActive && c.Owner.IsActive)
+                            {
+                                <form asp-action="SuspendClinic" asp-route-id="@c.ClinicId" method="post" class="admin-row-actions__form" onsubmit="return confirm('Suspend this clinic?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-ghost">تعليق</button>
+                                </form>
+                            }
+                            else
+                            {
+                                <form asp-action="UnsuspendClinic" asp-route-id="@c.ClinicId" method="post" class="admin-row-actions__form">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-unban">إلغاء التعليق</button>
+                                </form>
+                            }
+                        }
+                        @if (!string.IsNullOrEmpty(c.LicenseDocumentPath))
+                        {
+                            <a class="btn btn-sm btn-outline-edit" href="@Url.Action("ViewClinicLicense", new { id = c.ClinicId })" target="_blank" rel="noopener">عرض الوثيقة</a>
                         }
                     </div>
                 </td>

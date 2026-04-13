@@ -1,5 +1,6 @@
 @model List<HomeNursingSystem.Models.Appointment>
 @using HomeNursingSystem.Models
+@using HomeNursingSystem.Services
 @{ ViewData["Title"] = "كل المواعيد"; }
 @section Sidebar { <partial name="_Sidebar" /> }
 
@@ -38,7 +39,7 @@
                 <td>@a.AppointmentDate.ToLocalTime().ToString("g")</td>
                 <td>@a.Patient.FullName</td>
                 <td>@(a.NurseProfile != null ? a.NurseProfile.User.FullName : a.Clinic?.ClinicName)</td>
-                <td>@a.Service.ServiceName</td>
+                <td>@(a.NurseListingService != null ? a.NurseListingService.Name : a.ClinicService != null ? a.ClinicService.Name : ServiceNameLocalizer.Localize(a.Service?.ServiceName ?? "—"))</td>
                 <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(a.Status)">@a.Status</span></td>
                 <td>@a.TotalPrice.ToString("N2")</td>
             </tr>

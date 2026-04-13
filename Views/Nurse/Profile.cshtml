@@ -3,21 +3,31 @@
 @section Sidebar { <partial name="_Sidebar" /> }
 
 <h1 class="page-title">ملفي والخدمات</h1>
-<form asp-action="Profile" method="post" class="form-stack wide" data-loading>
-    @Html.AntiForgeryToken()
-    <div class="field"><label asp-for="Specialization"></label><input asp-for="Specialization" /></div>
-    <div class="field"><label asp-for="YearsOfExperience"></label><input asp-for="YearsOfExperience" /></div>
-    <div class="field"><label asp-for="Bio"></label><textarea asp-for="Bio" rows="3"></textarea></div>
-    <label><input type="checkbox" asp-for="IsAvailable" /> @Html.DisplayNameFor(m => m.IsAvailable)</label>
-    <h3>الخدمات والأسعار</h3>
-    @for (var i = 0; i < Model.ServiceRows.Count; i++)
-    {
-        <div class="card" style="padding:0.75rem;margin-bottom:0.5rem">
-            <input type="hidden" asp-for="ServiceRows[i].ServiceId" />
-            <input type="hidden" asp-for="ServiceRows[i].ServiceName" />
-            <label><input asp-for="ServiceRows[i].Selected" /> @Model.ServiceRows[i].ServiceName</label>
-            <div class="field"><label>سعر مخصص</label><input asp-for="ServiceRows[i].CustomPrice" /></div>
+<div class="form-card">
+    <form asp-action="Profile" method="post" class="form-stack wide" style="max-width:none" data-loading>
+        @Html.AntiForgeryToken()
+        <h3 class="form-section-title" style="margin-top:0">الملف الشخصي</h3>
+        <div class="form-grid-3">
+            <div class="field"><label asp-for="Specialization"></label><input asp-for="Specialization" /><span asp-validation-for="Specialization"></span></div>
+            <div class="field"><label asp-for="YearsOfExperience"></label><input asp-for="YearsOfExperience" /><span asp-validation-for="YearsOfExperience"></span></div>
+            <div class="field field--checkbox">
+                <label class="field__checkbox-row"><input type="checkbox" asp-for="IsAvailable" /> @Html.DisplayNameFor(m => m.IsAvailable)</label>
+            </div>
+            <div class="field field-full"><label asp-for="Bio"></label><textarea asp-for="Bio" rows="3"></textarea><span asp-validation-for="Bio"></span></div>
         </div>
-    }
-    <button type="submit" class="btn btn-primary">حفظ</button>
-</form>
+
+        <h3 class="form-section-title">الخدمات والأسعار</h3>
+        <div class="form-grid-3 nurse-profile-service-grid">
+        @for (var i = 0; i < Model.ServiceRows.Count; i++)
+        {
+            <div class="card nurse-profile-service-card">
+                <input type="hidden" asp-for="ServiceRows[i].ServiceId" />
+                <input type="hidden" asp-for="ServiceRows[i].ServiceName" />
+                <label class="nurse-profile-service-card__title"><input asp-for="ServiceRows[i].Selected" /> @Model.ServiceRows[i].ServiceName</label>
+                <div class="field" style="margin-top:0.5rem;margin-bottom:0"><label>سعر مخصص</label><input asp-for="ServiceRows[i].CustomPrice" /></div>
+            </div>
+        }
+        </div>
+        <button type="submit" class="btn btn-primary">حفظ الكل</button>
+    </form>
+</div>

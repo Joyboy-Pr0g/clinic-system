@@ -1,0 +1,23 @@
+@model HomeNursingSystem.Models.Article
+@{ ViewData["Title"] = Model.Title; }
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<div style="display:flex;flex-wrap:wrap;gap:0.5rem;margin-bottom:1rem">
+    <a class="btn btn-ghost" asp-action="Articles">القائمة</a>
+    <a class="btn btn-outline-edit" asp-action="EditArticle" asp-route-id="@Model.ArticleId">تعديل</a>
+    <form asp-action="DeleteArticle" asp-route-id="@Model.ArticleId" method="post" style="display:inline" onsubmit="return confirm('Delete this article?');">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-outline-danger">حذف</button>
+    </form>
+</div>
+
+<div class="form-card">
+    @if (!string.IsNullOrEmpty(Model.ThumbnailImagePath))
+    {
+        <img class="article-hero" src="@Model.ThumbnailImagePath" alt="" width="1000" height="360" />
+    }
+    <h1 class="page-title" style="margin-top:0">@Model.Title</h1>
+    <p class="article-meta">@Model.Category · @(Model.PublishedAt?.ToLocalTime().ToString("D") ?? "غير منشور")</p>
+    <p class="muted"><strong>ملخص:</strong> @Model.Summary</p>
+    <div class="article-body" style="white-space:pre-wrap;margin-top:1rem">@Model.Content</div>
+</div>

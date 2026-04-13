@@ -3,25 +3,40 @@
     ViewData["Title"] = "تسجيل الدخول";
 }
 
-<div class="container section-block" style="max-width:480px">
-    <h1 class="page-title">تسجيل الدخول</h1>
-    <form asp-action="Login" method="post" class="form-stack" data-loading>
-        @Html.AntiForgeryToken()
-        <input type="hidden" asp-for="ReturnUrl" />
-        <div class="field">
-            <label asp-for="Email"></label>
-            <input asp-for="Email" autocomplete="username" />
-            <span asp-validation-for="Email" class="field-validation-error"></span>
+<section class="page-hero" style="padding:2rem 0">
+    <div class="container" style="text-align:center">
+        <h1 style="margin:0;font-size:1.5rem">تسجيل الدخول</h1>
+    </div>
+</section>
+
+<div style="width: 100%; margin: 0 auto; padding: 0 1rem;" class="container section-block">
+    <div class="auth-card">
+        <div class="auth-card__brand">
+            <a class="brand" asp-controller="Home" asp-action="Index">
+                <span class="brand__logo-mark" aria-hidden="true"><i class="fa-solid fa-heart-pulse"></i></span>
+                رعاية<span>منزلية</span>
+            </a>
         </div>
-        <div class="field">
-            <label asp-for="Password"></label>
-            <input asp-for="Password" autocomplete="current-password" />
-            <span asp-validation-for="Password" class="field-validation-error"></span>
-        </div>
-        <label><input type="checkbox" asp-for="RememberMe" /> @Html.DisplayNameFor(m => m.RememberMe)</label>
-        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-        <button type="submit" class="btn btn-primary">دخول</button>
-    </form>
-    <p class="muted"><a asp-action="Register">إنشاء حساب جديد</a></p>
+        <form asp-action="Login" method="post" class="form-stack wide" style="max-width:none" data-loading>
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="ReturnUrl" />
+            <div class="field">
+                <label asp-for="Email"></label>
+                <input asp-for="Email" autocomplete="username" />
+                <span asp-validation-for="Email" class="field-validation-error"></span>
+            </div>
+            <div class="field">
+                <label asp-for="Password"></label>
+                <input asp-for="Password" autocomplete="current-password" />
+                <span asp-validation-for="Password" class="field-validation-error"></span>
+            </div>
+            <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer"><input type="checkbox" asp-for="RememberMe" /> @Html.DisplayNameFor(m => m.RememberMe)</label>
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <button type="submit" class="btn btn-primary" style="width:100%">دخول</button>
+        </form>
+        <p class="muted" style="text-align:center;margin:1rem 0 0">
+            <a asp-action="Register" style="color:var(--color-primary);font-weight:700">إنشاء حساب جديد</a>
+        </p>
+    </div>
 </div>
 @section Scripts { <partial name="_ValidationScriptsPartial" /> }

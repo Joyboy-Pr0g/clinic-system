@@ -6,18 +6,24 @@
 <p><a class="btn btn-primary" asp-action="CreateArticle">جديد</a></p>
 <div class="table-wrap">
     <table class="data-table">
-        <thead><tr><th>العنوان</th><th>فئة</th><th>منشور</th><th>خبر</th><th></th></tr></thead>
+        <thead><tr><th>صورة</th><th>العنوان</th><th>فئة</th><th>منشور</th><th>خبر</th><th></th></tr></thead>
         <tbody>
         @foreach (var a in Model)
         {
             <tr>
+                <td>
+                    @if (!string.IsNullOrEmpty(a.ThumbnailImagePath))
+                    { <img class="table-thumb" src="@a.ThumbnailImagePath" alt="" width="56" height="56" /> }
+                    else { <span class="muted">—</span> }
+                </td>
                 <td>@a.Title</td>
                 <td>@a.Category</td>
                 <td>@(a.IsPublished ? "نعم" : "لا")</td>
                 <td>@(a.IsNews ? "نعم" : "لا")</td>
                 <td>
-                    <a class="btn btn-sm btn-outline" asp-action="EditArticle" asp-route-id="@a.ArticleId">تعديل</a>
-                    <form asp-action="DeleteArticle" asp-route-id="@a.ArticleId" method="post" style="display:inline" onsubmit="return confirm('حذف�');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-ghost">حذف</button></form>
+                    <a class="btn btn-sm btn-outline-edit" asp-action="ArticleDetails" asp-route-id="@a.ArticleId">عرض</a>
+                    <a class="btn btn-sm btn-outline-edit" asp-action="EditArticle" asp-route-id="@a.ArticleId">تعديل</a>
+                    <form asp-action="DeleteArticle" asp-route-id="@a.ArticleId" method="post" style="display:inline" onsubmit="return confirm('Delete this article?');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-danger">حذف</button></form>
                 </td>
             </tr>
         }
