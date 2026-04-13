@@ -2,8 +2,11 @@
 @{ ViewData["Title"] = "تعديل خدمة"; }
 @section Sidebar { <partial name="_Sidebar" /> }
 
-<h1 class="page-title">تعديل خدمة</h1>
-<div class="form-card" style="max-width:560px">
+<div class="admin-page">
+    <header class="admin-page__head">
+        <h1 class="admin-page__title">تعديل خدمة</h1>
+    </header>
+    <div class="form-card" style="max-width:560px">
     <form asp-action="EditService" asp-route-id="@Model.ServiceId" method="post" class="form-stack wide" style="max-width:none" data-loading>
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="ServiceId" />
@@ -17,5 +20,6 @@
             <a class="btn btn-ghost" asp-action="Services">إلغاء</a>
         </div>
     </form>
+    </div>
 </div>
 @section Scripts { <partial name="_ValidationScriptsPartial" /> }

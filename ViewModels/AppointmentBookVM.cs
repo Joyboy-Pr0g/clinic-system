@@ -19,7 +19,7 @@ public class AppointmentBookVM : IValidatableObject
 
     [Required(ErrorMessage = "التاريخ والوقت مطلوبان")]
     [Display(Name = "موعد الزيارة")]
-    public DateTime AppointmentDate { get; set; } = DateTime.Now.AddDays(1);
+    public DateTime AppointmentDate { get; set; }
 
     [Required(ErrorMessage = "العنوان مطلوب")]
     [StringLength(255)]
@@ -37,6 +37,9 @@ public class AppointmentBookVM : IValidatableObject
 
     public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
     {
+        if (AppointmentDate.Year < 2000)
+            yield return new ValidationResult("اختر اليوم والساعة من الأوقات المتاحة.", new[] { nameof(AppointmentDate) });
+
         if (string.Equals(BookType, "Nurse", StringComparison.OrdinalIgnoreCase))
         {
             if (NurseListingServiceId is null or < 1)

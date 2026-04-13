@@ -23,6 +23,8 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<AppointmentMessage> AppointmentMessages => Set<AppointmentMessage>();
     public DbSet<ClinicService> ClinicServices => Set<ClinicService>();
     public DbSet<NurseListingService> NurseListingServices => Set<NurseListingService>();
+    public DbSet<NurseWeeklySlot> NurseWeeklySlots => Set<NurseWeeklySlot>();
+    public DbSet<ClinicWeeklySlot> ClinicWeeklySlots => Set<ClinicWeeklySlot>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -76,6 +78,32 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
             e.HasOne(x => x.NurseProfile)
                 .WithMany(n => n.NurseListingServices)
                 .HasForeignKey(x => x.NurseProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<NurseWeeklySlot>(e =>
+        {
+            e.ToTable("NurseWeeklySlots");
+            e.HasKey(x => x.NurseWeeklySlotId);
+            e.Property(x => x.StartTime).HasColumnType("time");
+            e.Property(x => x.EndTime).HasColumnType("time");
+            e.HasIndex(x => new { x.NurseProfileId, x.DayOfWeek });
+            e.HasOne(x => x.NurseProfile)
+                .WithMany(n => n.WeeklySlots)
+                .HasForeignKey(x => x.NurseProfileId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<ClinicWeeklySlot>(e =>
+        {
+            e.ToTable("ClinicWeeklySlots");
+            e.HasKey(x => x.ClinicWeeklySlotId);
+            e.Property(x => x.StartTime).HasColumnType("time");
+            e.Property(x => x.EndTime).HasColumnType("time");
+            e.HasIndex(x => new { x.ClinicId, x.DayOfWeek });
+            e.HasOne(x => x.Clinic)
+                .WithMany(c => c.WeeklySlots)
+                .HasForeignKey(x => x.ClinicId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

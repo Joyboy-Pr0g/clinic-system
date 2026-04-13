@@ -45,13 +45,13 @@
                         <div class="dropdown-menu" data-dropdown>
                             <span class="dropdown-name">@user?.FullName</span>
                             @if (User.IsInRole("Admin"))
-                            { <a asp-controller="Admin" asp-action="Dashboard">لوحة الإدارة</a> }
+                            { <a style="color:#222;" asp-controller="Admin" asp-action="Dashboard">لوحة الإدارة</a> }
                             @if (User.IsInRole("Patient"))
-                            { <a asp-controller="Patient" asp-action="Dashboard">حسابي</a> }
+                            { <a style="color:#222;" asp-controller="Patient" asp-action="Dashboard">لوحة التحكم</a> }
                             @if (User.IsInRole("Nurse"))
-                            { <a asp-controller="Nurse" asp-action="Dashboard">لوحة الممرض</a> }
+                            { <a style="color:#222;" asp-controller="Nurse" asp-action="Dashboard">لوحة التحكم</a> }
                             @if (User.IsInRole("ClinicOwner"))
-                            { <a asp-controller="Clinic" asp-action="Dashboard">لوحة العيادة</a> }
+                            { <a style="color:#222;" asp-controller="Clinic" asp-action="Dashboard">لوحة التحكم</a> }
                             <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
                                 @Html.AntiForgeryToken()
                                 <button type="submit" class="link-btn">تسجيل الخروج</button>

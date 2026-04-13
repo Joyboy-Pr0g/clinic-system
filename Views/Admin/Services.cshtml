@@ -2,36 +2,55 @@
 @{ ViewData["Title"] = "الخدمات"; }
 @section Sidebar { <partial name="_Sidebar" /> }
 
-<h1 class="page-title">خدمات النظام</h1>
-<form asp-action="CreateService" method="post" class="form-card" style="margin-bottom:1.5rem;display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;align-items:end">
-    @Html.AntiForgeryToken()
-    <div class="field"><label>الاسم</label><input name="serviceName" required /></div>
-    <div class="field"><label>الوصف</label><input name="description" /></div>
-    <div class="field"><label>السعر</label><input name="basePrice" type="number" step="0.01" required /></div>
-    <div class="field"><label>أيقونة FontAwesome</label><input name="iconClass" placeholder="fa-syringe" /></div>
-    <button type="submit" class="btn btn-primary">إضافة</button>
-</form>
-<div class="table-wrap">
-    <table class="data-table">
-        <thead><tr><th>الخدمة</th><th>السعر</th><th>نشط</th><th class="service-table-actions">إجراءات</th></tr></thead>
-        <tbody>
-        @foreach (var s in Model)
-        {
-            <tr>
-                <td>@s.ServiceName</td>
-                <td>@s.BasePrice.ToString("N2")</td>
-                <td>@(s.IsActive ? "نعم" : "لا")</td>
-                <td>
-                    <div class="service-table-actions">
-                        <a class="btn btn-sm btn-outline-edit" asp-action="EditService" asp-route-id="@s.ServiceId">تعديل</a>
-                        <form asp-action="DeleteService" asp-route-id="@s.ServiceId" method="post" style="display:inline" onsubmit="return confirm('Deactivate this service?');">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-outline-danger">حذف</button>
-                        </form>
-                    </div>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+<div class="admin-page">
+    <header class="admin-page__head">
+        <h1 class="admin-page__title">خدمات النظام</h1>
+        <p class="admin-page__lead muted">إضافة خدمات الكتالوج العام للممرضين المنزليين. «تعطيل» يخفي الخدمة؛ «حذف نهائي» متاح فقط إن لم تُربط بحجوزات أو ممرضين.</p>
+    </header>
+
+    <div class="form-card" style="margin-bottom:1.5rem">
+        <form asp-action="CreateService" method="post" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:0.75rem;align-items:end">
+            @Html.AntiForgeryToken()
+            <div class="field"><label>الاسم</label><input name="serviceName" required /></div>
+            <div class="field"><label>الوصف</label><input name="description" /></div>
+            <div class="field"><label>السعر</label><input name="basePrice" type="number" step="0.01" required /></div>
+            <div class="field"><label>أيقونة FontAwesome</label><input name="iconClass" placeholder="fa-syringe" /></div>
+            <button type="submit" class="btn btn-primary">إضافة</button>
+        </form>
+    </div>
+
+    <div class="admin-table-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>الخدمة</th><th>السعر</th><th>نشط</th><th class="service-table-actions">إجراءات</th></tr></thead>
+                <tbody>
+                @foreach (var s in Model)
+                {
+                    <tr>
+                        <td>@s.ServiceName</td>
+                        <td>@s.BasePrice.ToString("N2")</td>
+                        <td>@(s.IsActive ? "نعم" : "لا")</td>
+                        <td>
+                            <div class="service-table-actions">
+                                <a class="btn btn-sm btn-outline-edit" asp-action="EditService" asp-route-id="@s.ServiceId">تعديل</a>
+                                <form asp-action="ToggleService" asp-route-id="@s.ServiceId" method="post" style="display:inline">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-ghost">@(s.IsActive ? "تعطيل سريع" : "تفعيل")</button>
+                                </form>
+                                <form asp-action="DeleteService" asp-route-id="@s.ServiceId" method="post" style="display:inline" onsubmit="return confirm('Deactivate (hide) this service?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">تعطيل</button>
+                                </form>
+                                <form asp-action="PurgeService" asp-route-id="@s.ServiceId" method="post" style="display:inline" onsubmit="return confirm('Permanently remove this service from the database? This will fail if it is still linked to bookings or nurses.');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">حذف نهائي</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

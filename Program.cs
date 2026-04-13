@@ -52,6 +52,7 @@ builder.Services.AddScoped<IAppointmentChatService, AppointmentChatService>();
 builder.Services.AddSingleton<IAppointmentRealtimeDispatcher, AppointmentRealtimeDispatcher>();
 builder.Services.AddScoped<INurseService, NurseService>();
 builder.Services.AddScoped<IClinicBrowseService, ClinicBrowseService>();
+builder.Services.AddScoped<IProviderAvailabilityService, ProviderAvailabilityService>();
 
 builder.Services.AddSignalR().AddJsonProtocol(o =>
 {

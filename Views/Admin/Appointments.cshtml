@@ -4,46 +4,62 @@
 @{ ViewData["Title"] = "كل المواعيد"; }
 @section Sidebar { <partial name="_Sidebar" /> }
 
-<h1 class="page-title">المواعيد</h1>
+<div class="admin-page">
+    <header class="admin-page__head">
+        <h1 class="admin-page__title">المواعيد</h1>
+        <p class="admin-page__lead muted">تصفية حسب الحالة وحذف موعد واحد عند الحاجة (يُحذف التقييم المرتبط إن وُجد).</p>
+    </header>
 
-<div class="stat-cards" style="margin-bottom:1.5rem">
-    <div class="stat-card"><strong>@ViewBag.CountTotal</strong><div class="muted">الكل</div></div>
-    <div class="stat-card"><strong>@ViewBag.CountPending</strong><div class="muted">معلقة</div></div>
-    <div class="stat-card"><strong>@ViewBag.CountApproved</strong><div class="muted">مقبولة</div></div>
-    <div class="stat-card"><strong>@ViewBag.CountInProgress</strong><div class="muted">قيد التنفيذ</div></div>
-    <div class="stat-card"><strong>@ViewBag.CountCompleted</strong><div class="muted">مكتملة</div></div>
-    <div class="stat-card"><strong>@ViewBag.CountCancelled</strong><div class="muted">ملغاة</div></div>
-</div>
+    <div class="stat-cards admin-stat-grid" style="margin-bottom:1.25rem">
+        <div class="stat-card"><strong>@ViewBag.CountTotal</strong><div class="muted">الكل</div></div>
+        <div class="stat-card"><strong>@ViewBag.CountPending</strong><div class="muted">معلقة</div></div>
+        <div class="stat-card"><strong>@ViewBag.CountApproved</strong><div class="muted">مقبولة</div></div>
+        <div class="stat-card"><strong>@ViewBag.CountInProgress</strong><div class="muted">قيد التنفيذ</div></div>
+        <div class="stat-card"><strong>@ViewBag.CountCompleted</strong><div class="muted">مكتملة</div></div>
+        <div class="stat-card"><strong>@ViewBag.CountCancelled</strong><div class="muted">ملغاة</div></div>
+    </div>
 
-<form method="get" class="form-stack form-stack--row" style="margin-bottom:1rem">
-    <label class="muted">تصفية حسب الحالة:</label>
-    <select name="status" onchange="this.form.submit()">
-        <option value="">— كل الحالات —</option>
-        <option value="Pending" selected="@(ViewBag.Status as string == "Pending")">معلقة</option>
-        <option value="Approved" selected="@(ViewBag.Status as string == "Approved")">مقبولة (Approved)</option>
-        <option value="Confirmed" selected="@(ViewBag.Status as string == "Confirmed")">مؤكدة (قديم)</option>
-        <option value="InProgress" selected="@(ViewBag.Status as string == "InProgress")">قيد التنفيذ</option>
-        <option value="Completed" selected="@(ViewBag.Status as string == "Completed")">مكتملة</option>
-        <option value="Cancelled" selected="@(ViewBag.Status as string == "Cancelled")">ملغاة</option>
-    </select>
-</form>
+    <form method="get" class="admin-toolbar">
+        <div>
+            <label for="appt-status">تصفية حسب الحالة</label><br />
+            <select id="appt-status" name="status" onchange="this.form.submit()">
+                <option value="">— كل الحالات —</option>
+                <option value="Pending" selected="@(ViewBag.Status as string == "Pending")">معلقة</option>
+                <option value="Approved" selected="@(ViewBag.Status as string == "Approved")">مقبولة (Approved)</option>
+                <option value="Confirmed" selected="@(ViewBag.Status as string == "Confirmed")">مؤكدة (قديم)</option>
+                <option value="InProgress" selected="@(ViewBag.Status as string == "InProgress")">قيد التنفيذ</option>
+                <option value="Completed" selected="@(ViewBag.Status as string == "Completed")">مكتملة</option>
+                <option value="Cancelled" selected="@(ViewBag.Status as string == "Cancelled")">ملغاة</option>
+            </select>
+        </div>
+    </form>
 
-<div class="table-wrap">
-    <table class="data-table">
-        <thead><tr><th>#</th><th>التاريخ</th><th>المريض</th><th>المقدم</th><th>الخدمة</th><th>الحالة</th><th>السعر</th></tr></thead>
-        <tbody>
-        @foreach (var a in Model)
-        {
-            <tr>
-                <td>@a.AppointmentId</td>
-                <td>@a.AppointmentDate.ToLocalTime().ToString("g")</td>
-                <td>@a.Patient.FullName</td>
-                <td>@(a.NurseProfile != null ? a.NurseProfile.User.FullName : a.Clinic?.ClinicName)</td>
-                <td>@(a.NurseListingService != null ? a.NurseListingService.Name : a.ClinicService != null ? a.ClinicService.Name : ServiceNameLocalizer.Localize(a.Service?.ServiceName ?? "—"))</td>
-                <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(a.Status)">@a.Status</span></td>
-                <td>@a.TotalPrice.ToString("N2")</td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <div class="admin-table-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>#</th><th>التاريخ</th><th>المريض</th><th>المقدم</th><th>الخدمة</th><th>الحالة</th><th>السعر</th><th>إجراءات</th></tr></thead>
+                <tbody>
+                @foreach (var a in Model)
+                {
+                    <tr>
+                        <td>@a.AppointmentId</td>
+                        <td>@a.AppointmentDate.ToLocalTime().ToString("g")</td>
+                        <td>@a.Patient.FullName</td>
+                        <td>@(a.NurseProfile != null ? a.NurseProfile.User.FullName : a.Clinic?.ClinicName)</td>
+                        <td>@(a.NurseListingService != null ? a.NurseListingService.Name : a.ClinicService != null ? a.ClinicService.Name : ServiceNameLocalizer.Localize(a.Service?.ServiceName ?? "—"))</td>
+                        <td><span class="badge badge-@AppointmentStatuses.BadgeCssClass(a.Status)">@a.Status</span></td>
+                        <td>@a.TotalPrice.ToString("N2")</td>
+                        <td>
+                            <form asp-action="DeleteAppointment" asp-route-id="@a.AppointmentId" method="post" class="admin-row-actions__form" onsubmit="return confirm('Permanently delete this appointment?');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="returnStatus" value="@(ViewBag.Status as string ?? "")" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">حذف</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

@@ -24,6 +24,7 @@ public class PatientController : Controller
     private readonly HomeNursingSystem.Data.ApplicationDbContext _db;
     private readonly IFileUploadService _files;
     private readonly IConfiguration _config;
+    private readonly IProviderAvailabilityService _availability;
 
     public PatientController(
         IAppointmentService appointments,
@@ -34,7 +35,8 @@ public class PatientController : Controller
         IClinicBrowseService clinics,
         HomeNursingSystem.Data.ApplicationDbContext db,
         IFileUploadService files,
-        IConfiguration config)
+        IConfiguration config,
+        IProviderAvailabilityService availability)
     {
         _appointments = appointments;
         _apptRepo = apptRepo;
@@ -45,6 +47,21 @@ public class PatientController : Controller
         _db = db;
         _files = files;
         _config = config;
+        _availability = availability;
+    }
+
+    [HttpGet("book/availability")]
+    public async Task<IActionResult> BookAvailability(int? nurseProfileId, int? clinicId, CancellationToken ct)
+    {
+        var hasNurse = nurseProfileId is > 0;
+        var hasClinic = clinicId is > 0;
+        if (hasNurse == hasClinic)
+            return BadRequest();
+        var json = await _availability.GetPatientBookAvailabilityAsync(
+            hasNurse ? nurseProfileId : null,
+            hasClinic ? clinicId : null,
+            ct);
+        return Json(json);
     }
 
     [HttpGet("dashboard")]

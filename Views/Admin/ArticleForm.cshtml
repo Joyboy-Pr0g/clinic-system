@@ -2,8 +2,11 @@
 @{ ViewData["Title"] = Model.ArticleId.HasValue ? "تعديل مقال" : "مقال جديد"; }
 @section Sidebar { <partial name="_Sidebar" /> }
 
-<h1 class="page-title">@ViewData["Title"]</h1>
-<div class="form-card">
+<div class="admin-page">
+    <header class="admin-page__head">
+        <h1 class="admin-page__title">@ViewData["Title"]</h1>
+    </header>
+    <div class="form-card">
 <form asp-action="SaveArticle" method="post" enctype="multipart/form-data" class="form-stack wide" style="max-width:none" data-loading>
     @Html.AntiForgeryToken()
     <input type="hidden" asp-for="ArticleId" />
@@ -24,5 +27,6 @@
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>
     <button type="submit" class="btn btn-primary">حفظ</button>
 </form>
+    </div>
 </div>
 @section Scripts { <partial name="_ValidationScriptsPartial" /> }

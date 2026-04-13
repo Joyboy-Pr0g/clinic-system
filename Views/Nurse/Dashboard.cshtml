@@ -27,16 +27,6 @@
                     <td>@r.ServiceName</td>
                     <td>@r.TotalPrice.ToString("N2")</td>
                     <td>
-                        <form asp-controller="Nurse" asp-action="SetStatus" asp-route-id="@r.AppointmentId" method="post" style="display:inline">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="status" value="Approved" />
-                            <button type="submit" class="btn btn-sm btn-primary">قبول</button>
-                        </form>
-                        <form asp-controller="Nurse" asp-action="SetStatus" asp-route-id="@r.AppointmentId" method="post" style="display:inline">
-                            @Html.AntiForgeryToken()
-                            <input type="hidden" name="status" value="Cancelled" />
-                            <button type="submit" class="btn btn-sm btn-ghost">رفض</button>
-                        </form>
                         <a asp-action="AppointmentDetail" asp-route-id="@r.AppointmentId" class="btn btn-sm btn-outline" style="margin-inline-start:0.25rem">تفاصيل</a>
                     </td>
                 </tr>

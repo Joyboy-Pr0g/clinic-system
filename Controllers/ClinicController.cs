@@ -1,3 +1,4 @@
+using System.Globalization;
 using HomeNursingSystem.Data;
 using HomeNursingSystem.Data.Repositories;
 using HomeNursingSystem.Models;
@@ -151,6 +152,54 @@ public class ClinicController : Controller
         await _apptRepo.SaveChangesAsync(ct);
         TempData["Success"] = "تم حذف الموعد من سجل العيادة.";
         return RedirectToAction(nameof(Appointments));
+    }
+
+    [HttpGet("availability")]
+    public async Task<IActionResult> Availability(CancellationToken ct)
+    {
+        var user = await _users.GetUserAsync(User);
+        var clinic = await _clinics.GetByOwnerIdAsync(user!.Id, ct);
+        if (clinic == null) return NotFound();
+        var slots = await _db.ClinicWeeklySlots.Where(s => s.ClinicId == clinic.ClinicId).ToListAsync(ct);
+        var vm = WeeklyAvailabilityEditVM.CreateDefault();
+        foreach (var row in vm.Days)
+        {
+            var m = slots.FirstOrDefault(s => s.DayOfWeek == row.DayOfWeek);
+            if (m != null)
+            {
+                row.Enabled = true;
+                row.Start = m.StartTime.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
+                row.End = m.EndTime.ToString(@"hh\:mm", CultureInfo.InvariantCulture);
+            }
+        }
+        return View(vm);
+    }
+
+    [HttpPost("availability")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Availability(WeeklyAvailabilityEditVM model, CancellationToken ct)
+    {
+        var user = await _users.GetUserAsync(User);
+        var clinic = await _db.Clinics.FirstAsync(x => x.OwnerId == user!.Id, ct);
+        _db.ClinicWeeklySlots.RemoveRange(_db.ClinicWeeklySlots.Where(s => s.ClinicId == clinic.ClinicId));
+        await _db.SaveChangesAsync(ct);
+        foreach (var d in model.Days.Where(x => x.Enabled))
+        {
+            if (string.IsNullOrWhiteSpace(d.Start) || string.IsNullOrWhiteSpace(d.End)) continue;
+            if (!TimeSpan.TryParseExact(d.Start.Trim(), @"hh\:mm", CultureInfo.InvariantCulture, out var st)) continue;
+            if (!TimeSpan.TryParseExact(d.End.Trim(), @"hh\:mm", CultureInfo.InvariantCulture, out var en)) continue;
+            if (en <= st) continue;
+            _db.ClinicWeeklySlots.Add(new ClinicWeeklySlot
+            {
+                ClinicId = clinic.ClinicId,
+                DayOfWeek = d.DayOfWeek,
+                StartTime = st,
+                EndTime = en
+            });
+        }
+        await _db.SaveChangesAsync(ct);
+        TempData["Success"] = "تم حفظ أوقات التوفر الأسبوعية.";
+        return RedirectToAction(nameof(Availability));
     }
 
     [HttpGet("profile")]

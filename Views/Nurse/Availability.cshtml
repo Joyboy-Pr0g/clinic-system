@@ -1,0 +1,30 @@
+@model WeeklyAvailabilityEditVM
+@using System.Globalization
+@{
+    Layout = "_DashboardLayout";
+    ViewData["Title"] = "أوقات التوفر";
+    string DayName(DayOfWeek d) => CultureInfo.GetCultureInfo("ar-SA").DateTimeFormat.GetDayName(d);
+}
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<h1 class="page-title">أوقات التوفر الأسبوعية</h1>
+<p class="muted" style="max-width:42rem">فعّل الأيام التي تستقبل فيها الحجوزات وحدد نافذة زمنية لكل يوم. يظهر للمريض أسبوع قادم من المواعيد بشرائح ساعة واحدة ضمن هذه النوافذ.</p>
+
+<div class="form-card">
+    <form asp-action="Availability" method="post" class="form-stack wide" style="max-width:none" data-loading>
+        @Html.AntiForgeryToken()
+        @for (var i = 0; i < Model.Days.Count; i++)
+        {
+            <input type="hidden" asp-for="Days[i].DayOfWeek" />
+            <div class="availability-day-row card" style="padding:1rem;display:grid;grid-template-columns:auto 1fr 1fr;gap:1rem;align-items:end">
+                <label class="availability-day-row__check" style="margin:0;font-weight:600">
+                    <input type="checkbox" asp-for="Days[i].Enabled" />
+                    @DayName(Model.Days[i].DayOfWeek)
+                </label>
+                <div class="field" style="margin:0"><label asp-for="Days[i].Start"></label><input asp-for="Days[i].Start" type="time" step="60" /></div>
+                <div class="field" style="margin:0"><label asp-for="Days[i].End"></label><input asp-for="Days[i].End" type="time" step="60" /></div>
+            </div>
+        }
+        <button type="submit" class="btn btn-primary">حفظ الجدول</button>
+    </form>
+</div>

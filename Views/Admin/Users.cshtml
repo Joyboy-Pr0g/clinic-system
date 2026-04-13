@@ -1,40 +1,58 @@
 @model List<HomeNursingSystem.Models.ApplicationUser>
+@using System.Security.Claims
 @{
     ViewData["Title"] = "المستخدمون";
     var roles = ViewBag.Roles as Dictionary<string, IList<string>> ?? new Dictionary<string, IList<string>>();
+    var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 }
 @section Sidebar { <partial name="_Sidebar" /> }
 
-<h1 class="page-title">المستخدمون</h1>
-<div class="table-wrap">
-    <table class="data-table">
-        <thead><tr><th>الاسم</th><th>البريد</th><th>الأدوار</th><th>نشط</th><th></th></tr></thead>
-        <tbody>
-        @foreach (var u in Model)
-        {
-            <tr>
-                <td>@u.FullName</td>
-                <td>@u.Email</td>
-                <td>@string.Join("، ", roles.GetValueOrDefault(u.Id) ?? Array.Empty<string>())</td>
-                <td>@(u.IsActive ? "نعم" : "لا")</td>
-                <td>
-                    @if (u.IsActive)
-                    {
-                        <form asp-action="SuspendUser" asp-route-id="@u.Id" method="post" style="display:inline" onsubmit="return confirm('تعليق هذا المستخدم؟');">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-ghost">تعليق</button>
-                        </form>
-                    }
-                    else
-                    {
-                        <form asp-action="UnsuspendUser" asp-route-id="@u.Id" method="post" style="display:inline" onsubmit="return confirm('إلغاء التعليق؟');">
-                            @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-primary">إلغاء التعليق</button>
-                        </form>
-                    }
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+<div class="admin-page">
+    <header class="admin-page__head">
+        <h1 class="admin-page__title">المستخدمون</h1>
+        <p class="admin-page__lead muted">تعليق أو حذف نهائي. لا يمكن حذف حسابك الحالي أو آخر مدير في النظام.</p>
+    </header>
+    <div class="admin-table-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>الاسم</th><th>البريد</th><th>الأدوار</th><th>نشط</th><th>إجراءات</th></tr></thead>
+                <tbody>
+                @foreach (var u in Model)
+                {
+                    <tr>
+                        <td>@u.FullName</td>
+                        <td>@u.Email</td>
+                        <td>@string.Join("، ", roles.GetValueOrDefault(u.Id) ?? Array.Empty<string>())</td>
+                        <td>@(u.IsActive ? "نعم" : "لا")</td>
+                        <td>
+                            <div class="admin-row-actions">
+                                @if (u.IsActive)
+                                {
+                                    <form asp-action="SuspendUser" asp-route-id="@u.Id" method="post" class="admin-row-actions__form" onsubmit="return confirm('Suspend this user?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-ghost">تعليق</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form asp-action="UnsuspendUser" asp-route-id="@u.Id" method="post" class="admin-row-actions__form" onsubmit="return confirm('Unsuspend this user?');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-primary">إلغاء التعليق</button>
+                                    </form>
+                                }
+                                @if (!string.Equals(u.Id, currentUserId, StringComparison.Ordinal))
+                                {
+                                    <form asp-action="DeleteUser" asp-route-id="@u.Id" method="post" class="admin-row-actions__form" onsubmit="return confirm('Permanently delete this user and all related data (clinics, nurse profile, appointments)? This cannot be undone.');">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-outline-danger">حذف نهائي</button>
+                                    </form>
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

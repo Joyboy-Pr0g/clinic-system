@@ -11,15 +11,18 @@ public class AppointmentService : IAppointmentService
     private readonly IAppointmentRepository _appointments;
     private readonly ApplicationDbContext _db;
     private readonly INotificationService _notifications;
+    private readonly IProviderAvailabilityService _availability;
 
     public AppointmentService(
         IAppointmentRepository appointments,
         ApplicationDbContext db,
-        INotificationService notifications)
+        INotificationService notifications,
+        IProviderAvailabilityService availability)
     {
         _appointments = appointments;
         _db = db;
         _notifications = notifications;
+        _availability = availability;
     }
 
     public async Task<PatientDashboardVM> GetPatientDashboardAsync(string patientId, CancellationToken ct = default)
@@ -231,6 +234,20 @@ public class AppointmentService : IAppointmentService
         else
             return (false, "نوع الحجز غير صالح.", null);
 
+        var apptUtc = model.AppointmentDate.Kind == DateTimeKind.Utc
+            ? model.AppointmentDate
+            : model.AppointmentDate.ToUniversalTime();
+        if (model.BookType.Equals("Nurse", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!await _availability.IsBookingAllowedAsync(true, nurseId!.Value, apptUtc, ct))
+                return (false, "الموعد غير متاح في جدول الممرض أو محجوز. اختر وقتاً من القائمة.", null);
+        }
+        else
+        {
+            if (!await _availability.IsBookingAllowedAsync(false, clinicId!.Value, apptUtc, ct))
+                return (false, "الموعد غير متاح في جدول العيادة أو محجوز. اختر وقتاً من القائمة.", null);
+        }
+
         var appt = new Appointment
         {
             PatientId = patientId,
@@ -239,7 +256,7 @@ public class AppointmentService : IAppointmentService
             ServiceId = serviceId,
             ClinicServiceId = clinicServiceId,
             NurseListingServiceId = nurseListingServiceId,
-            AppointmentDate = model.AppointmentDate.ToUniversalTime(),
+            AppointmentDate = apptUtc,
             AddressText = model.AddressText,
             Latitude = model.Latitude,
             Longitude = model.Longitude,

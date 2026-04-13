@@ -12,12 +12,12 @@
     var detailStep = providerLocked ? 1 : 2;
     var confirmStep = providerLocked ? 2 : 3;
     var maxStep = providerLocked ? 2 : 3;
-    var apptLocal = Model.AppointmentDate;
-    if (apptLocal.Kind == DateTimeKind.Utc)
-        apptLocal = apptLocal.ToLocalTime();
-    else if (apptLocal.Kind == DateTimeKind.Unspecified)
-        apptLocal = DateTime.SpecifyKind(apptLocal, DateTimeKind.Local);
-    var apptInputValue = apptLocal.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
+    var apptUtcHidden = Model.AppointmentDate.Year >= 2000
+        ? (Model.AppointmentDate.Kind == DateTimeKind.Utc ? Model.AppointmentDate : Model.AppointmentDate.ToUniversalTime())
+        : (DateTime?)null;
+    var apptHiddenValue = apptUtcHidden.HasValue
+        ? apptUtcHidden.Value.ToString("yyyy-MM-dd'T'HH:mm:ss.fff'Z'", CultureInfo.InvariantCulture)
+        : "";
 }
 @section Sidebar { <partial name="_Sidebar" /> }
 
@@ -100,9 +100,12 @@
             <span asp-validation-for="ClinicServiceId"></span>
             <p class="muted" style="margin:0.35rem 0 0;font-size:0.88rem;display:none" data-clinic-services-empty>هذه العيادة لم تضف خدمات بعد؛ تواصل مع العيادة أو جرّب لاحقاً.</p>
         </div>
-        <div class="field field-ltr">
+        <div class="field book-slot-field">
             <label style="text-align: right;" asp-for="AppointmentDate">موعد الزيارة</label>
-            <input type="datetime-local" name="AppointmentDate" id="AppointmentDate" value="@apptInputValue" />
+            <p class="muted book-slot-field__hint" style="margin:0 0 0.5rem;font-size:0.9rem" data-book-slot-hint>اختر اليوم ثم الساعة من الأوقات المتاحة لدى مقدم الخدمة.</p>
+            <div class="book-week-strip" data-book-week-strip role="group" aria-label="أيام الأسبوع"></div>
+            <div class="book-time-chips" data-book-time-chips role="group" aria-label="الأوقات"></div>
+            <input type="hidden" name="AppointmentDate" id="AppointmentDate" value="@apptHiddenValue" autocomplete="off" />
             <span asp-validation-for="AppointmentDate"></span>
         </div>
         <div class="field">
@@ -137,7 +140,7 @@
     <h3>ملخص سريع</h3>
     <ul class="muted" style="padding-inline-start:1.1rem;margin:0;font-size:0.95rem;line-height:1.7">
         <li>اختر الممرض أو العيادة</li>
-        <li>حدد الخدمة والموعد</li>
+        <li>حدد الخدمة ثم اليوم والساعة من جدول التوفر</li>
         <li>أدخل العنوان أو الموقع على الخريطة</li>
         <li>راجع ثم أرسل الطلب</li>
     </ul>
@@ -195,6 +198,113 @@
             var detailStep = @detailStep;
             var clinicServicesCatalog = @Html.Raw(clinicServicesJson);
             var nurseServicesCatalog = @Html.Raw(nurseServicesJson);
+            var availabilityData = null;
+
+            function clearSlotPicker() {
+                availabilityData = null;
+                var strip = document.querySelector("[data-book-week-strip]");
+                var chips = document.querySelector("[data-book-time-chips]");
+                if (strip) strip.innerHTML = "";
+                if (chips) chips.innerHTML = "";
+                var h = document.getElementById("AppointmentDate");
+                if (h) h.value = "";
+            }
+
+            function fetchAvailability() {
+                var nurseEl = document.querySelector('select[name="NurseProfileId"]') || document.querySelector('input[name="NurseProfileId"]');
+                var clinicEl = document.querySelector('select[name="ClinicId"]') || document.querySelector('input[name="ClinicId"]');
+                var url = "/patient/book/availability?";
+                if (isClinicBooking()) {
+                    var cid = clinicEl && clinicEl.value ? clinicEl.value : "";
+                    if (!cid) { clearSlotPicker(); return; }
+                    url += "clinicId=" + encodeURIComponent(cid);
+                } else {
+                    var npid = nurseEl && nurseEl.value ? nurseEl.value : "";
+                    if (!npid) { clearSlotPicker(); return; }
+                    url += "nurseProfileId=" + encodeURIComponent(npid);
+                }
+                fetch(url)
+                    .then(function (res) {
+                        if (!res.ok) { clearSlotPicker(); return null; }
+                        return res.json();
+                    })
+                    .then(function (data) {
+                        if (!data) return;
+                        availabilityData = data;
+                        renderSlotPicker();
+                    })
+                    .catch(function () { clearSlotPicker(); });
+            }
+
+            function renderSlotPicker() {
+                var strip = document.querySelector("[data-book-week-strip]");
+                var chips = document.querySelector("[data-book-time-chips]");
+                var hint = document.querySelector("[data-book-slot-hint]");
+                if (!strip || !chips) return;
+                strip.innerHTML = "";
+                chips.innerHTML = "";
+                if (!availabilityData || !availabilityData.days || !availabilityData.days.length) {
+                    if (hint) hint.textContent = "لا توجد أوقات في الجدول لهذا المقدّم. اختر جهة أخرى أو اطلب تحديث أوقات التوفر.";
+                    return;
+                }
+                var hasAny = availabilityData.days.some(function (d) { return d.slots && d.slots.length; });
+                if (hint) {
+                    hint.textContent = hasAny
+                        ? "اختر اليوم ثم الساعة من الأوقات المتاحة لدى مقدم الخدمة."
+                        : "لا توجد أوقات متاحة في الأسبوع القادم. جرّب مقدّماً آخر.";
+                }
+                if (!hasAny) return;
+
+                var hiddenEl = document.getElementById("AppointmentDate");
+                var presetUtc = hiddenEl && hiddenEl.value ? hiddenEl.value : "";
+                var presetDayIdx = -1;
+                if (presetUtc) {
+                    availabilityData.days.forEach(function (d, i) {
+                        if (presetDayIdx >= 0) return;
+                        if ((d.slots || []).some(function (s) { return s.utcIso === presetUtc; })) presetDayIdx = i;
+                    });
+                }
+                availabilityData.days.forEach(function (day) {
+                    var btn = document.createElement("button");
+                    btn.type = "button";
+                    btn.className = "book-week-day" + (day.slots && day.slots.length ? "" : " book-week-day--empty");
+                    btn.textContent = day.weekdayLabel || day.date || "";
+                    btn.disabled = !day.slots || day.slots.length === 0;
+                    btn.addEventListener("click", function () {
+                        strip.querySelectorAll(".book-week-day").forEach(function (b) { b.classList.remove("is-active"); });
+                        btn.classList.add("is-active");
+                        var h = document.getElementById("AppointmentDate");
+                        var cur = h ? h.value : "";
+                        var stillValid = (day.slots || []).some(function (s) { return s.utcIso === cur; });
+                        if (h && !stillValid) h.value = "";
+                        renderTimeChips(day);
+                    });
+                    strip.appendChild(btn);
+                });
+                var firstIdx = presetDayIdx >= 0 ? presetDayIdx : availabilityData.days.findIndex(function (d) { return d.slots && d.slots.length; });
+                if (firstIdx >= 0 && strip.children[firstIdx]) strip.children[firstIdx].click();
+            }
+
+            function renderTimeChips(day) {
+                var chips = document.querySelector("[data-book-time-chips]");
+                if (!chips) return;
+                chips.innerHTML = "";
+                var hidden = document.getElementById("AppointmentDate");
+                var cur = hidden ? hidden.value : "";
+                (day.slots || []).forEach(function (slot) {
+                    var b = document.createElement("button");
+                    b.type = "button";
+                    b.className = "book-time-chip";
+                    b.textContent = slot.timeLabel || "";
+                    if (cur && slot.utcIso === cur) b.classList.add("is-active");
+                    b.addEventListener("click", function () {
+                        chips.querySelectorAll(".book-time-chip").forEach(function (x) { x.classList.remove("is-active"); });
+                        b.classList.add("is-active");
+                        if (hidden) hidden.value = slot.utcIso;
+                    });
+                    chips.appendChild(b);
+                });
+            }
 
             function clearStepMessages() {
                 document.querySelectorAll("[data-step-validation-msg]").forEach(function (el) {
@@ -307,6 +417,7 @@
                     var npid = npEl ? npEl.value : "";
                     fillNurseServices(npid);
                 }
+                fetchAvailability();
             }
 
             function validateDetailsStep() {
@@ -324,12 +435,8 @@
                     }
                 }
                 var dt = document.getElementById("AppointmentDate");
-                if (!dt || !dt.value) {
-                    setStepMessage(detailStep, "يرجى تحديد تاريخ ووقت الزيارة.");
-                    return false;
-                }
-                if (typeof dt.checkValidity === "function" && !dt.checkValidity()) {
-                    setStepMessage(detailStep, "تاريخ أو وقت الزيارة غير صالح.");
+                if (!dt || !String(dt.value || "").trim()) {
+                    setStepMessage(detailStep, "يرجى اختيار اليوم والساعة من جدول التوفر.");
                     return false;
                 }
                 var addr = document.querySelector('input[name="AddressText"]');
@@ -364,8 +471,9 @@
 
             document.querySelectorAll("[data-next-step]").forEach(function (b) {
                 b.addEventListener("click", function () {
-                    if (!canLeaveStep(step)) return;
-                    if (step === 1) {
+                    var cur = step;
+                    if (!canLeaveStep(cur)) return;
+                    if (cur === 1) {
                         if (isClinicBooking()) {
                             var cidEl = document.querySelector('select[name="ClinicId"]') || document.querySelector('input[name="ClinicId"]');
                             if (cidEl) fillClinicServices(cidEl.value);
@@ -374,7 +482,9 @@
                             if (npEl) fillNurseServices(npEl.value);
                         }
                     }
-                    show(Math.min(maxStep, step + 1));
+                    var nextStep = Math.min(maxStep, cur + 1);
+                    show(nextStep);
+                    if (nextStep === detailStep) fetchAvailability();
                 });
             });
             document.querySelectorAll("[data-prev-step]").forEach(function (b) {
@@ -401,13 +511,19 @@
             var clinicSel = document.querySelector('select[name="ClinicId"]');
             if (clinicSel) {
                 clinicSel.addEventListener("change", function () {
-                    if (isClinicBooking()) fillClinicServices(clinicSel.value);
+                    if (isClinicBooking()) {
+                        fillClinicServices(clinicSel.value);
+                        fetchAvailability();
+                    }
                 });
             }
             var nurseSel = document.querySelector('select[name="NurseProfileId"]');
             if (nurseSel) {
                 nurseSel.addEventListener("change", function () {
-                    if (!isClinicBooking()) fillNurseServices(nurseSel.value);
+                    if (!isClinicBooking()) {
+                        fillNurseServices(nurseSel.value);
+                        fetchAvailability();
+                    }
                 });
             }
             toggleType();

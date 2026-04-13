@@ -2,72 +2,82 @@
 @{ ViewData["Title"] = "الممرضون"; }
 @section Sidebar { <partial name="_Sidebar" /> }
 
-<h1 class="page-title">الممرضون</h1>
-<p class="muted">راجع الملف الشخصي العام أو وثيقة التصريح ثم قبول أو رفض أو تعليق الحساب.</p>
-<div class="table-wrap">
-    <table class="data-table">
-        <thead><tr><th>صورة</th><th>الاسم</th><th>التخصص</th><th>الحالة</th><th>إجراءات</th></tr></thead>
-        <tbody>
-        @foreach (var n in Model)
-        {
-            var status = n.IsRejectedByAdmin ? "مرفوض" : n.IsVerified ? "مقبول" : "بانتظار المراجعة";
-            <tr>
-                <td>
-                    @if (!string.IsNullOrEmpty(n.User.ProfileImagePath))
-                    {
-                        <img class="table-thumb" src="@n.User.ProfileImagePath" alt="" width="56" height="56" />
-                    }
-                    else
-                    {
-                        <span class="muted">—</span>
-                    }
-                </td>
-                <td>@n.User.FullName</td>
-                <td>@n.Specialization</td>
-                <td><span class="badge @(n.IsRejectedByAdmin ? "badge-cancelled" : n.IsVerified ? "badge-approved" : "badge-pending")">@status</span></td>
-                <td>
-                    <div class="admin-row-actions">
-                        @if (n.IsVerified)
-                        {
-                            <a class="btn btn-sm btn-outline-edit" asp-controller="Nurse" asp-action="Details" asp-route-id="@n.NurseProfileId" target="_blank" rel="noopener">عرض ملف الممرض</a>
-                        }
-                        @if (!n.IsVerified && !n.IsRejectedByAdmin)
-                        {
-                            <form asp-action="VerifyNurse" asp-route-id="@n.NurseProfileId" method="post" class="admin-row-actions__form">
-                                @Html.AntiForgeryToken()
-                                <button type="submit" class="btn btn-sm btn-primary">قبول</button>
-                            </form>
-                            <form asp-action="RejectNurse" asp-route-id="@n.NurseProfileId" method="post" class="admin-row-actions__form admin-row-actions__form--wide">
-                                @Html.AntiForgeryToken()
-                                <input type="text" name="note" class="admin-reject-note" placeholder="سبب الرفض (اختياري)" maxlength="500" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Reject this nurse?');">رفض</button>
-                            </form>
-                        }
-                        else if (n.IsVerified)
-                        {
-                            @if (n.User.IsActive)
+<div class="admin-page">
+    <header class="admin-page__head">
+        <h1 class="admin-page__title">الممرضون</h1>
+        <p class="admin-page__lead muted">راجع الملف الشخصي العام أو وثيقة التصريح ثم قبول أو رفض أو تعليق الحساب. الحذف النهائي يزيل الحساب وجميع الحجوزات المرتبطة.</p>
+    </header>
+    <div class="admin-table-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>صورة</th><th>الاسم</th><th>التخصص</th><th>الحالة</th><th>إجراءات</th></tr></thead>
+                <tbody>
+                @foreach (var n in Model)
+                {
+                    var status = n.IsRejectedByAdmin ? "مرفوض" : n.IsVerified ? "مقبول" : "بانتظار المراجعة";
+                    <tr>
+                        <td>
+                            @if (!string.IsNullOrEmpty(n.User.ProfileImagePath))
                             {
-                                <form asp-action="SuspendNurse" asp-route-id="@n.NurseProfileId" method="post" class="admin-row-actions__form" onsubmit="return confirm('Suspend this nurse?');">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-ghost">تعليق</button>
-                                </form>
+                                <img class="table-thumb" src="@n.User.ProfileImagePath" alt="" width="56" height="56" />
                             }
                             else
                             {
-                                <form asp-action="UnsuspendNurse" asp-route-id="@n.NurseProfileId" method="post" class="admin-row-actions__form">
-                                    @Html.AntiForgeryToken()
-                                    <button type="submit" class="btn btn-sm btn-unban">إلغاء التعليق</button>
-                                </form>
+                                <span class="muted">—</span>
                             }
-                        }
-                        @if (!string.IsNullOrEmpty(n.LicenseImagePath))
-                        {
-                            <a class="btn btn-sm btn-outline-edit" href="@Url.Action("ViewLicense", new { id = n.NurseProfileId })" target="_blank" rel="noopener">عرض الوثيقة</a>
-                        }
-                    </div>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+                        </td>
+                        <td>@n.User.FullName</td>
+                        <td>@n.Specialization</td>
+                        <td><span class="badge @(n.IsRejectedByAdmin ? "badge-cancelled" : n.IsVerified ? "badge-approved" : "badge-pending")">@status</span></td>
+                        <td>
+                            <div class="admin-row-actions">
+                                @if (n.IsVerified)
+                                {
+                                    <a class="btn btn-sm btn-outline-edit" asp-controller="Nurse" asp-action="Details" asp-route-id="@n.NurseProfileId" target="_blank" rel="noopener">عرض ملف الممرض</a>
+                                }
+                                @if (!n.IsVerified && !n.IsRejectedByAdmin)
+                                {
+                                    <form asp-action="VerifyNurse" asp-route-id="@n.NurseProfileId" method="post" class="admin-row-actions__form">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-primary">قبول</button>
+                                    </form>
+                                    <form asp-action="RejectNurse" asp-route-id="@n.NurseProfileId" method="post" class="admin-row-actions__form admin-row-actions__form--wide">
+                                        @Html.AntiForgeryToken()
+                                        <input type="text" name="note" class="admin-reject-note" placeholder="سبب الرفض (اختياري)" maxlength="500" />
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Reject this nurse request?');">رفض</button>
+                                    </form>
+                                }
+                                else if (n.IsVerified)
+                                {
+                                    @if (n.User.IsActive)
+                                    {
+                                        <form asp-action="SuspendNurse" asp-route-id="@n.NurseProfileId" method="post" class="admin-row-actions__form" onsubmit="return confirm('Suspend this nurse?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-ghost">تعليق</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <form asp-action="UnsuspendNurse" asp-route-id="@n.NurseProfileId" method="post" class="admin-row-actions__form">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-unban">إلغاء التعليق</button>
+                                        </form>
+                                    }
+                                }
+                                @if (!string.IsNullOrEmpty(n.LicenseImagePath))
+                                {
+                                    <a class="btn btn-sm btn-outline-edit" href="@Url.Action("ViewLicense", new { id = n.NurseProfileId })" target="_blank" rel="noopener">عرض الوثيقة</a>
+                                }
+                                <form asp-action="DeleteNurse" asp-route-id="@n.NurseProfileId" method="post" class="admin-row-actions__form" onsubmit="return confirm('Permanently delete this nurse, their account, and all related data? This cannot be undone.');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">حذف نهائي</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

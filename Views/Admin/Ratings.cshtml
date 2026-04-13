@@ -2,27 +2,43 @@
 @{ ViewData["Title"] = "التقييمات"; }
 @section Sidebar { <partial name="_Sidebar" /> }
 
-<h1 class="page-title">إدارة التقييمات</h1>
-<div class="table-wrap">
-    <table class="data-table">
-        <thead><tr><th>موعد</th><th>النوع</th><th>المريض</th><th>التاريخ</th><th>النجوم</th><th>تعليق</th><th>معتمد</th><th></th></tr></thead>
-        <tbody>
-        @foreach (var r in Model)
-        {
-            <tr>
-                <td>@r.AppointmentId</td>
-                <td>@r.TargetType</td>
-                <td>@r.Patient.FullName</td>
-                <td>@r.CreatedAt.ToLocalTime().ToString("g")</td>
-                <td><span class="stars-readonly" style="font-size:0.95rem">@string.Join("", Enumerable.Repeat("★", r.Stars))</span></td>
-                <td>@(r.Comment?.Length > 80 ? r.Comment[..80] + "…" : r.Comment)</td>
-                <td>@(r.IsApproved ? "نعم" : "لا")</td>
-                <td>
-                    <form asp-action="ApproveRating" asp-route-id="@r.RatingId" method="post" style="display:inline">@Html.AntiForgeryToken()<input type="hidden" name="approved" value="@(r.IsApproved ? "false" : "true")" /><button type="submit" class="btn btn-sm btn-outline-edit">@(r.IsApproved ? "إخفاء" : "اعتماد")</button></form>
-                    <form asp-action="DeleteRating" asp-route-id="@r.RatingId" method="post" style="display:inline" onsubmit="return confirm('Delete rating?');">@Html.AntiForgeryToken()<button type="submit" class="btn btn-sm btn-outline-danger">حذف</button></form>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+<div class="admin-page">
+    <header class="admin-page__head">
+        <h1 class="admin-page__title">إدارة التقييمات</h1>
+        <p class="admin-page__lead muted">اعتماد أو إخفاء التقييم، أو حذفه نهائياً.</p>
+    </header>
+    <div class="admin-table-card">
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th>موعد</th><th>النوع</th><th>المريض</th><th>التاريخ</th><th>النجوم</th><th>تعليق</th><th>معتمد</th><th>إجراءات</th></tr></thead>
+                <tbody>
+                @foreach (var r in Model)
+                {
+                    <tr>
+                        <td>@r.AppointmentId</td>
+                        <td>@r.TargetType</td>
+                        <td>@r.Patient.FullName</td>
+                        <td>@r.CreatedAt.ToLocalTime().ToString("g")</td>
+                        <td><span class="stars-readonly" style="font-size:0.95rem">@string.Join("", Enumerable.Repeat("★", r.Stars))</span></td>
+                        <td>@(r.Comment?.Length > 80 ? r.Comment[..80] + "…" : r.Comment)</td>
+                        <td>@(r.IsApproved ? "نعم" : "لا")</td>
+                        <td>
+                            <div class="service-table-actions">
+                                <form asp-action="ApproveRating" asp-route-id="@r.RatingId" method="post" style="display:inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="approved" value="@(r.IsApproved ? "false" : "true")" />
+                                    <button type="submit" class="btn btn-sm btn-outline-edit">@(r.IsApproved ? "إخفاء" : "اعتماد")</button>
+                                </form>
+                                <form asp-action="DeleteRating" asp-route-id="@r.RatingId" method="post" style="display:inline" onsubmit="return confirm('Delete this rating?');">
+                                    @Html.AntiForgeryToken()
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">حذف</button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>

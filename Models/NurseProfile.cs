@@ -24,6 +24,7 @@ public class NurseProfile
 
     public ICollection<NurseServiceLink> NurseServices { get; set; } = new List<NurseServiceLink>();
     public ICollection<NurseListingService> NurseListingServices { get; set; } = new List<NurseListingService>();
+    public ICollection<NurseWeeklySlot> WeeklySlots { get; set; } = new List<NurseWeeklySlot>();
     public ICollection<Appointment> Appointments { get; set; } = new List<Appointment>();
     public ICollection<Rating> Ratings { get; set; } = new List<Rating>();
 }

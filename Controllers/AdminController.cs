@@ -101,6 +101,21 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Nurses));
     }
 
+    [HttpPost("nurses/{id:int}/delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteNurse(int id, CancellationToken ct)
+    {
+        var np = await _db.NurseProfiles.AsNoTracking().FirstOrDefaultAsync(n => n.NurseProfileId == id, ct);
+        if (np == null) return NotFound();
+        await AdminDeleteNurseDataAsync(id, ct);
+        await AdminDeleteUserContentAsync(np.UserId, ct);
+        var user = await _users.FindByIdAsync(np.UserId);
+        if (user != null)
+            await _users.DeleteAsync(user);
+        TempData["Success"] = "تم حذف الممرض وحسابه وبياناته من النظام.";
+        return RedirectToAction(nameof(Nurses));
+    }
+
     [HttpGet("nurses/{id:int}/license")]
     public async Task<IActionResult> ViewLicense(int id, CancellationToken ct)
     {
@@ -197,6 +212,17 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Clinics));
     }
 
+    [HttpPost("clinics/{id:int}/delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteClinic(int id, CancellationToken ct)
+    {
+        var exists = await _db.Clinics.AnyAsync(c => c.ClinicId == id, ct);
+        if (!exists) return NotFound();
+        await AdminDeleteClinicDataAsync(id, ct);
+        TempData["Success"] = "تم حذف العيادة وجميع الحجوزات والخدمات المرتبطة بها.";
+        return RedirectToAction(nameof(Clinics));
+    }
+
     [HttpGet("users")]
     public async Task<IActionResult> Users(CancellationToken ct)
     {
@@ -232,6 +258,43 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Users));
     }
 
+    [HttpPost("users/{id}/delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteUser(string id, CancellationToken ct)
+    {
+        var currentId = _users.GetUserId(User);
+        if (string.Equals(id, currentId, StringComparison.Ordinal))
+        {
+            TempData["Error"] = "لا يمكنك حذف حسابك الحالي.";
+            return RedirectToAction(nameof(Users));
+        }
+
+        var user = await _db.Users.Include(u => u.NurseProfile).FirstOrDefaultAsync(u => u.Id == id, ct);
+        if (user == null) return NotFound();
+
+        if (await _users.IsInRoleAsync(user, AppRoles.Admin))
+        {
+            var admins = await _users.GetUsersInRoleAsync(AppRoles.Admin);
+            if (admins.Count <= 1)
+            {
+                TempData["Error"] = "لا يمكن حذف آخر مدير في النظام.";
+                return RedirectToAction(nameof(Users));
+            }
+        }
+
+        var ownedClinicIds = await _db.Clinics.Where(c => c.OwnerId == id).Select(c => c.ClinicId).ToListAsync(ct);
+        foreach (var cid in ownedClinicIds)
+            await AdminDeleteClinicDataAsync(cid, ct);
+
+        if (user.NurseProfile != null)
+            await AdminDeleteNurseDataAsync(user.NurseProfile.NurseProfileId, ct);
+
+        await AdminDeleteUserContentAsync(id, ct);
+        await _users.DeleteAsync(user);
+        TempData["Success"] = "تم حذف المستخدم وجميع البيانات المرتبطة به.";
+        return RedirectToAction(nameof(Users));
+    }
+
     [HttpGet("appointments")]
     public async Task<IActionResult> Appointments(string? status, CancellationToken ct)
     {
@@ -260,6 +323,19 @@ public class AdminController : Controller
             .Take(500)
             .ToListAsync(ct);
         return View(list);
+    }
+
+    [HttpPost("appointments/{id:int}/delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteAppointment(int id, CancellationToken ct)
+    {
+        var n = await _db.Appointments.Where(a => a.AppointmentId == id).ExecuteDeleteAsync(ct);
+        if (n == 0) return NotFound();
+        TempData["Success"] = "تم حذف الموعد.";
+        var rs = Request.Form["returnStatus"].FirstOrDefault();
+        if (string.IsNullOrEmpty(rs))
+            return RedirectToAction(nameof(Appointments));
+        return RedirectToAction(nameof(Appointments), new { status = rs });
     }
 
     [HttpGet("articles")]
@@ -375,6 +451,15 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Contacts));
     }
 
+    [HttpPost("contacts/{id:int}/delete")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteContact(int id, CancellationToken ct)
+    {
+        await _db.ContactMessages.Where(m => m.ContactMessageId == id).ExecuteDeleteAsync(ct);
+        TempData["Success"] = "تم حذف الرسالة.";
+        return RedirectToAction(nameof(Contacts));
+    }
+
     [HttpGet("services")]
     public async Task<IActionResult> Services(CancellationToken ct)
     {
@@ -460,6 +545,23 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Services));
     }
 
+    [HttpPost("services/{id:int}/purge")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> PurgeService(int id, CancellationToken ct)
+    {
+        var used = await _db.Appointments.AnyAsync(a => a.ServiceId == id, ct)
+            || await _db.NurseServices.AnyAsync(ns => ns.ServiceId == id, ct);
+        if (used)
+        {
+            TempData["Error"] = "لا يمكن الحذف النهائي: الخدمة مرتبطة بحجوزات أو ممرضين. عطّلها بدلاً من ذلك.";
+            return RedirectToAction(nameof(Services));
+        }
+
+        await _db.Services.Where(s => s.ServiceId == id).ExecuteDeleteAsync(ct);
+        TempData["Success"] = "تم حذف الخدمة نهائياً من النظام.";
+        return RedirectToAction(nameof(Services));
+    }
+
     [HttpGet("articles/{id:int}/details")]
     public async Task<IActionResult> ArticleDetails(int id, CancellationToken ct)
     {
@@ -518,5 +620,31 @@ public class AdminController : Controller
             slug = $"{baseSlug}-{n}";
         }
         return slug;
+    }
+
+    private async Task AdminDeleteClinicDataAsync(int clinicId, CancellationToken ct)
+    {
+        await _db.Appointments.Where(a => a.ClinicId == clinicId).ExecuteDeleteAsync(ct);
+        await _db.Ratings.Where(r => r.ClinicId == clinicId).ExecuteDeleteAsync(ct);
+        await _db.ClinicServices.Where(s => s.ClinicId == clinicId).ExecuteDeleteAsync(ct);
+        await _db.ClinicWeeklySlots.Where(s => s.ClinicId == clinicId).ExecuteDeleteAsync(ct);
+        await _db.Clinics.Where(c => c.ClinicId == clinicId).ExecuteDeleteAsync(ct);
+    }
+
+    private async Task AdminDeleteNurseDataAsync(int nurseProfileId, CancellationToken ct)
+    {
+        await _db.Appointments.Where(a => a.NurseProfileId == nurseProfileId).ExecuteDeleteAsync(ct);
+        await _db.Ratings.Where(r => r.NurseProfileId == nurseProfileId).ExecuteDeleteAsync(ct);
+        await _db.NurseServices.Where(ns => ns.NurseProfileId == nurseProfileId).ExecuteDeleteAsync(ct);
+        await _db.NurseListingServices.Where(x => x.NurseProfileId == nurseProfileId).ExecuteDeleteAsync(ct);
+        await _db.NurseWeeklySlots.Where(x => x.NurseProfileId == nurseProfileId).ExecuteDeleteAsync(ct);
+        await _db.NurseProfiles.Where(n => n.NurseProfileId == nurseProfileId).ExecuteDeleteAsync(ct);
+    }
+
+    private async Task AdminDeleteUserContentAsync(string userId, CancellationToken ct)
+    {
+        await _db.Articles.Where(a => a.AuthorId == userId).ExecuteDeleteAsync(ct);
+        await _db.Notifications.Where(n => n.UserId == userId).ExecuteDeleteAsync(ct);
+        await _db.Appointments.Where(a => a.PatientId == userId).ExecuteDeleteAsync(ct);
     }
 }
