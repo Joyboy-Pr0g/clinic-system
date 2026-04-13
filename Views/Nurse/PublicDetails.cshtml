@@ -57,15 +57,22 @@
         <p>@Model.Bio</p>
 
         <h2 class="section-heading">الخدمات والأسعار</h2>
-        <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
-            @foreach (var s in Model.Services)
-            {
-                <div class="card card--border-hover">
-                    <strong><i class="fa-solid fa-hand-holding-medical" style="color:var(--color-primary)"></i> @s.ServiceName</strong>
-                    <p class="muted" style="margin:0.35rem 0 0">@s.Price.ToString("N2") ر.س</p>
-                </div>
-            }
-        </div>
+        @if (Model.Services.Count == 0)
+        {
+            <p class="muted">لم يُضف هذا الممرض خدماته بعد. يمكنك التواصل أو المحاولة لاحقاً بعد تحديث الملف.</p>
+        }
+        else
+        {
+            <div class="card-grid" style="grid-template-columns:repeat(auto-fill,minmax(220px,1fr))">
+                @foreach (var s in Model.Services)
+                {
+                    <div class="card card--border-hover">
+                        <strong><i class="fa-solid fa-hand-holding-medical" style="color:var(--color-primary)"></i> @s.ServiceName</strong>
+                        <p class="muted" style="margin:0.35rem 0 0">@s.Price.ToString("N2") ر.س</p>
+                    </div>
+                }
+            </div>
+        }
 
         <h2 class="section-heading">الاعتماد والترخيص</h2>
         <div class="card" style="display:flex;gap:1rem;align-items:center">

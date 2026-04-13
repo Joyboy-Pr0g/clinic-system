@@ -102,6 +102,10 @@ public class NurseDetailsVM
 
 public class NurseServicePriceVM
 {
+    /// <summary>خدمة مخصّصة من قائمة الممرض؛ إن وُجدت تُستخدم في الحجز.</summary>
+    public int? NurseListingServiceId { get; set; }
+
+    /// <summary>خدمة كتالوج النظام (الربط القديم عبر NurseServiceLink).</summary>
     public int ServiceId { get; set; }
     public string ServiceName { get; set; } = string.Empty;
     public decimal Price { get; set; }

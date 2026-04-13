@@ -58,6 +58,26 @@ public class NurseService : INurseService
         if (n == null || !n.IsVerified || !n.User.IsActive)
             return null;
 
+        var listing = n.NurseListingServices
+            .OrderBy(ls => ls.Name)
+            .Select(ls => new NurseServicePriceVM
+            {
+                NurseListingServiceId = ls.NurseListingServiceId,
+                ServiceId = 0,
+                ServiceName = ls.Name,
+                Price = ls.Price
+            });
+        var catalog = n.NurseServices
+            .OrderBy(ns => ns.Service.ServiceName)
+            .Select(ns => new NurseServicePriceVM
+            {
+                NurseListingServiceId = null,
+                ServiceId = ns.ServiceId,
+                ServiceName = ServiceNameLocalizer.Localize(ns.Service.ServiceName),
+                Price = ns.CustomPrice
+            });
+        var services = listing.Concat(catalog).ToList();
+
         return new NurseDetailsVM
         {
             NurseProfileId = n.NurseProfileId,
@@ -70,12 +90,7 @@ public class NurseService : INurseService
             AverageRating = n.AverageRating,
             TotalReviews = n.TotalReviews,
             IsAvailable = n.IsAvailable,
-            Services = n.NurseServices.Select(ns => new NurseServicePriceVM
-            {
-                ServiceId = ns.ServiceId,
-                ServiceName = ServiceNameLocalizer.Localize(ns.Service.ServiceName),
-                Price = ns.CustomPrice
-            }).ToList(),
+            Services = services,
             Reviews = n.Ratings
                 .Where(r => r.IsApproved)
                 .OrderByDescending(r => r.CreatedAt)

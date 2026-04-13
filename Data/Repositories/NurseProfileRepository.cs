@@ -19,6 +19,7 @@ public class NurseProfileRepository : INurseProfileRepository
     public Task<NurseProfile?> GetByIdWithDetailsAsync(int id, CancellationToken ct = default) =>
         _db.NurseProfiles
             .Include(n => n.User)
+            .Include(n => n.NurseListingServices)
             .Include(n => n.NurseServices).ThenInclude(ns => ns.Service)
             .Include(n => n.Ratings).ThenInclude(r => r.Patient)
             .FirstOrDefaultAsync(n => n.NurseProfileId == id, ct);
