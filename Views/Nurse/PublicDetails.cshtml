@@ -21,7 +21,7 @@
     </div>
 </section>
 
-<div class="container section-block">
+<div style="margin: 0 auto; padding: 0 1rem;" class="container section-block">
     <div class="profile-header-card">
         @if (!string.IsNullOrEmpty(Model.ProfileImage))
         {
@@ -59,7 +59,7 @@
         <h2 class="section-heading">الخدمات والأسعار</h2>
         @if (Model.Services.Count == 0)
         {
-            <p class="muted">لم يُضف هذا الممرض خدماته بعد. يمكنك التواصل أو المحاولة لاحقاً بعد تحديث الملف.</p>
+            <p class="muted">لا توجد خدمات.</p>
         }
         else
         {
