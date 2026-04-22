@@ -20,7 +20,8 @@ public class HomeController : Controller
 
     public async Task<IActionResult> Index(CancellationToken ct)
     {
-        var featured = await _nurses.BrowseAsync(null, null, 4, true, null, ct);
+        var nurses = await _nurses.BrowseAsync(null, null, null, true, null, ct);
+        var featuredNurses = nurses.Take(4).ToList();
         var services = await _db.Services.AsNoTracking()
             .Where(s => s.IsActive)
             .OrderBy(s => s.ServiceName)
@@ -35,7 +36,7 @@ public class HomeController : Controller
 
         var vm = new LandingVM
         {
-            FeaturedNurses = featured.Take(4).ToList(),
+            FeaturedNurses = featuredNurses,
             Services = services,
             NursesCount = await _db.NurseProfiles.CountAsync(n => n.IsVerified, ct),
             ClinicsCount = await _db.Clinics.CountAsync(c => c.IsVerified, ct),

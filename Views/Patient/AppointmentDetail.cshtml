@@ -7,7 +7,7 @@
     var currentUserId = ViewBag.CurrentUserId as string ?? "";
     var canRate = ViewBag.CanRate as bool? ?? false;
     var chatOpen = AppointmentChatService.IsChatOpen(Model.Status);
-    var canShareLive = AppointmentStatuses.IsApproved(Model.Status) || Model.Status == AppointmentStatuses.InProgress;
+    var canShareLive = AppointmentStatuses.IsTrackingAllowed(Model.Status);
     var providerName = Model.NurseProfile?.User?.FullName ?? Model.Clinic?.ClinicName ?? "مقدم الخدمة";
     var whenLocal = Model.AppointmentDate.ToLocalTime();
     var arGreg = (CultureInfo)CultureInfo.GetCultureInfo("ar-SA").Clone();
@@ -85,7 +85,7 @@
         </div>
         <div class="appt-detail__cell">
             <span class="appt-detail__label">التكلفة</span>
-            <span class="appt-detail__value appt-detail__value--price">@Model.TotalPrice.ToString("N2") ر.س</span>
+            <span class="appt-detail__value appt-detail__value--price">@Model.TotalPrice.ToString("N2") ر.ي</span>
         </div>
         <div class="appt-detail__cell" style="grid-column: 1 / -1;">
             <span class="appt-detail__label">العنوان</span>
@@ -101,6 +101,18 @@
     }
 </div>
 
+@if (canShareLive)
+{
+    <div class="form-card" style="margin-top:1rem;padding:1rem 1.25rem">
+        <div style="display:flex;flex-wrap:wrap;gap:0.75rem;align-items:center">
+            <a class="btn btn-primary" href="#appointment-chat">الدردشة</a>
+            <button type="button" class="btn btn-ghost js-maps-link-button" data-maps-link-fetch="@Url.Action("AppointmentMapsLink", "Patient", new { id = Model.AppointmentId })">
+                تتبع الموقع
+            </button>
+        </div>
+    </div>
+}
+
 @if (chatOpen)
 {
     <div class="form-card" style="margin-top:1.25rem;padding:0;overflow:hidden">
@@ -108,8 +120,8 @@
             <span style="width:36px;height:36px;border-radius:50%;background:rgba(255,255,255,0.25);display:flex;align-items:center;justify-content:center"><i class="fa-solid fa-user"></i></span>
             <span style="font-weight:700">@providerName</span>
         </div>
-        <div style="padding:0.5rem">
-            <partial name="_AppointmentChat" model="Model.AppointmentId" />
+        <div style="padding:0.5rem" id="appointment-chat">
+            <partial name="_AppointmentChat" model="@(new { AppointmentId = Model.AppointmentId, UserRole = "Patient" })" />
         </div>
     </div>
 }
@@ -142,10 +154,46 @@
     {
         <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@8.0.7/dist/browser/signalr.min.js"></script>
         <script src="~/js/appointment-realtime.js" asp-append-version="true"></script>
+    }
+    @if (canShareLive)
+    {
+        <script src="~/js/maps-link-button.js" asp-append-version="true"></script>
+    }
+    @if (chatOpen)
+    {
         <script>
             document.addEventListener("DOMContentLoaded", function () {
                 var msgList = document.querySelector(".appointment-chat-log");
                 if (msgList) msgList.scrollTop = msgList.scrollHeight;
+
+                var toggleBtn = document.getElementById("toggle-location-sharing");
+                if (toggleBtn) {
+                    toggleBtn.addEventListener("click", function () {
+                        var url = toggleBtn.getAttribute("data-url");
+                        var form = document.getElementById("live-loc-antiforgery");
+                        var tokenInput = form && form.querySelector("input[name=\"__RequestVerificationToken\"]");
+                        if (!tokenInput) return;
+
+                        toggleBtn.disabled = true;
+                        toggleBtn.textContent = "جاري التحديث…";
+
+                        var fd = new FormData();
+                        fd.append("__RequestVerificationToken", tokenInput.value);
+
+                        fetch(url, { method: "POST", body: fd, credentials: "same-origin" })
+                            .then(function (r) {
+                                return r.json();
+                            })
+                            .then(function (j) {
+                                toggleBtn.disabled = false;
+                                toggleBtn.textContent = j.allows ? "إيقاف مشاركة الموقع" : "تشغيل مشاركة الموقع";
+                            })
+                            .catch(function () {
+                                toggleBtn.disabled = false;
+                                toggleBtn.textContent = "خطأ، جرب مرة أخرى";
+                            });
+                    });
+                }
             });
         </script>
     }

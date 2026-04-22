@@ -223,6 +223,7 @@ public class ClinicController : Controller
             Email = c.Email,
             LogoImagePath = c.LogoImagePath,
             CoverImagePath = c.CoverImagePath,
+            OwnerProfileImagePath = user.ProfileImagePath,
             GoogleMapsApiKey = _config["GoogleMapsApiKey"]
         };
         return View(vm);
@@ -259,6 +260,14 @@ public class ClinicController : Controller
             var p = await _files.SaveImageAsync(model.CoverFile, "clinics", ct);
             if (p != null) c.CoverImagePath = p;
         }
+        if (model.OwnerProfileImage != null)
+        {
+            var p = await _files.SaveImageAsync(model.OwnerProfileImage, "profiles", ct);
+            if (p != null)
+                user!.ProfileImagePath = p;
+        }
+        if (user != null)
+            await _users.UpdateAsync(user);
         await _db.SaveChangesAsync(ct);
         TempData["Success"] = "تم حفظ بيانات العيادة.";
         return RedirectToAction(nameof(Profile));

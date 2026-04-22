@@ -1,8 +1,10 @@
 (function () {
+    console.log('appointment-chat-rich loaded');
     var panel = document.querySelector(".appointment-chat-panel");
     if (!panel) return;
 
     var apptId = panel.getAttribute("data-chat-appt");
+    var userRole = panel.getAttribute("data-user-role");
     if (!apptId) return;
 
     var form = panel.querySelector("[data-chat-form]");
@@ -203,6 +205,7 @@
     }
 
     function startRecording() {
+        console.log('chat: startRecording called');
         if (isMediaPreviewActive()) {
             alert("أرسل المرفق أو ارفضه أولاً.");
             return;
@@ -215,27 +218,47 @@
             alert("المتصفح لا يدعم تسجيل الصوت من هنا.");
             return;
         }
+        if (!window.isSecureContext) {
+            alert("تسجيل الصوت يحتاج اتصال آمن (HTTPS) أو تشغيل الموقع على localhost.");
+            return;
+        }
+        if (!window.MediaRecorder) {
+            alert("المتصفح لا يدعم تسجيل الصوت. جرب متصفح آخر مثل Chrome أو Firefox.");
+            return;
+        }
         clearVoicePreview();
         navigator.mediaDevices.getUserMedia({ audio: true }).then(function (stream) {
+            console.log('chat: getUserMedia granted, creating MediaRecorder');
             chunks = [];
             var mime = "audio/webm";
-            if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported("audio/webm;codecs=opus"))
-                mime = "audio/webm;codecs=opus";
-            else if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported("audio/mp4"))
-                mime = "audio/mp4";
+            try {
+                if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported("audio/webm;codecs=opus"))
+                    mime = "audio/webm;codecs=opus";
+                else if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported("audio/mp4"))
+                    mime = "audio/mp4";
+            } catch (e) { console.warn('chat: isTypeSupported check failed', e); }
             var mr;
             try {
                 mr = new MediaRecorder(stream, { mimeType: mime });
             } catch (e) {
-                mr = new MediaRecorder(stream);
+                console.warn('chat: MediaRecorder with mime failed, trying default', e);
+                try { mr = new MediaRecorder(stream); } catch (err) {
+                    console.error('chat: MediaRecorder not available', err);
+                    stream.getTracks().forEach(function (t) { t.stop(); });
+                    alert('تعذر بدء التسجيل — المتصفح لا يدعم MediaRecorder.');
+                    return;
+                }
             }
-            mr._stopStream = function () {
+            mr._stopStream = function () { stream.getTracks().forEach(function (t) { t.stop(); }); };
+            mr.ondataavailable = function (e) { if (e.data && e.data.size) { chunks.push(e.data); console.log('chat: chunk received', e.data.size); } };
+            mr.onstart = function () { console.log('chat: recorder started'); };
+            mr.onstop = function () { console.log('chat: recorder stopped'); };
+            try { mr.start(200); } catch (e) {
+                console.error('chat: recorder.start failed', e);
                 stream.getTracks().forEach(function (t) { t.stop(); });
-            };
-            mr.ondataavailable = function (e) {
-                if (e.data && e.data.size) chunks.push(e.data);
-            };
-            mr.start(200);
+                alert('تعذر بدء التسجيل.');
+                return;
+            }
             mediaRecorder = mr;
             if (recBar) recBar.hidden = false;
             if (micBtn) {
@@ -243,11 +266,10 @@
                 micBtn.setAttribute("aria-pressed", "true");
             }
             if (recLabel) recLabel.textContent = "جاري التسجيل… اضغط «صوت» مرة أخرى للإيقاف ثم اختر إرسال أو رفض";
-            recordTimer = setTimeout(function () {
-                if (mediaRecorder && mediaRecorder.state === "recording") stopRecordingForPreview();
-            }, maxMs);
-        }).catch(function () {
-            alert("لم يُسمح بالوصول للميكروفون.");
+            recordTimer = setTimeout(function () { if (mediaRecorder && mediaRecorder.state === "recording") stopRecordingForPreview(); }, maxMs);
+        }).catch(function (err) {
+            console.error('chat: getUserMedia error', err);
+            alert("لم يُسمح بالوصول للميكروفون أو حدث خطأ: " + (err && err.message ? err.message : 'غير معروف'));
         });
     }
 
@@ -378,6 +400,86 @@
                 closeCameraModal();
                 showMediaPreview(file);
             }, "image/jpeg", 0.88);
+        });
+    }
+
+    // مشاركة الموقع
+    var shareLocationBtn = form && form.querySelector("[data-share-location]");
+    if (shareLocationBtn) {
+        shareLocationBtn.addEventListener("click", function () {
+            if (!navigator.geolocation) {
+                alert("المتصفح لا يدعم مشاركة الموقع.");
+                return;
+            }
+            if (isMediaPreviewActive()) {
+                alert("أرسل المرفق أو ارفضه أولاً.");
+                return;
+            }
+            if (voiceActions && !voiceActions.hidden) {
+                alert("أرسل التسجيل الصوتي أو ارفضه أولاً.");
+                return;
+            }
+            shareLocationBtn.disabled = true;
+            shareLocationBtn.textContent = "جاري الحصول على الموقع…";
+            navigator.geolocation.getCurrentPosition(
+                function (pos) {
+                    var lat = pos.coords.latitude;
+                    var lng = pos.coords.longitude;
+                    var body = "موقعي الحالي: https://www.google.com/maps/search/?api=1&query=" + lat + "," + lng;
+                    var fd = new FormData();
+                    fd.append("body", body);
+                    fd.append("__RequestVerificationToken", tokenInput.value);
+                    fetch(baseUrl, { method: "POST", body: fd, credentials: "same-origin" })
+                        .then(function (r) {
+                            if (!r.ok) return r.json().then(function (j) { throw new Error(j.error || "فشل الإرسال"); });
+                            return r.json();
+                        })
+                        .then(function () {
+                            afterSend();
+                        })
+                        .catch(function (err) { alert(err.message || "تعذر مشاركة الموقع"); })
+                        .finally(function () {
+                            shareLocationBtn.disabled = false;
+                            shareLocationBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>';
+                        });
+                },
+                function (err) {
+                    alert("تعذر الحصول على الموقع: " + (err.message || "غير معروف"));
+                    shareLocationBtn.disabled = false;
+                    shareLocationBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>';
+                },
+                { enableHighAccuracy: false, maximumAge: 120000, timeout: 15000 }
+            );
+        });
+    }
+    // تتبع الموقع
+    var trackLocationBtn = form && form.querySelector("[data-track-location]");
+    if (trackLocationBtn) {
+        trackLocationBtn.addEventListener("click", function () {
+            var url;
+            if (userRole === "Patient") {
+                url = "/Patient/AppointmentMapsLink?id=" + apptId;
+            } else if (userRole === "Nurse") {
+                url = "/Nurse/AppointmentMapsLink?id=" + apptId;
+            } else {
+                alert("دور المستخدم غير معروف.");
+                return;
+            }
+            fetch(url, { credentials: "same-origin", headers: { Accept: "application/json" } })
+                .then(function (r) {
+                    if (r.status === 404) throw new Error("غير موجود");
+                    return r.json();
+                })
+                .then(function (j) {
+                    if (j.url) {
+                        window.open(j.url, "_blank", "noopener,noreferrer");
+                    } else {
+                        alert(j.error || "تعذر فتح الخرائط");
+                    }
+                })
+                .catch(function () {
+                    alert("تعذر الاتصال بالخادم.");
+                });
         });
     }
 })();

@@ -42,4 +42,7 @@ public class RegisterVM
 
     [Display(Name = "الشارع")]
     public string? Street { get; set; }
+
+    [Display(Name = "الصورة الشخصية (اختياري)")]
+    public IFormFile? ProfileImage { get; set; }
 }

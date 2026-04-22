@@ -16,6 +16,12 @@
         <div class="field"><label asp-for="YearsOfExperience"></label><input asp-for="YearsOfExperience" /></div>
         <div class="field"><label asp-for="Bio"></label><textarea asp-for="Bio" rows="3"></textarea></div>
         <div class="field">
+            <label asp-for="ProfileImage"></label>
+            <input asp-for="ProfileImage" type="file" accept="image/*" />
+            <span class="muted" style="font-size:0.85rem;display:block;margin-top:0.35rem">اختياري: صورة شخصية للممرض.</span>
+            <span asp-validation-for="ProfileImage"></span>
+        </div>
+        <div class="field">
             <label asp-for="LicenseFile"></label>
             <input asp-for="LicenseFile" type="file" accept="image/*,.pdf,application/pdf" required />
             <span class="muted" style="font-size:0.85rem;display:block;margin-top:0.35rem">إلزامي: تصريح طبي، رخصة مزاولة، أو ما يثبت صفتك كممرض (صورة واضحة أو PDF، حتى 10 ميجابايت).</span>

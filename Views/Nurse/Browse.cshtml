@@ -31,14 +31,14 @@
             <div class="field"><label>بحث</label><input name="search" value="@ViewBag.Search" placeholder="الاسم أو التخصص" /></div>
             <div class="field" style="display:flex;align-items:center;padding-bottom:0.35rem">
                 <label style="display:flex;align-items:center;gap:0.5rem;cursor:pointer;font-weight:600">
-                    <input type="checkbox" name="available" value="true" checked="@(ViewBag.Available as bool? == true)" /> متاح فقط
+                    <input type="checkbox" name="available" value="true" checked="@(ViewBag.Available as bool? == true)" /> المتاحين الآن
                 </label>
             </div>
             <button class="btn btn-primary" type="submit"><i class="fa-solid fa-filter"></i> تطبيق</button>
         </div>
         <div class="filter-pills" style="margin-top:1rem">
             <span class="muted" style="font-size:0.9rem;margin-inline-end:0.5rem">سريع:</span>
-            <a class="pill @(ViewBag.Available as bool? == true ? "is-active" : null)" href="@Url.Action("Browse", new { available = true })">متاحون</a>
+            <a class="pill @(ViewBag.Available as bool? == true ? "is-active" : null)" href="@Url.Action("Browse", new { available = true })">المتاحين الآن</a>
             <a class="pill @((ViewBag.MinRating as decimal? ?? 0) >= 4 ? "is-active" : null)" href="@Url.Action("Browse", new { minRating = 4 })">4+ نجوم</a>
         </div>
     </form>

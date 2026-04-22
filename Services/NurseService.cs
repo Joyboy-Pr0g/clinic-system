@@ -7,8 +7,13 @@ namespace HomeNursingSystem.Services;
 public class NurseService : INurseService
 {
     private readonly INurseProfileRepository _nurses;
+    private readonly IProviderAvailabilityService _availability;
 
-    public NurseService(INurseProfileRepository nurses) => _nurses = nurses;
+    public NurseService(INurseProfileRepository nurses, IProviderAvailabilityService availability)
+    {
+        _nurses = nurses;
+        _availability = availability;
+    }
 
     public async Task<IReadOnlyList<NurseListItemVM>> BrowseAsync(
         string? neighborhood,
@@ -26,17 +31,23 @@ public class NurseService : INurseService
             q = q.Where(n => n.NurseServices.Any(ns => ns.ServiceId == serviceId.Value));
         if (minRating.HasValue)
             q = q.Where(n => n.AverageRating >= minRating.Value);
-        if (availableOnly == true)
-            q = q.Where(n => n.IsAvailable);
         if (!string.IsNullOrWhiteSpace(search))
         {
             var s = search.Trim();
             q = q.Where(n => n.User.FullName.Contains(s) || n.Specialization.Contains(s));
         }
 
+        HashSet<int>? availableIds = null;
+        if (availableOnly == true)
+            availableIds = await _availability.GetCurrentlyAvailableNurseIdsAsync(ct);
+
+        if (availableIds != null)
+            q = q.Where(n => n.IsAvailable && availableIds.Contains(n.NurseProfileId));
+
         var list = await q
             .OrderByDescending(n => n.AverageRating)
             .ToListAsync(ct);
+
         return list.ConvertAll(n => new NurseListItemVM
         {
             NurseProfileId = n.NurseProfileId,

@@ -59,7 +59,7 @@ public static class SeedData
                 City = "الرياض",
                 Neighborhood = "العليا"
             };
-            var result = await userManager.CreateAsync(admin, "Admin@123");
+            var result = await userManager.CreateAsync(admin, "Admin123");
             if (result.Succeeded)
                 await userManager.AddToRoleAsync(admin, AppRoles.Admin);
         }
@@ -71,36 +71,48 @@ public static class SeedData
             async Task<(ApplicationUser user, NurseProfile profile)> CreateNurseAsync(
                 string email, string name, string spec, string bio, int years)
             {
-                var u = new ApplicationUser
+                var u = await userManager.FindByEmailAsync(email);
+                if (u == null)
                 {
-                    UserName = email,
-                    Email = email,
-                    EmailConfirmed = true,
-                    FullName = name,
-                    PhoneNumber = "0501111111",
-                    Role = AppRoles.Nurse,
-                    IsActive = true,
-                    CreatedAt = DateTime.UtcNow,
-                    City = "الرياض",
-                    Neighborhood = "الملز",
-                    Street = "شارع الأمير محمد"
-                };
-                await userManager.CreateAsync(u, "Demo@123");
-                await userManager.AddToRoleAsync(u, AppRoles.Nurse);
-                var np = new NurseProfile
+                    u = new ApplicationUser
+                    {
+                        UserName = email,
+                        Email = email,
+                        EmailConfirmed = true,
+                        FullName = name,
+                        PhoneNumber = "0501111111",
+                        Role = AppRoles.Nurse,
+                        IsActive = true,
+                        CreatedAt = DateTime.UtcNow,
+                        City = "الرياض",
+                        Neighborhood = "الملز",
+                        Street = "شارع الأمير محمد"
+                    };
+                    await userManager.CreateAsync(u, "Demo@123");
+                    await userManager.AddToRoleAsync(u, AppRoles.Nurse);
+                }
+                var np = await context.NurseProfiles.FirstOrDefaultAsync(n => n.UserId == u.Id);
+                if (np == null)
                 {
-                    UserId = u.Id,
-                    Specialization = spec,
-                    YearsOfExperience = years,
-                    Bio = bio,
-                    IsVerified = true,
-                    IsAvailable = true,
-                    AverageRating = 4.5m,
-                    TotalReviews = 2,
-                    CreatedAt = DateTime.UtcNow
-                };
-                context.NurseProfiles.Add(np);
-                await context.SaveChangesAsync();
+                    np = new NurseProfile
+                    {
+                        UserId = u.Id,
+                        Specialization = spec,
+                        YearsOfExperience = years,
+                        Bio = bio,
+                        IsVerified = true,
+                        IsAvailable = true,
+                        AverageRating = 4.5m,
+                        TotalReviews = 2,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    context.NurseProfiles.Add(np);
+                    await context.SaveChangesAsync();
+
+                    // Set profile image
+                    u.ProfileImagePath = $"/uploads/profiles/nurse-{np.NurseProfileId}.jpg";
+                    await userManager.UpdateAsync(u);
+                }
                 return (u, np);
             }
 
@@ -127,7 +139,7 @@ public static class SeedData
         {
             var owner1 = new ApplicationUser
             {
-                UserName = "[clinic1@demo.com]",
+                UserName = "clinic1@demo.com",
                 Email = "clinic1@demo.com",
                 EmailConfirmed = true,
                 FullName = "د. سارة المطيري",
@@ -140,6 +152,7 @@ public static class SeedData
             };
             await userManager.CreateAsync(owner1, "Demo@123");
             await userManager.AddToRoleAsync(owner1, AppRoles.ClinicOwner);
+            await context.SaveChangesAsync();
 
             context.Clinics.Add(new Clinic
             {
@@ -176,6 +189,7 @@ public static class SeedData
             };
             await userManager.CreateAsync(owner2, "Demo@123");
             await userManager.AddToRoleAsync(owner2, AppRoles.ClinicOwner);
+            await context.SaveChangesAsync();
 
             context.Clinics.Add(new Clinic
             {

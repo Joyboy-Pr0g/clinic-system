@@ -49,4 +49,7 @@ public class RegisterNursePageVM
 
     [Display(Name = "الحي")]
     public string? Neighborhood { get; set; }
+
+    [Display(Name = "صورة شخصية (اختياري)")]
+    public IFormFile? ProfileImage { get; set; }
 }

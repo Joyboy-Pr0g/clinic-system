@@ -92,7 +92,28 @@ public class PatientController : Controller
 
     private async Task PopulateBookPageAsync(AppointmentBookVM vm, CancellationToken ct)
     {
-        ViewBag.Nurses = await _nurses.BrowseAsync(null, null, null, true, null, ct);
+        var nurses = await _nurses.BrowseAsync(null, null, null, null, null, ct);
+        if (nurses.Count == 0)
+        {
+            nurses = await _db.NurseProfiles.AsNoTracking()
+                .Include(n => n.User)
+                .Where(n => n.User.IsActive)
+                .OrderBy(n => n.User.FullName)
+                .Select(n => new NurseListItemVM
+                {
+                    NurseProfileId = n.NurseProfileId,
+                    FullName = n.User.FullName,
+                    ProfileImage = n.User.ProfileImagePath,
+                    Specialization = n.Specialization,
+                    AverageRating = n.AverageRating,
+                    TotalReviews = n.TotalReviews,
+                    IsAvailable = n.IsAvailable,
+                    Neighborhood = n.User.Neighborhood,
+                    ServiceNames = Array.Empty<string>()
+                })
+                .ToListAsync(ct);
+        }
+        ViewBag.Nurses = nurses;
         ViewBag.Clinics = await _clinics.ListVerifiedAsync(null, null, null, ct);
         var nurseSvcRows = await (
             from ls in _db.NurseListingServices.AsNoTracking()
@@ -246,7 +267,7 @@ public class PatientController : Controller
         if (appt == null) return NotFound();
         var link = MapsTrackLinkBuilder.TryForPatientTrackingProvider(appt);
         if (link == null)
-            return Json(new { error = "لا تتوفر إحداثيات لفتح الخرائط لهذا الموعد حالياً." });
+            return Json(new { error = "موقع الممرض غير محدد حالياً. موقعك تم إرساله للممرض لتسهيل الوصول. جرب مرة أخرى لاحقاً أو تواصل عبر الدردشة." });
         return Json(new { url = link.Value.Url, label = link.Value.Label });
     }
 
@@ -272,12 +293,13 @@ public class PatientController : Controller
         return RedirectToAction(nameof(Appointments));
     }
 
-    [HttpPost("appointments/{id:int}/delete")]
+
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteAppointment(int id, CancellationToken ct)
     {
         var user = await _users.GetUserAsync(User);
-        var appt = await _apptRepo.GetByIdForPatientAsync(id, user!.Id, ct);
+        if (user == null) return Unauthorized();
+        var appt = await _apptRepo.GetByIdForPatientAsync(id, user.Id, ct);
         if (appt == null) return NotFound();
         if (!string.Equals(appt.Status, AppointmentStatuses.Cancelled, StringComparison.OrdinalIgnoreCase))
         {

@@ -16,7 +16,8 @@ public class FileUploadService : IFileUploadService
     {
         ".jpg", ".jpeg", ".png", ".webp", ".gif",
         ".mp3", ".m4a", ".aac", ".ogg", ".wav", ".webm",
-        ".mp4", ".mov"
+        ".mp4", ".mov",
+        ".pdf", ".doc", ".docx", ".xls", ".xlsx", ".txt"
     };
 
     private static readonly HashSet<string> LicenseAllowed = new(StringComparer.OrdinalIgnoreCase)

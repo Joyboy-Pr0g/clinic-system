@@ -1,9 +1,14 @@
-<a asp-action="Dashboard">لوحة التحكم</a>
-<a asp-action="Appointments">المواعيد</a>
-<a asp-action="Availability">أوقات التوفر</a>
+<a asp-controller="Nurse" asp-action="Dashboard">لوحة التحكم</a>
+
+<a asp-controller="Nurse" asp-action="Appointments">المواعيد</a>
+
+<a asp-controller="Nurse" asp-action="Availability">أوقات التوفر</a>
+
 <a asp-controller="NurseServices" asp-action="Index">خدماتي</a>
-<a asp-action="Reviews">التقييمات</a>
-<a asp-action="Profile">الملف الشخصي</a>
+
+<a asp-controller="Nurse" asp-action="Reviews">التقييمات</a>
+
+<a asp-controller="Nurse" asp-action="Profile">الملف الشخصي</a>
 <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form sidebar-logout-form">
     @Html.AntiForgeryToken()
     <button type="submit" class="sidebar-logout-btn">تسجيل الخروج</button>

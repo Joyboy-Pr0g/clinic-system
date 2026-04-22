@@ -402,6 +402,33 @@ namespace HomeNursingSystem.Data.Migrations
                     b.ToTable("ClinicServices", (string)null);
                 });
 
+            modelBuilder.Entity("HomeNursingSystem.Models.ClinicWeeklySlot", b =>
+                {
+                    b.Property<int>("ClinicWeeklySlotId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ClinicWeeklySlotId"));
+
+                    b.Property<int>("ClinicId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("ClinicWeeklySlotId");
+
+                    b.HasIndex("ClinicId", "DayOfWeek");
+
+                    b.ToTable("ClinicWeeklySlots", (string)null);
+                });
+
             modelBuilder.Entity("HomeNursingSystem.Models.ContactMessage", b =>
                 {
                     b.Property<int>("ContactMessageId")
@@ -629,6 +656,33 @@ namespace HomeNursingSystem.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("NurseServices");
+                });
+
+            modelBuilder.Entity("HomeNursingSystem.Models.NurseWeeklySlot", b =>
+                {
+                    b.Property<int>("NurseWeeklySlotId")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("NurseWeeklySlotId"));
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("EndTime")
+                        .HasColumnType("time");
+
+                    b.Property<int>("NurseProfileId")
+                        .HasColumnType("int");
+
+                    b.Property<TimeSpan>("StartTime")
+                        .HasColumnType("time");
+
+                    b.HasKey("NurseWeeklySlotId");
+
+                    b.HasIndex("NurseProfileId", "DayOfWeek");
+
+                    b.ToTable("NurseWeeklySlots", (string)null);
                 });
 
             modelBuilder.Entity("HomeNursingSystem.Models.Rating", b =>
@@ -913,6 +967,17 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Navigation("Clinic");
                 });
 
+            modelBuilder.Entity("HomeNursingSystem.Models.ClinicWeeklySlot", b =>
+                {
+                    b.HasOne("HomeNursingSystem.Models.Clinic", "Clinic")
+                        .WithMany("WeeklySlots")
+                        .HasForeignKey("ClinicId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Clinic");
+                });
+
             modelBuilder.Entity("HomeNursingSystem.Models.Notification", b =>
                 {
                     b.HasOne("HomeNursingSystem.Models.ApplicationUser", "User")
@@ -963,6 +1028,17 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Navigation("NurseProfile");
 
                     b.Navigation("Service");
+                });
+
+            modelBuilder.Entity("HomeNursingSystem.Models.NurseWeeklySlot", b =>
+                {
+                    b.HasOne("HomeNursingSystem.Models.NurseProfile", "NurseProfile")
+                        .WithMany("WeeklySlots")
+                        .HasForeignKey("NurseProfileId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("NurseProfile");
                 });
 
             modelBuilder.Entity("HomeNursingSystem.Models.Rating", b =>
@@ -1076,6 +1152,8 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Navigation("ClinicServices");
 
                     b.Navigation("Ratings");
+
+                    b.Navigation("WeeklySlots");
                 });
 
             modelBuilder.Entity("HomeNursingSystem.Models.ClinicService", b =>
@@ -1104,6 +1182,8 @@ namespace HomeNursingSystem.Data.Migrations
                     b.Navigation("NurseServices");
 
                     b.Navigation("Ratings");
+
+                    b.Navigation("WeeklySlots");
                 });
 #pragma warning restore 612, 618
         }

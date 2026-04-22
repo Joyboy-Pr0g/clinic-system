@@ -10,16 +10,28 @@
     <title>@(ViewData["Title"] ?? "الرئيسية") — رعاية منزلية</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Inter:wght@400;600;700;800&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" />
     <link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
 </head>
 <body class="site-body" data-temp-success="@TempData["Success"]" data-temp-error="@TempData["Error"]">
     <header class="site-header">
         <div class="container header-inner">
-            <a class="brand" asp-controller="Home" asp-action="Index">
-                <span class="brand__logo-mark" aria-hidden="true"><i class="fa-solid fa-heart-pulse"></i></span>
-                رعاية<span>منزلية</span>
+            <a class="brand brand--enaya" asp-controller="Home" asp-action="Index" aria-label="عنايه">
+                <span class="brand__medical-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 3l-4 4"></path>
+                        <path d="M14 4l6 6"></path>
+                        <path d="M5 13l6 6"></path>
+                        <path d="M3 21l3-3"></path>
+                        <path d="M8 16l8-8"></path>
+                        <path d="M12 8l4 4"></path>
+                    </svg>
+                </span>
+                <span class="brand__wordmark">
+                    <span class="brand__wordmark-ar">عنايه</span>
+                    <span class="brand__wordmark-en">Enaya</span>
+                </span>
             </a>
             <button type="button" class="nav-toggle" aria-label="القائمة" data-nav-toggle></button>
             <nav class="main-nav" data-main-nav>
@@ -77,9 +89,21 @@
     <footer class="site-footer">
         <div class="container footer-grid">
             <div class="footer-brand-block">
-                <a class="brand" asp-controller="Home" asp-action="Index">
-                    <span class="brand__logo-mark" aria-hidden="true"><i class="fa-solid fa-heart-pulse"></i></span>
-                    رعاية<span>منزلية</span>
+                <a class="brand brand--enaya" asp-controller="Home" asp-action="Index" aria-label="عنايه">
+                    <span class="brand__medical-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M21 3l-4 4"></path>
+                            <path d="M14 4l6 6"></path>
+                            <path d="M5 13l6 6"></path>
+                            <path d="M3 21l3-3"></path>
+                            <path d="M8 16l8-8"></path>
+                            <path d="M12 8l4 4"></path>
+                        </svg>
+                    </span>
+                    <span class="brand__wordmark">
+                        <span class="brand__wordmark-ar">عنايه</span>
+                        <span class="brand__wordmark-en">Enaya</span>
+                    </span>
                 </a>
                 <p class="muted" style="margin:0;color:#b8d9d0;max-width:280px;line-height:1.65">
                     منصة عربية لحجز التمريض المنزلي والعيادات المعتمدة، مع متابعة المواعيد والدردشة الآمنة مع مقدمي الرعاية.

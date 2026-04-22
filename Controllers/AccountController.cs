@@ -95,6 +95,13 @@ public class AccountController : Controller
             CreatedAt = DateTime.UtcNow
         };
 
+        if (model.ProfileImage != null)
+        {
+            var path = await _files.SaveImageAsync(model.ProfileImage, "profiles");
+            if (path != null)
+                user.ProfileImagePath = path;
+        }
+
         var result = await _userManager.CreateAsync(user, model.Password);
         if (!result.Succeeded)
         {
@@ -159,6 +166,16 @@ public class AccountController : Controller
 
         await _userManager.AddToRoleAsync(user, AppRoles.Nurse);
 
+        if (model.ProfileImage != null)
+        {
+            var prof = await _files.SaveImageAsync(model.ProfileImage, "profiles", ct);
+            if (prof != null)
+            {
+                user.ProfileImagePath = prof;
+                await _userManager.UpdateAsync(user);
+            }
+        }
+
         var licensePath = await _files.SaveLicenseDocumentAsync(model.LicenseFile!, ct);
         if (licensePath == null)
         {
@@ -214,6 +231,13 @@ public class AccountController : Controller
             Neighborhood = model.Neighborhood,
             CreatedAt = DateTime.UtcNow
         };
+
+        if (model.OwnerProfileImage != null)
+        {
+            var ownerImage = await _files.SaveImageAsync(model.OwnerProfileImage, "profiles", ct);
+            if (ownerImage != null)
+                user.ProfileImagePath = ownerImage;
+        }
 
         var result = await _userManager.CreateAsync(user, model.Password);
         if (!result.Succeeded)

@@ -22,7 +22,7 @@ public class AppointmentChatService : IAppointmentChatService
     }
 
     public static bool IsChatOpen(string status) =>
-        AppointmentStatuses.ChatAndTrackingUnlocked(status);
+        AppointmentStatuses.IsChatOpen(status);
 
     public async Task<IReadOnlyList<AppointmentChatMessageDto>> GetMessagesAsync(int appointmentId, string userId, int? afterMessageId, CancellationToken ct = default)
     {
@@ -108,6 +108,7 @@ public class AppointmentChatService : IAppointmentChatService
             "image" => string.IsNullOrEmpty(body) ? "📷 صورة" : $"📷 {body[..Math.Min(60, body.Length)]}",
             "video" => "🎬 فيديو",
             "audio" => "🎤 رسالة صوتية",
+            "file" => "📎 ملف مرفق",
             _ => body.Length > 80 ? body[..80] + "…" : body
         };
         var recipients = await GetRecipientUserIdsAsync(appt, ct);
@@ -124,11 +125,19 @@ public class AppointmentChatService : IAppointmentChatService
     private static string ClassifyAttachment(string url)
     {
         var u = url.ToLowerInvariant();
+        if (IsImageAttachment(u))
+            return "image";
         if (u.EndsWith(".mp4") || u.EndsWith(".mov"))
             return "video";
         if (IsAudioAttachment(u))
             return "audio";
-        return "image";
+        return "file";
+    }
+
+    private static bool IsImageAttachment(string uLower)
+    {
+        return uLower.EndsWith(".jpg") || uLower.EndsWith(".jpeg") || uLower.EndsWith(".png")
+            || uLower.EndsWith(".webp") || uLower.EndsWith(".gif");
     }
 
     private static bool IsAudioAttachment(string uLower)

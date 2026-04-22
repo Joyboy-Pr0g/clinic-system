@@ -88,7 +88,8 @@ public class ProviderAvailabilityService : IProviderAvailabilityService
 
         IQueryable<Appointment> q = _db.Appointments.AsNoTracking()
             .Where(a => a.AppointmentDate >= startUtc && a.AppointmentDate < endUtc
-                && a.Status != AppointmentStatuses.Cancelled);
+                && a.Status != AppointmentStatuses.Cancelled
+                && a.Status != AppointmentStatuses.Completed);
 
         if (nurseProfileId is > 0)
             q = q.Where(a => a.NurseProfileId == nurseProfileId);
@@ -101,6 +102,33 @@ public class ProviderAvailabilityService : IProviderAvailabilityService
 
     private static DateTime NormalizeSlotUtc(DateTime utc) =>
         new(utc.Year, utc.Month, utc.Day, utc.Hour, utc.Minute, 0, DateTimeKind.Utc);
+
+    public async Task<HashSet<int>> GetCurrentlyAvailableNurseIdsAsync(CancellationToken ct = default)
+    {
+        var tz = AppTimeZone;
+        var nowLocal = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, tz);
+        var dayOfWeek = nowLocal.DayOfWeek;
+        var timeOfDay = nowLocal.TimeOfDay;
+        var currentSlotLocal = new DateTime(nowLocal.Year, nowLocal.Month, nowLocal.Day, nowLocal.Hour, 0, 0, DateTimeKind.Unspecified);
+        var currentSlotUtc = NormalizeSlotUtc(TimeZoneInfo.ConvertTimeToUtc(currentSlotLocal, tz));
+
+        var openNurseIds = await _db.NurseWeeklySlots.AsNoTracking()
+            .Where(s => s.DayOfWeek == dayOfWeek && s.StartTime <= timeOfDay && timeOfDay < s.EndTime)
+            .Select(s => s.NurseProfileId)
+            .Distinct()
+            .ToListAsync(ct);
+
+        var busyNurseIds = await _db.Appointments.AsNoTracking()
+            .Where(a => a.NurseProfileId != null
+                && a.AppointmentDate == currentSlotUtc
+                && a.Status != AppointmentStatuses.Cancelled
+                && a.Status != AppointmentStatuses.Completed)
+            .Select(a => a.NurseProfileId!.Value)
+            .Distinct()
+            .ToListAsync(ct);
+
+        return openNurseIds.Except(busyNurseIds).ToHashSet();
+    }
 
     public async Task<bool> IsBookingAllowedAsync(bool isNurse, int nurseOrClinicId, DateTime appointmentUtc, CancellationToken ct = default)
     {

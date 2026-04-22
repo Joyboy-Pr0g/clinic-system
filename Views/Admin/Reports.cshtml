@@ -1,0 +1,744 @@
+@{
+    ViewData["Title"] = "التقارير والإحصائيات الشاملة";
+    var statusCounts = ViewBag.StatusCounts as IEnumerable<dynamic> ?? Array.Empty<dynamic>();
+    var revenueByMonth = ViewBag.RevenueByMonth as IEnumerable<dynamic> ?? Array.Empty<dynamic>();
+    var usersByRole = ViewBag.UsersByRole as IEnumerable<dynamic> ?? Array.Empty<dynamic>();
+    var appointmentsByDay = ViewBag.AppointmentsByDay as IEnumerable<dynamic> ?? Array.Empty<dynamic>();
+    var recentActivity = ViewBag.RecentActivity as IEnumerable<dynamic> ?? Array.Empty<dynamic>();
+    var servicePopularity = ViewBag.ServicePopularity as IEnumerable<dynamic> ?? Array.Empty<dynamic>();
+    var topRatedNurses = ViewBag.TopRatedNurses as IEnumerable<dynamic> ?? Array.Empty<dynamic>();
+    var topRatedClinics = ViewBag.TopRatedClinics as IEnumerable<dynamic> ?? Array.Empty<dynamic>();
+
+    decimal avgRating = 0m;
+    int avgCount = 0;
+    foreach (var _n in topRatedNurses)
+    {
+        try
+        {
+            var v = _n?.Rating;
+            if (v == null) continue;
+            avgRating += Convert.ToDecimal(v);
+            avgCount++;
+        }
+        catch { }
+    }
+    if (avgCount > 0) avgRating = avgRating / avgCount; else avgRating = 0m;
+    var revenueByService = ViewBag.RevenueByService as IEnumerable<dynamic> ?? Array.Empty<dynamic>();
+    var contactStats = ViewBag.ContactStats;
+    var articleStats = ViewBag.ArticleStats;
+}
+
+@section Sidebar { <partial name="_Sidebar" /> }
+
+<div class="reports-header">
+    <h1 class="page-title">التقارير والإحصائيات الشاملة</h1>
+    <div class="reports-actions">
+        <button onclick="window.print()" class="btn btn-primary print-btn">
+            <i class="fas fa-print"></i> طباعة التقرير
+        </button>
+        <button onclick="exportToPDF()" class="btn btn-secondary export-btn">
+            <i class="fas fa-file-pdf"></i> تصدير PDF
+        </button>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="summary-cards">
+    <div class="summary-card">
+        <div class="card-icon users">
+            <i class="fas fa-users"></i>
+        </div>
+        <div class="card-content">
+            <h3>@ViewBag.TotalUsers</h3>
+            <p>إجمالي المستخدمين</p>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-icon nurses">
+            <i class="fas fa-user-nurse"></i>
+        </div>
+        <div class="card-content">
+            <h3>@ViewBag.TotalNurses</h3>
+            <p>إجمالي الممرضين</p>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-icon clinics">
+            <i class="fas fa-hospital"></i>
+        </div>
+        <div class="card-content">
+            <h3>@ViewBag.TotalClinics</h3>
+            <p>إجمالي العيادات</p>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-icon appointments">
+            <i class="fas fa-calendar-check"></i>
+        </div>
+        <div class="card-content">
+            <h3>@ViewBag.AppointmentsToday</h3>
+            <p>مواعيد اليوم</p>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-icon revenue">
+            <i class="fas fa-dollar-sign"></i>
+        </div>
+        <div class="card-content">
+            <h3>@string.Format("{0:N0}", ViewBag.RevenueEstimate) ريال</h3>
+            <p>إيرادات الشهر</p>
+        </div>
+    </div>
+    <div class="summary-card">
+        <div class="card-icon pending">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="card-content">
+            <h3>@ViewBag.PendingVerifications</h3>
+            <p>في انتظار التحقق</p>
+        </div>
+    </div>
+</div>
+
+<!-- Charts Section -->
+<div class="reports-grid">
+    <div class="report-card">
+        <h3>المواعيد حسب الحالة</h3>
+        <canvas id="statusChart" width="400" height="300"></canvas>
+    </div>
+
+    <div class="report-card">
+        <h3>الإيرادات الشهرية</h3>
+        <canvas id="revenueChart" width="400" height="300"></canvas>
+    </div>
+
+    <div class="report-card">
+        <h3>المستخدمين حسب النوع</h3>
+        <canvas id="usersChart" width="400" height="300"></canvas>
+    </div>
+
+    <div class="report-card">
+        <h3>المواعيد اليومية (آخر 30 يوم)</h3>
+        <canvas id="appointmentsChart" width="400" height="300"></canvas>
+    </div>
+
+    <div class="report-card">
+        <h3>شعبية الخدمات (هذا الشهر)</h3>
+        <canvas id="serviceChart" width="400" height="300"></canvas>
+    </div>
+
+    <div class="report-card">
+        <h3>الإيرادات حسب الخدمة</h3>
+        <canvas id="serviceRevenueChart" width="400" height="300"></canvas>
+    </div>
+</div>
+
+<!-- Detailed Tables Section -->
+<div class="tables-section">
+    <div class="table-container">
+        <h3>النشاط الحديث</h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>النشاط</th>
+                        <th>التاريخ والوقت</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var activity in recentActivity)
+                    {
+                        <tr>
+                            <td>@activity.Text</td>
+                            <td>@activity.At.ToString("yyyy-MM-dd HH:mm")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <h3>أفضل الممرضين تقييماً</h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>التخصص</th>
+                        <th>التقييم</th>
+                        <th>عدد التقييمات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var nurse in topRatedNurses)
+                    {
+                        <tr>
+                            <td>@nurse.Name</td>
+                            <td>@nurse.Specialization</td>
+                            <td><span class="rating">@string.Format("{0:F1}", nurse.Rating) ⭐</span></td>
+                            <td>@nurse.Reviews</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <h3>أفضل العيادات تقييماً</h3>
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>اسم العيادة</th>
+                        <th>المدينة</th>
+                        <th>التقييم</th>
+                        <th>عدد التقييمات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var clinic in topRatedClinics)
+                    {
+                        <tr>
+                            <td>@clinic.Name</td>
+                            <td>@clinic.City</td>
+                            <td><span class="rating">@string.Format("{0:F1}", clinic.Rating) ⭐</span></td>
+                            <td>@clinic.Reviews</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="table-container">
+        <h3>إحصائيات إضافية</h3>
+        <div class="stats-grid">
+            <div class="stat-item">
+                <h4>رسائل التواصل</h4>
+                <p class="stat-number">@contactStats.Total</p>
+                <p class="stat-label">إجمالي الرسائل</p>
+                <p class="stat-sub">@contactStats.Unread غير مقروءة</p>
+            </div>
+            <div class="stat-item">
+                <h4>المقالات</h4>
+                <p class="stat-number">@articleStats.Total</p>
+                <p class="stat-label">إجمالي المقالات</p>
+                <p class="stat-sub">@articleStats.Published منشورة</p>
+            </div>
+            <div class="stat-item">
+                <h4>معدل الرضا</h4>
+                <p class="stat-number">@string.Format("{0:F1}", avgRating)</p>
+                <p class="stat-label">متوسط تقييم الممرضين</p>
+            </div>
+            <div class="stat-item">
+                <h4>نمو المنصة</h4>
+                <p class="stat-number">@string.Format("{0:P0}", (ViewBag.TotalUsers > 0 ? (double)ViewBag.TotalNurses / ViewBag.TotalUsers : 0))</p>
+                <p class="stat-label">نسبة الممرضين للمستخدمين</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Status Chart
+            const statusCtx = document.getElementById('statusChart').getContext('2d');
+            const statusData = @Json.Serialize(statusCounts.Select(x => new { label = x.Status, value = x.Count }));
+            new Chart(statusCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: statusData.map(x => x.label),
+                    datasets: [{
+                        data: statusData.map(x => x.value),
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed + ' (' + Math.round(context.parsed / statusData.reduce((a, b) => a + b.value, 0) * 100) + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            const revenueData = @Json.Serialize(revenueByMonth);
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: revenueData.map(x => x.Month),
+                    datasets: [{
+                        label: 'الإيرادات (ريال)',
+                        data: revenueData.map(x => x.Revenue),
+                        borderColor: '#36A2EB',
+                        backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString('ar-SA') + ' ريال';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return 'الإيرادات: ' + context.parsed.y.toLocaleString('ar-SA') + ' ريال';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Users Chart
+            const usersCtx = document.getElementById('usersChart').getContext('2d');
+            const usersData = @Json.Serialize(usersByRole);
+            new Chart(usersCtx, {
+                type: 'bar',
+                data: {
+                    labels: usersData.map(x => x.Role),
+                    datasets: [{
+                        label: 'عدد المستخدمين',
+                        data: usersData.map(x => x.Count),
+                        backgroundColor: ['#4BC0C0', '#FF6384', '#36A2EB', '#FFCE56'],
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    },
+                    plugins: {
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.dataset.label + ': ' + context.parsed.y;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Appointments Chart
+            const apptCtx = document.getElementById('appointmentsChart').getContext('2d');
+            const apptData = @Json.Serialize(appointmentsByDay);
+            new Chart(apptCtx, {
+                type: 'line',
+                data: {
+                    labels: apptData.map(x => new Date(x.Date).toLocaleDateString('ar-SA')),
+                    datasets: [{
+                        label: 'عدد المواعيد',
+                        data: apptData.map(x => x.Count),
+                        borderColor: '#FF6384',
+                        backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Service Popularity Chart
+            const serviceCtx = document.getElementById('serviceChart').getContext('2d');
+            const serviceData = @Json.Serialize(servicePopularity);
+            new Chart(serviceCtx, {
+                type: 'horizontalBar',
+                data: {
+                    labels: serviceData.map(x => x.ServiceName),
+                    datasets: [{
+                        label: 'عدد المواعيد',
+                        data: serviceData.map(x => x.Count),
+                        backgroundColor: '#FF9F40',
+                        borderRadius: 5
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    scales: {
+                        x: { beginAtZero: true }
+                    }
+                }
+            });
+
+            // Service Revenue Chart
+            const serviceRevenueCtx = document.getElementById('serviceRevenueChart').getContext('2d');
+            const serviceRevenueData = @Json.Serialize(revenueByService);
+            new Chart(serviceRevenueCtx, {
+                type: 'pie',
+                data: {
+                    labels: serviceRevenueData.map(x => x.ServiceName),
+                    datasets: [{
+                        data: serviceRevenueData.map(x => x.Revenue),
+                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FF6384', '#C9CBCF', '#4BC0C0', '#FF6384']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'right' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return context.label + ': ' + context.parsed.toLocaleString('ar-SA') + ' ريال';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        });
+
+        function exportToPDF() {
+            // Simple PDF export using html2canvas and jsPDF
+            html2canvas(document.body).then(canvas => {
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+
+                const imgWidth = 210;
+                const pageHeight = 295;
+                const imgHeight = canvas.height * imgWidth / canvas.width;
+                let heightLeft = imgHeight;
+
+                let position = 0;
+
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                heightLeft -= pageHeight;
+
+                while (heightLeft >= 0) {
+                    position = heightLeft - imgHeight;
+                    pdf.addPage();
+                    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+                    heightLeft -= pageHeight;
+                }
+
+                pdf.save('تقرير-المنصة-' + new Date().toISOString().split('T')[0] + '.pdf');
+            });
+        }
+    </script>
+}
+
+<style>
+    .reports-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .reports-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .print-btn, .export-btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+
+    .print-btn {
+        background: var(--color-primary);
+        color: white;
+    }
+
+    .print-btn:hover {
+        background: var(--color-primary-dark);
+        transform: translateY(-2px);
+    }
+
+    .export-btn {
+        background: var(--color-secondary);
+        color: white;
+    }
+
+    .export-btn:hover {
+        background: var(--color-secondary-dark);
+        transform: translateY(-2px);
+    }
+
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+
+    .summary-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 15px;
+        padding: 1.5rem;
+        color: white;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        transition: transform 0.3s ease;
+    }
+
+    .summary-card:hover {
+        transform: translateY(-5px);
+    }
+
+    .summary-card:nth-child(2) {
+        background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    }
+
+    .summary-card:nth-child(3) {
+        background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    }
+
+    .summary-card:nth-child(4) {
+        background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+    }
+
+    .summary-card:nth-child(5) {
+        background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+    }
+
+    .summary-card:nth-child(6) {
+        background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+    }
+
+    .card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+        flex-shrink: 0;
+    }
+
+    .card-content h3 {
+        margin: 0;
+        font-size: 2rem;
+        font-weight: 700;
+    }
+
+    .card-content p {
+        margin: 0.25rem 0 0 0;
+        opacity: 0.9;
+        font-size: 0.9rem;
+    }
+
+    .reports-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+        gap: 2rem;
+        margin-bottom: 3rem;
+    }
+
+    .report-card {
+        background: #fff;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #f0f0f0;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .report-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+    }
+
+    .report-card h3 {
+        margin: 0 0 1.5rem 0;
+        color: var(--color-primary);
+        font-size: 1.3rem;
+        font-weight: 600;
+        text-align: center;
+    }
+
+    .report-card canvas {
+        max-width: 100%;
+        height: auto;
+    }
+
+    .tables-section {
+        display: grid;
+        gap: 2rem;
+    }
+
+    .table-container {
+        background: #fff;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        border: 1px solid #f0f0f0;
+    }
+
+    .table-container h3 {
+        margin: 0 0 1.5rem 0;
+        color: var(--color-primary);
+        font-size: 1.4rem;
+        font-weight: 600;
+    }
+
+    .table-responsive {
+        overflow-x: auto;
+    }
+
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 1rem;
+    }
+
+    .data-table th,
+    .data-table td {
+        padding: 1rem;
+        text-align: right;
+        border-bottom: 1px solid #eee;
+    }
+
+    .data-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: var(--color-primary);
+    }
+
+    .data-table tr:hover {
+        background: #f8f9fa;
+    }
+
+    .rating {
+        color: #ffd700;
+        font-weight: 600;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 1rem;
+    }
+
+    .stat-item {
+        text-align: center;
+        padding: 1.5rem;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 10px;
+        border: 1px solid #e1e8ed;
+    }
+
+    .stat-item h4 {
+        margin: 0 0 0.5rem 0;
+        color: var(--color-primary);
+        font-size: 1.1rem;
+    }
+
+    .stat-number {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--color-primary);
+        margin: 0.5rem 0;
+    }
+
+    .stat-label {
+        color: #666;
+        font-size: 0.9rem;
+        margin: 0.25rem 0;
+    }
+
+    .stat-sub {
+        color: #888;
+        font-size: 0.8rem;
+        margin: 0.25rem 0 0 0;
+    }
+
+    /* Print styles */
+    @@media print {
+        .reports-actions,
+        .sidebar {
+            display: none !important;
+        }
+
+        .summary-card {
+            break-inside: avoid;
+        }
+
+        .report-card {
+            break-inside: avoid;
+            box-shadow: none;
+            border: 1px solid #ccc;
+        }
+
+        .table-container {
+            break-inside: avoid;
+            box-shadow: none;
+            border: 1px solid #ccc;
+        }
+
+        .page-title {
+            color: #000 !important;
+        }
+    }
+
+    /* Responsive design */
+    @@media (max-width: 768px) {
+        .reports-header {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .reports-actions {
+            justify-content: center;
+        }
+
+        .summary-cards {
+            grid-template-columns: 1fr;
+        }
+
+        .reports-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>

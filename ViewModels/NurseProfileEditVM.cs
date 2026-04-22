@@ -20,6 +20,11 @@ public class NurseProfileEditVM
     public bool IsAvailable { get; set; } = true;
 
     public List<NurseServiceEditRowVM> ServiceRows { get; set; } = new();
+
+    [Display(Name = "صورة شخصية (اختياري)")]
+    public IFormFile? ProfileImage { get; set; }
+
+    public string? CurrentProfileImagePath { get; set; }
 }
 
 public class NurseServiceEditRowVM

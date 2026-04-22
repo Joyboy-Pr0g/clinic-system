@@ -56,4 +56,7 @@ public class RegisterClinicPageVM
     [EmailAddress]
     [Display(Name = "بريد العيادة")]
     public string? ClinicEmail { get; set; }
+
+    [Display(Name = "الصورة الشخصية لمالك الحساب (اختياري)")]
+    public IFormFile? OwnerProfileImage { get; set; }
 }

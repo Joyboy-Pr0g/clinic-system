@@ -123,40 +123,24 @@ public class NurseController : Controller
         return Json(new { url = link.Value.Url, label = link.Value.Label });
     }
 
-    [HttpPost("appointments/{id:int}/status")]
+    [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> SetStatus(int id, string status, CancellationToken ct)
     {
         var user = await _users.GetUserAsync(User);
-        var (ok, err) = await _appointments.UpdateStatusAsync(id, status, user!.Id, AppRoles.Nurse, ct);
-        if (!ok)
-            TempData["Error"] = err;
-        else
-            TempData["Success"] = "تم تحديث الحالة.";
-        return RedirectToAction(nameof(AppointmentDetail), new { id });
-    }
-
-    [HttpPost("appointments/{id:int}/delete")]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteAppointment(int id, CancellationToken ct)
-    {
-        var user = await _users.GetUserAsync(User);
         var np = await _profiles.GetByUserIdAsync(user!.Id, ct);
         if (np == null) return NotFound();
-        var appt = await _apptRepo.GetByIdForNurseAsync(id, np.NurseProfileId, ct);
-        if (appt == null) return NotFound();
-        var st = appt.Status ?? "";
-        if (!string.Equals(st, AppointmentStatuses.Cancelled, StringComparison.OrdinalIgnoreCase)
-            && !string.Equals(st, AppointmentStatuses.Completed, StringComparison.OrdinalIgnoreCase))
+        
+        var (ok, error) = await _appointments.UpdateStatusAsync(id, status, user!.Id, AppRoles.Nurse, ct);
+        if (!ok)
         {
-            TempData["Error"] = "يمكن حذف المواعيد الملغاة أو المكتملة فقط.";
-            return RedirectToAction(nameof(Appointments));
+            TempData["Error"] = error ?? "حدث خطأ أثناء تحديث حالة الموعد.";
         }
-
-        _apptRepo.Remove(appt);
-        await _apptRepo.SaveChangesAsync(ct);
-        TempData["Success"] = "تم حذف الموعد من سجلك.";
-        return RedirectToAction(nameof(Appointments));
+        else
+        {
+            TempData["Success"] = "تم تحديث حالة الموعد.";
+        }
+        return RedirectToAction(nameof(AppointmentDetail), new { id });
     }
 
     [HttpGet("availability")]
@@ -237,7 +221,15 @@ public class NurseController : Controller
     {
         var user = await _users.GetUserAsync(User);
         var np = await _db.NurseProfiles.Include(n => n.NurseServices).FirstAsync(n => n.UserId == user!.Id, ct);
-        np.Specialization = model.Specialization;
+        if (model.ProfileImage != null)
+        {
+            var p = await _files.SaveImageAsync(model.ProfileImage, "profiles", ct);
+            if (p != null)
+            {
+                var u = await _users.FindByIdAsync(user.Id);
+                if (u != null) { u.ProfileImagePath = p; await _users.UpdateAsync(u); }
+            }
+        }
         np.YearsOfExperience = model.YearsOfExperience;
         np.Bio = model.Bio;
         np.IsAvailable = model.IsAvailable;

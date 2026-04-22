@@ -19,10 +19,15 @@
             <div class="field"><label>خط الطول</label><input asp-for="Longitude" step="any" /></div>
             <div class="field"><label asp-for="LogoFile"></label><input asp-for="LogoFile" type="file" accept="image/*" /></div>
             <div class="field"><label asp-for="CoverFile"></label><input asp-for="CoverFile" type="file" accept="image/*" /></div>
+            <div class="field"><label asp-for="OwnerProfileImage"></label><input asp-for="OwnerProfileImage" type="file" accept="image/*" /></div>
             <div class="field field-full"><label asp-for="Description"></label><textarea asp-for="Description" rows="3"></textarea></div>
             @if (!string.IsNullOrEmpty(Model.LogoImagePath))
             {
                 <p class="muted field-full" style="margin:0">الشعار الحالي: <img src="@Model.LogoImagePath" alt="" style="height:40px;object-fit:cover;border-radius:8px;vertical-align:middle" /></p>
+            }
+            @if (!string.IsNullOrEmpty(Model.OwnerProfileImagePath))
+            {
+                <p class="muted field-full" style="margin:0">صورة المالك الحالية: <img src="@Model.OwnerProfileImagePath" alt="" style="height:40px;width:40px;object-fit:cover;border-radius:999px;vertical-align:middle" /></p>
             }
             <div class="field field-full" style="margin-top:0.25rem">
                 <button type="submit" class="btn btn-primary">حفظ</button>

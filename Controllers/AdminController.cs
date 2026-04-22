@@ -602,6 +602,170 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Ratings));
     }
 
+    [HttpGet("reports")]
+    public async Task<IActionResult> Reports(CancellationToken ct)
+    {
+        // Get data for charts
+        var today = DateTime.UtcNow.Date;
+        var monthStart = new DateTime(today.Year, today.Month, 1);
+        var yearStart = new DateTime(today.Year, 1, 1);
+
+        // Basic dashboard stats
+        var totalUsers = await _db.Users.CountAsync(ct);
+        var totalNurses = await _db.NurseProfiles.CountAsync(ct);
+        var totalClinics = await _db.Clinics.CountAsync(ct);
+        var appointmentsToday = await _db.Appointments.CountAsync(a => a.AppointmentDate >= today && a.AppointmentDate < today.AddDays(1), ct);
+        var revenueEstimate = await _db.Appointments
+            .Where(a => a.Status == AppointmentStatuses.Completed && a.UpdatedAt >= monthStart)
+            .SumAsync(a => (decimal?)a.TotalPrice, ct) ?? 0;
+        var pendingVerifications = await _db.NurseProfiles.CountAsync(n => !n.IsVerified, ct)
+            + await _db.Clinics.CountAsync(c => !c.IsVerified, ct);
+
+        // Appointments by status
+        var statusCounts = await _db.Appointments
+            .GroupBy(a => a.Status)
+            .Select(g => new { Status = g.Key, Count = g.Count() })
+            .ToListAsync(ct);
+
+        // Revenue by month (last 12 months)
+        var revenueByMonth = _db.Appointments
+            .Where(a => a.Status == AppointmentStatuses.Completed && a.CreatedAt >= yearStart.AddMonths(-11))
+            .GroupBy(a => new { Year = a.CreatedAt.Year, Month = a.CreatedAt.Month })
+            .Select(g => new { g.Key.Year, g.Key.Month, Revenue = g.Sum(a => a.TotalPrice) })
+            .OrderBy(x => x.Year).ThenBy(x => x.Month)
+            .AsEnumerable()
+            .Select(g => new { Month = $"{g.Year}-{g.Month:D2}", Revenue = g.Revenue })
+            .ToList();
+
+        // Users by role
+        var usersByRole = new List<dynamic>();
+        var patients = await _db.Users.CountAsync(u => u.Role == AppRoles.Patient, ct);
+        var nurses = await _db.Users.CountAsync(u => u.Role == AppRoles.Nurse, ct);
+        var clinics = await _db.Users.CountAsync(u => u.Role == AppRoles.ClinicOwner, ct);
+        var admins = await _db.Users.CountAsync(u => u.Role == AppRoles.Admin, ct);
+
+        usersByRole.Add(new { Role = "مرضى", Count = patients });
+        usersByRole.Add(new { Role = "ممرضين", Count = nurses });
+        usersByRole.Add(new { Role = "عيادات", Count = clinics });
+        usersByRole.Add(new { Role = "مديرين", Count = admins });
+
+        // Appointments by day (last 30 days)
+        var appointmentsByDay = await _db.Appointments
+            .Where(a => a.CreatedAt >= today.AddDays(-30))
+            .GroupBy(a => a.CreatedAt.Date)
+            .Select(g => new { Date = g.Key, Count = g.Count() })
+            .OrderBy(x => x.Date)
+            .ToListAsync(ct);
+
+        // Recent activity (from dashboard)
+        var recentActivity = await _db.Appointments
+            .AsNoTracking()
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(20)
+            .Select(a => new
+            {
+                Text = $"موعد جديد #{a.AppointmentId} — {a.Status}",
+                At = a.CreatedAt,
+                Type = "appointment"
+            })
+            .ToListAsync(ct);
+
+        // Service popularity
+        var servicePopularity = await _db.Appointments
+            .Where(a => a.CreatedAt >= monthStart)
+            .GroupBy(a => a.ServiceId)
+            .Select(g => new
+            {
+                ServiceId = g.Key,
+                ServiceName = g.First().Service != null ? g.First().Service.ServiceName : "خدمة غير محددة",
+                Count = g.Count()
+            })
+            .OrderByDescending(x => x.Count)
+            .Take(10)
+            .ToListAsync(ct);
+
+        // Top rated nurses
+        var topRatedNurses = await _db.NurseProfiles
+            .AsNoTracking()
+            .Include(n => n.User)
+            .Where(n => n.TotalReviews > 0)
+            .OrderByDescending(n => n.AverageRating)
+            .Take(10)
+            .Select(n => new
+            {
+                Name = n.User.FullName,
+                Rating = n.AverageRating,
+                Reviews = n.TotalReviews,
+                Specialization = n.Specialization
+            })
+            .ToListAsync(ct);
+
+        // Top rated clinics
+        var topRatedClinics = await _db.Clinics
+            .AsNoTracking()
+            .Include(c => c.Owner)
+            .Where(c => c.TotalReviews > 0)
+            .OrderByDescending(c => c.AverageRating)
+            .Take(10)
+            .Select(c => new
+            {
+                Name = c.ClinicName,
+                Rating = c.AverageRating,
+                Reviews = c.TotalReviews,
+                City = c.City
+            })
+            .ToListAsync(ct);
+
+        // Revenue by service type
+        var revenueByService = await _db.Appointments
+            .Where(a => a.Status == AppointmentStatuses.Completed && a.CreatedAt >= monthStart)
+            .GroupBy(a => a.ServiceId)
+            .Select(g => new
+            {
+                ServiceName = g.First().Service != null ? g.First().Service.ServiceName : "خدمة غير محددة",
+                Revenue = g.Sum(a => a.TotalPrice)
+            })
+            .OrderByDescending(x => x.Revenue)
+            .Take(10)
+            .ToListAsync(ct);
+
+        // Contact messages stats
+        var contactStats = new
+        {
+            Total = await _db.ContactMessages.CountAsync(ct),
+            Unread = await _db.ContactMessages.CountAsync(m => !m.IsRead, ct),
+            ThisMonth = await _db.ContactMessages.CountAsync(m => m.CreatedAt >= monthStart, ct)
+        };
+
+        // Article stats
+        var articleStats = new
+        {
+            Total = await _db.Articles.CountAsync(ct),
+            Published = await _db.Articles.CountAsync(a => a.IsPublished, ct),
+            ThisMonth = await _db.Articles.CountAsync(a => a.CreatedAt >= monthStart, ct)
+        };
+
+        ViewBag.TotalUsers = totalUsers;
+        ViewBag.TotalNurses = totalNurses;
+        ViewBag.TotalClinics = totalClinics;
+        ViewBag.AppointmentsToday = appointmentsToday;
+        ViewBag.RevenueEstimate = revenueEstimate;
+        ViewBag.PendingVerifications = pendingVerifications;
+        ViewBag.StatusCounts = statusCounts;
+        ViewBag.RevenueByMonth = revenueByMonth;
+        ViewBag.UsersByRole = usersByRole;
+        ViewBag.AppointmentsByDay = appointmentsByDay;
+        ViewBag.RecentActivity = recentActivity;
+        ViewBag.ServicePopularity = servicePopularity;
+        ViewBag.TopRatedNurses = topRatedNurses;
+        ViewBag.TopRatedClinics = topRatedClinics;
+        ViewBag.RevenueByService = revenueByService;
+        ViewBag.ContactStats = contactStats;
+        ViewBag.ArticleStats = articleStats;
+
+        return View();
+    }
+
     private static string Slugify(string title)
     {
         var s = title.Trim().ToLowerInvariant();

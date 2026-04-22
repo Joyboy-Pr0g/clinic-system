@@ -61,7 +61,7 @@ builder.Services.AddSignalR().AddJsonProtocol(o =>
 
 var app = builder.Build();
 
-await SeedData.EnsureSeedAsync(app.Services);
+// await SeedData.EnsureSeedAsync(app.Services);
 
 if (!app.Environment.IsDevelopment())
 {

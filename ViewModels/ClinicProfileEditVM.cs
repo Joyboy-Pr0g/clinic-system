@@ -49,4 +49,9 @@ public class ClinicProfileEditVM
     public IFormFile? CoverFile { get; set; }
 
     public string? GoogleMapsApiKey { get; set; }
+
+    [Display(Name = "الصورة الشخصية لمالك الحساب")]
+    public IFormFile? OwnerProfileImage { get; set; }
+
+    public string? OwnerProfileImagePath { get; set; }
 }

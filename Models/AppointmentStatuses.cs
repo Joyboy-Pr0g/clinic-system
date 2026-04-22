@@ -15,9 +15,15 @@ public static class AppointmentStatuses
         string.Equals(status, Approved, StringComparison.OrdinalIgnoreCase)
         || string.Equals(status, Confirmed, StringComparison.OrdinalIgnoreCase);
 
-    public static bool ChatAndTrackingUnlocked(string? status) =>
-        IsApproved(status) || string.Equals(status, InProgress, StringComparison.OrdinalIgnoreCase)
+    public static bool IsChatOpen(string? status) =>
+        IsApproved(status)
+        || string.Equals(status, InProgress, StringComparison.OrdinalIgnoreCase)
         || string.Equals(status, Completed, StringComparison.OrdinalIgnoreCase);
+
+    public static bool IsTrackingAllowed(string? status) =>
+        IsApproved(status) || string.Equals(status, InProgress, StringComparison.OrdinalIgnoreCase);
+
+    public static bool ChatAndTrackingUnlocked(string? status) => IsChatOpen(status);
 
     /// <summary>اسم فئة الـ CSS للشارات (badge-*) في الجداول.</summary>
     public static string BadgeCssClass(string? status)

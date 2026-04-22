@@ -10,8 +10,9 @@ public static class MapsTrackLinkBuilder
 
     public static (string Url, string Label)? TryForPatientTrackingProvider(Appointment appt)
     {
-        if (appt.Status == AppointmentStatuses.Cancelled || appt.Status == AppointmentStatuses.Completed)
-            return null;
+        // أزل الشرط للسماح بالتتبع في جميع الحالات
+        // if (appt.Status == AppointmentStatuses.Cancelled || appt.Status == AppointmentStatuses.Completed)
+        //     return null;
 
         double? lat = null;
         double? lng = null;
@@ -20,11 +21,12 @@ public static class MapsTrackLinkBuilder
         if (appt.NurseProfile != null)
         {
             var n = appt.NurseProfile;
-            if (IsFresh(n.LocationUpdatedAt) && n.LastLatitude.HasValue && n.LastLongitude.HasValue)
+            // استخدم آخر موقع معروف للممرض، حتى لو لم يكن طازجاً جداً
+            if (n.LastLatitude.HasValue && n.LastLongitude.HasValue)
             {
                 lat = n.LastLatitude;
                 lng = n.LastLongitude;
-                label = "تتبع موقع الممرض/ة في Google Maps";
+                label = "تتبع آخر موقع للممرض/ة في Google Maps";
             }
             else if (appt.Latitude.HasValue && appt.Longitude.HasValue)
             {
@@ -54,7 +56,7 @@ public static class MapsTrackLinkBuilder
         if (!lat.HasValue || !lng.HasValue)
             return null;
 
-        var url = $"https://www.google.com/maps/dir/?api=1&destination={lat.Value.ToString(CultureInfo.InvariantCulture)},{lng.Value.ToString(CultureInfo.InvariantCulture)}";
+        var url = $"https://www.google.com/maps/search/?api=1&query={lat.Value.ToString(CultureInfo.InvariantCulture)},{lng.Value.ToString(CultureInfo.InvariantCulture)}";
         return (url, label);
     }
 

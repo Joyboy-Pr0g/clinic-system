@@ -1,4 +1,4 @@
-@model int
+@model dynamic
 <style>
     /* الحاوية الكبيرة للدردشة */
     .appointment-chat-panel {
@@ -177,7 +177,7 @@
     }
 </style>
 
-<section class="appointment-chat-panel animate-fade-up" data-chat-appt="@Model">
+    <section class="appointment-chat-panel animate-fade-up" data-chat-appt="@Model.AppointmentId" data-user-role="@Model.UserRole">
     <div class="appointment-chat-log" data-chat-log id="messagesList"></div>
 
     <form class="appointment-chat-form ig-composer-wrapper" data-chat-form autocomplete="off" enctype="multipart/form-data">
@@ -195,8 +195,26 @@
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
                     <input type="file" data-chat-media-picker data-chat-file hidden
-                           accept="image/*,video/mp4,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" />
+                           accept="image/*,video/*,audio/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" />
                 </label>
+
+                <button type="button" class="chat-tool-btn" title="مشاركة الموقع" data-share-location>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                </button>
+
+                <button type="button" class="chat-tool-btn" title="تتبع الموقع" data-track-location>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                        <path d="M12 2v2"></path>
+                        <path d="M12 20v2"></path>
+                        <path d="M2 12h2"></path>
+                        <path d="M20 12h2"></path>
+                    </svg>
+                </button>
 
                 <span class="chat-composer-toolbar__spacer" aria-hidden="true"></span>
 

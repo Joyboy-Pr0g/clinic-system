@@ -65,15 +65,20 @@
     {
         <div data-book-step="1">
             <p class="text-danger book-step-validation-msg" data-step-validation-msg style="display:none;margin:0 0 0.75rem;font-weight:600" role="alert"></p>
-            <label><input type="radio" asp-for="BookType" value="Nurse" /> ممرض منزلي</label>
+            <label><input type="radio" asp-for="BookType" value="Nurse" checked /> ممرض منزلي</label>
             <label><input type="radio" asp-for="BookType" value="Clinic" /> عيادة</label>
-            <div class="field nurse-pick">
+            <div class="field nurse-pick" style="display: block;">
                 <label>الممرض</label>
-                <select asp-for="NurseProfileId" asp-items="@(new SelectList(nurses, "NurseProfileId", "FullName"))">
+                <select asp-for="NurseProfileId">
                     <option value="">— اختر —</option>
+                    @foreach (var n in nurses)
+                    {
+                        <option value="@n.NurseProfileId" data-img="@n.ProfileImage">@n.FullName</option>
+                    }
                 </select>
+                <div class="muted" data-selected-nurse-preview style="display:none;margin-top:0.45rem"></div>
             </div>
-            <div class="field clinic-pick">
+            <div class="field clinic-pick" style="display: none;">
                 <label>العيادة</label>
                 <select asp-for="ClinicId" asp-items="@(new SelectList(clinics, "ClinicId", "ClinicName"))">
                     <option value="">— اختر —</option>
@@ -370,7 +375,7 @@
                 rows.forEach(function (x) {
                     var o = document.createElement("option");
                     o.value = String(x.nurseListingServiceId);
-                    o.textContent = x.name + " — " + Number(x.price).toFixed(2) + " ر.س";
+                    o.textContent = x.name + " — " + Number(x.price).toFixed(2) + " ر.ي";
                     sel.appendChild(o);
                 });
                 if (prev && rows.some(function (x) { return String(x.nurseListingServiceId) === prev; }))
@@ -391,7 +396,7 @@
                 rows.forEach(function (x) {
                     var o = document.createElement("option");
                     o.value = String(x.clinicServiceId);
-                    o.textContent = x.name + " — " + Number(x.price).toFixed(2) + " ر.س";
+                    o.textContent = x.name + " — " + Number(x.price).toFixed(2) + " ر.ي";
                     sel.appendChild(o);
                 });
                 if (prev && rows.some(function (x) { return String(x.clinicServiceId) === prev; }))
@@ -518,16 +523,36 @@
                 });
             }
             var nurseSel = document.querySelector('select[name="NurseProfileId"]');
+            var nursePreview = document.querySelector("[data-selected-nurse-preview]");
+            function refreshSelectedNursePreview() {
+                if (!nurseSel || !nursePreview) return;
+                var opt = nurseSel.options[nurseSel.selectedIndex];
+                if (!opt || !opt.value) {
+                    nursePreview.style.display = "none";
+                    nursePreview.innerHTML = "";
+                    return;
+                }
+                var name = opt.textContent || "";
+                var img = opt.getAttribute("data-img") || "";
+                if (img) {
+                    nursePreview.innerHTML = '<img src="' + img + '" alt="" style="width:28px;height:28px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-inline-end:8px" />' + name;
+                } else {
+                    nursePreview.textContent = name;
+                }
+                nursePreview.style.display = "block";
+            }
             if (nurseSel) {
                 nurseSel.addEventListener("change", function () {
                     if (!isClinicBooking()) {
                         fillNurseServices(nurseSel.value);
                         fetchAvailability();
                     }
+                    refreshSelectedNursePreview();
                 });
             }
             toggleType();
             refreshServicePickVisibility();
+            refreshSelectedNursePreview();
             show(providerLocked ? 1 : 1);
         })();
     </script>

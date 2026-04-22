@@ -13,6 +13,6 @@ public class ClinicServiceEditVM
 
     [Required]
     [Range(0, 999999.99, ErrorMessage = "السعر غير صالح")]
-    [Display(Name = "السعر (ر.س)")]
+    [Display(Name = "السعر (ر.ي)")]
     public decimal Price { get; set; }
 }

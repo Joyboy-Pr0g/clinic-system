@@ -3,8 +3,12 @@
     if (!url || !navigator.geolocation) return;
 
     var key = "homecareLiveLocV1";
+    var lastSentKey = "homecareLastLocSent";
+    var now = Date.now();
     try {
-        if (sessionStorage.getItem(key)) return;
+        // أزل فحص الوقت لإرسال فوري
+        // var lastSent = parseInt(localStorage.getItem(lastSentKey) || "0");
+        // if (now - lastSent < 5 * 60 * 1000) return;
     } catch (e) { /* private mode */ }
 
     var form = document.getElementById("live-loc-antiforgery");
@@ -20,7 +24,9 @@
             fetch(url, { method: "POST", body: fd, credentials: "same-origin" })
                 .then(function (r) {
                     if (r.ok) {
-                        try { sessionStorage.setItem(key, "1"); } catch (e) { }
+                        try {
+                            localStorage.setItem(lastSentKey, String(now));
+                        } catch (e) { }
                     }
                 })
                 .catch(function () { });

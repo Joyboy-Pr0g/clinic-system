@@ -82,7 +82,7 @@
             <div class="card card--border-hover">
                 <div class="feature-card__icon" style="margin:0 0 1rem 0"><i class="fa-solid @(string.IsNullOrEmpty(s.ServiceName) ? "fa-stethoscope" : "fa-notes-medical")"></i></div>
                 <h3>@s.ServiceName</h3>
-                <p class="muted">من @s.BasePrice.ToString("N0") ر.س — رعاية منزلية بمعايير واضحة.</p>
+                <p class="muted">من @s.BasePrice.ToString("N0") ر.ي — رعاية منزلية بمعايير واضحة.</p>
                 @if (User.Identity?.IsAuthenticated == true && User.IsInRole("Patient"))
                 {
                     <a class="btn btn-sm btn-primary" asp-controller="Patient" asp-action="Book">احجز الخدمة</a>

@@ -32,6 +32,15 @@
 
         var type = (m.messageType || "text").toLowerCase();
         var url = m.attachmentUrl || "";
+        function fileNameFromUrl(u) {
+            try {
+                var clean = (u || "").split("?")[0].split("#")[0];
+                var parts = clean.split("/");
+                return decodeURIComponent(parts[parts.length - 1] || "attachment");
+            } catch (e) {
+                return "attachment";
+            }
+        }
 
         if (type === "image" && url) {
             var img = document.createElement("img");
@@ -55,6 +64,14 @@
             aud.preload = "metadata";
             aud.src = url;
             row.appendChild(aud);
+        } else if (type === "file" && url) {
+            var link = document.createElement("a");
+            link.href = url;
+            link.target = "_blank";
+            link.rel = "noopener noreferrer";
+            link.className = "appointment-chat-msg__attach-file";
+            link.textContent = "📎 " + fileNameFromUrl(url);
+            row.appendChild(link);
         }
 
         if (m.body) {
